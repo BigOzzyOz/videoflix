@@ -8,37 +8,26 @@ export const routes: Routes = [
     {
         path: 'landing',
         component: LandingComponent,
-        data: {
-            title: 'Videoflix'
-        }
     },
     {
         path: 'login',
         component: LoginComponent,
-        data: {
-            title: 'Videoflix Login'
-        }
+        title: 'Login',
     },
     {
         path: 'register',
         component: RegisterComponent,
-        data: {
-            title: 'Videoflix Register'
-        }
+        title: 'Register',
     },
     {
         path: 'imprint',
         component: LegalNoticeComponent,
-        data: {
-            title: 'Videoflix Imprint'
-        }
+        title: 'Imprint',
     },
     {
         path: 'privacy',
         component: LegalNoticeComponent,
-        data: {
-            title: 'Videoflix Privacy Policy'
-        }
+        title: 'Privacy Policy',
     },
     {
         path: '',
