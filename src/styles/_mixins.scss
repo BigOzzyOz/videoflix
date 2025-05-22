@@ -38,6 +38,13 @@
     align-items: center;
 }
 
+@mixin flex-column-start {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
 @mixin absolute-top-left {
     position: absolute;
     top: 0;

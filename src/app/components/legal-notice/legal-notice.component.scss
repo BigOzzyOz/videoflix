@@ -1,0 +1,34 @@
+@use 'index' as *;
+
+.legal-notice {
+    @include flex-column-start;
+    width: 100%;
+    height: calc(100dvh - 20rem);
+    background-color: $bg-color;
+    padding: 0 2rem;
+    margin: 12rem 0 8rem;
+    text-align: left;
+    gap: 2.5rem;
+    overflow-y: auto;
+    word-break: break-word;
+
+    @include respond-to(small) {
+        padding: 0 3rem;
+
+    }
+
+    @include respond-to(medium) {
+        padding: 0 4rem;
+
+    }
+
+    @include respond-to(large) {
+        padding: 0 8rem;
+
+    }
+
+    @include respond-to(xlarge) {
+        padding: 0 12rem;
+
+    }
+}
