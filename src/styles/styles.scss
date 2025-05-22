@@ -1,6 +1,78 @@
-/* You can add global styles to this file, and also import other style files */
+@use "index" as *;
+
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    text-decoration: none;
+    list-style: none;
+    font-family: 'DM Sans', Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    color: $secondary-color;
+    background-color: $bg-color;
+
+    h1 {
+        font-size: 3rem;
+        font-weight: 700;
+    }
+
+    p {
+        font-size: 1rem;
+        font-weight: 400;
+    }
+
+    a {
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    button {
+        background-color: $primary-color;
+        border-radius: 40px;
+        border: none;
+        cursor: pointer;
+        padding: 12px 24px;
+        color: $secondary-color;
+        transition: all 125ms ease-in-out;
+        transform-origin: center;
+
+        &:hover {
+            box-shadow:
+                0 0 0 0.5px $secondary-color,
+                0 0 0 1px $primary-color,
+                0 0 0 2px $primary-color,
+                0 0 0 4px $secondary-color,
+                0 0 0 8px $primary-color;
+            border-radius: 40px;
+            background: $secondary-color;
+            color: $primary-color;
+        }
+
+        &:active {
+            background-color: lighten($primary-color, 10%);
+        }
+
+        &:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba($primary-color, 0.5);
+        }
+
+        &:disabled {
+            background-color: lighten($primary-color, 20%);
+            cursor: not-allowed;
+        }
+    }
+
+    input {
+        border: 1px solid $primary-color;
+        border-radius: 4px;
+        padding: 8px;
+
+        &:focus {
+            outline: none;
+            border-color: $primary-color;
+        }
+    }
 }

@@ -1,0 +1,13 @@
+.landing {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100dvh;
+    background-color: #f0f0f0;
+    background: linear-gradient(to top,
+            rgba(0, 0, 0, 1) 0%,
+            rgba(0, 0, 0, 0.55) 50%,
+            rgba(0, 0, 0, 1) 100%),
+        url('../../../assets/images/bg_landing.png') no-repeat center center fixed;
+}
