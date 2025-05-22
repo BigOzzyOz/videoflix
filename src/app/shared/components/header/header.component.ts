@@ -9,11 +9,12 @@ import { Router } from '@angular/router';
 })
 export class HeaderComponent {
   @Input() loginButton: Boolean = true;
+  @Input() longLogo: Boolean = true;
   private router = inject(Router);
 
   constructor() { }
 
-  onLogin() {
+  toLogin() {
     this.router.navigate(['/login']);
   }
 

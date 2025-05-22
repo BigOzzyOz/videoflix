@@ -1,6 +1,16 @@
 <header>
-    <img src="../../../../assets/images/Logo_great.png" alt="" srcset="">
+    @if (longLogo) {
+        <picture>
+            <source media="(max-width: 576px)" srcset="/assets/images/logo.png">
+            <source media="(min-width: 577px)" srcset="/assets/images/logo_great.png">
+            <img src="/assets/images/logo_great.png" alt="Logo great" class="logo">
+        </picture>
+    } @else {
+        <img src="/assets/images/logo.png" alt="Logo" class="logo">
+    }
     @if (loginButton) {
-        <button class="login-button" (click)="onLogin()">Login</button>
+        <button class="login-button" (click)="toLogin()">Log In</button>
+    } @else {
+        <div></div>
     }
 </header>

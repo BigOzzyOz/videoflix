@@ -1,13 +1,33 @@
+@use 'index' as *;
+
 header {
-    position: fixed;
-    top: 0;
-    left: 0;
+    @include absolute-top-left;
+    @include flex-center;
     width: 100%;
+    max-width: 1920px;
     height: 104px;
     background-color: transparent;
-    display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 8px 96px;
+    padding: 1rem 2rem;
+
+    @include respond-to(small) {
+        padding: 1rem 3rem;
+
+    }
+
+    @include respond-to(medium) {
+        padding: 1rem 4rem;
+
+    }
+
+    @include respond-to(large) {
+        padding: 1rem 8rem;
+
+    }
+
+    @include respond-to(xlarge) {
+        padding: 1rem 12rem;
+
+    }
 
 }
