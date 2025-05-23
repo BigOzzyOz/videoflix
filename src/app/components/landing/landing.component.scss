@@ -14,6 +14,7 @@
             rgba(0, 0, 0, 0.55) 50%,
             rgba(0, 0, 0, 1) 100%),
         url('/assets/images/bg_landing.png') no-repeat center center fixed;
+    background-size: 100% cover;
 
     &__title {
         @include flex-column-center;
