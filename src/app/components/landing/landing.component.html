@@ -7,8 +7,8 @@
     </div>
     <p class="landing__description">Enter your email to create or restart your subscription.</p>
     <div class="landing__input">
-        <input type="text" class="landing__input__field" placeholder="Enter your email" />
-        <button class="landing__input__button">Sign Up
+        <input type="email" class="landing__input__field" placeholder="Enter your email" [(ngModel)]="mailInput" />
+        <button (click)="toSignup()" class="landing__input__button">Sign Up
             <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <mask id="mask0_78_41" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="24"
                     height="25">
