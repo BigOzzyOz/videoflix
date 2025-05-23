@@ -10,6 +10,25 @@ header {
     justify-content: space-between;
     padding: 1rem 2rem;
 
+    .header__back_arrow {
+        cursor: pointer;
+
+        path {
+            transition: all 125ms ease;
+            transform-origin: center;
+            fill: $secondary-color;
+        }
+
+
+        &:hover {
+            path {
+                fill: $primary-color;
+                transform: scale(0.9);
+            }
+
+        }
+    }
+
     @include respond-to(small) {
         padding: 1rem 3rem;
 

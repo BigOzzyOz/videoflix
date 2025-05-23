@@ -8,14 +8,22 @@ import { Router } from '@angular/router';
   styleUrl: './header.component.scss'
 })
 export class HeaderComponent {
-  @Input() loginButton: Boolean = true;
-  @Input() longLogo: Boolean = true;
+  @Input() loginButton: Boolean = false;
+  @Input() logoutButton: Boolean = false;
+  @Input() backArrow: Boolean = false;
+  @Input() responsiveLogo: Boolean = false;
+  @Input() shortLogo: Boolean = false;
+  @Input() longLogo: Boolean = false;
   private router = inject(Router);
 
   constructor() { }
 
   toLogin() {
     this.router.navigate(['/login']);
+  }
+
+  goBack() {
+    this.router.navigate(['/']);
   }
 
 }

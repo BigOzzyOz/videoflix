@@ -105,9 +105,12 @@ a {
     cursor: pointer;
     font-size: 2rem;
     font-weight: 400;
+    transition: all 125ms ease;
+    transform-origin: center;
 
     &:hover {
-        text-decoration: underline;
+        color: $primary-color;
+        transform: scale(0.9);
     }
 }
 
