@@ -1,23 +1,46 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { HeaderComponent } from "../../shared/components/header/header.component";
 import { FooterComponent } from "../../shared/components/footer/footer.component";
+import { PasswordInputComponent } from "../../shared/components/password-input/password-input.component";
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { EmailInputComponent } from "../../shared/components/email-input/email-input.component";
 
 @Component({
   selector: 'app-login',
-  imports: [HeaderComponent, FooterComponent],
+  imports: [HeaderComponent, FooterComponent, PasswordInputComponent, ReactiveFormsModule, EmailInputComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
 export class LoginComponent {
-  isVisible: boolean = false;
-  constructor() { }
-  toggleVisibility() {
-    const passwordInput = document.getElementById('password-input') as HTMLInputElement;
-    this.isVisible = !this.isVisible;
-    if (passwordInput) {
-      passwordInput.type = this.isVisible ? 'text' : 'password';
-    }
+  loginForm: FormGroup;
+  private fb = inject(FormBuilder);
+
+  constructor() {
+    this.loginForm = this.fb.group({
+      email: ['', [
+        Validators.required,
+        Validators.email,
+        Validators.minLength(5),
+        Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)
+      ]],
+      password: ['', [
+        Validators.required,
+        Validators.minLength(8),
+        Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/)
+      ]]
+    });
   }
+
+  get password(): FormControl {
+    return this.loginForm.get('password') as FormControl;
+  }
+
+  get email(): FormControl {
+    return this.loginForm.get('email') as FormControl;
+  }
+
+
+
 
 
 }
