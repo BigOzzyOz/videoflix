@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { FooterComponent } from "../../shared/components/footer/footer.component";
 import { HeaderComponent } from "../../shared/components/header/header.component";
-import { PasswordInputComponent } from "../../shared/components/password-input/password-input.component";
+import { PasswordInputComponent } from "../../shared/components/input-elements/password-input/password-input.component";
 
 @Component({
   selector: 'app-password-reset',

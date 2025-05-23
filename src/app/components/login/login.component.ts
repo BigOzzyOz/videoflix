@@ -1,9 +1,9 @@
 import { Component, inject } from '@angular/core';
 import { HeaderComponent } from "../../shared/components/header/header.component";
 import { FooterComponent } from "../../shared/components/footer/footer.component";
-import { PasswordInputComponent } from "../../shared/components/password-input/password-input.component";
+import { PasswordInputComponent } from "../../shared/components/input-elements/password-input/password-input.component";
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { EmailInputComponent } from "../../shared/components/email-input/email-input.component";
+import { EmailInputComponent } from "../../shared/components/input-elements/email-input/email-input.component";
 
 @Component({
   selector: 'app-login',
