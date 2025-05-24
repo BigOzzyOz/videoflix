@@ -32,7 +32,7 @@ export class PasswordResetComponent {
       if (params['reset'] === 'true') {
         this.passwordReset = true;
         this.resetToken = params['token'] || '';
-      } else if (params['forget'] === 'true') {
+      } else if (params['forgot'] === 'true') {
         this.passwordForget = true;
       } else {
         this.passwordVerify = true;

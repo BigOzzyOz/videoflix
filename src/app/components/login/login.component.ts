@@ -6,6 +6,7 @@ import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } 
 import { EmailInputComponent } from "../../shared/components/input-elements/email-input/email-input.component";
 import { ApiService } from '../../shared/services/api.service';
 import { ErrorService } from '../../shared/services/error.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
@@ -19,6 +20,7 @@ export class LoginComponent {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
   private errorService = inject(ErrorService);
+  private router = inject(Router);
 
   constructor() {
     this.loginForm = this.fb.group({
@@ -40,36 +42,40 @@ export class LoginComponent {
   }
 
   async submitLoginForm() {
-    if (this.loginForm.valid) {
-      const email = this.loginForm.value.email;
-      const password = this.loginForm.value.password;
-      console.log('Login Form Submitted', { email, password });
-      await this.api.login(email, password).then(response => {
-        if (!response.ok) {
-          this.errorService.show(response.data.detail || 'Login failed. Please check your credentials.');
-          return;
-        }
-
-        this.api.AccessToken = response.data.access;
-        this.api.RefreshToken = response.data.refresh;
-        this.api.CurrentUser = response.data.user;
-
-      }).catch(error => {
-
-      });
-    } else {
-      console.log('Login Form is invalid');
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+      return;
     }
-  }
+    const email = this.loginForm.value.email;
+    const password = this.loginForm.value.password;
+    console.log('Login Form Submitted', { email, password });
+    try {
+      const response = await this.api.login(email, password);
+      if (!response.ok) {
+        this.errorService.show(response.data.detail || 'Login failed. Please check your credentials.');
+        return;
+      }
 
-  errorHandling(response: any) {
-    const errorElement = this.errorResponse?.nativeElement;
-    if (errorElement) {
-      errorElement.textContent = response.data.detail || 'An error occurred during login. Please try again.';
+      this.api.AccessToken = response.data.access;
+      this.api.RefreshToken = response.data.refresh;
+      this.api.CurrentUser = response.data.user;
+
+      //TODO - redirect to the home page or dashboard
+    } catch (error) {
+      this.errorService.show('An error occurred during login. Please try again later.');
     }
 
   }
 
+  toPasswordForget() {
+    const targetTree = this.router.createUrlTree(['/password/forgot'], {
+      queryParams: { forgot: 'true' }
+    });
+    this.router.navigateByUrl(targetTree);
+  }
 
+  toRegister() {
+    this.router.navigate(['/register']);
+  }
 
 }

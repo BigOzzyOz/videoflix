@@ -20,13 +20,14 @@
 
                 <button type="submit" class="login__container__form__buttons__login">Log In</button>
 
-                <a class="login__container__form__buttons__forgotpassword bold">Forgot Password?</a>
+                <a (click)="toPasswordForget()" class="login__container__form__buttons__forgotpassword bold">Forgot
+                    Password?</a>
 
                 <div class="login__container__form__buttons__signup">
 
                     <p>New to Videoflix?</p>
 
-                    <a routerLink="/signup" class="bold">Sign Up now</a>
+                    <a (click)="toRegister()" class="bold">Sign Up now</a>
 
                 </div>
 
