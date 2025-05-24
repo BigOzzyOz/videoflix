@@ -4,7 +4,7 @@
 
     <div class="login__container">
 
-        <form class="login__container__form" [formGroup]="loginForm">
+        <form class="login__container__form" [formGroup]="loginForm" (ngSubmit)="submitLoginForm()">
 
             <h1>Log In</h1>
 

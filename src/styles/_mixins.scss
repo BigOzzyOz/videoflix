@@ -45,6 +45,12 @@
     align-items: flex-start;
 }
 
+@mixin flex-start {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
 @mixin absolute-top-left {
     position: absolute;
     top: 0;

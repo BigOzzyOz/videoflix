@@ -1,9 +1,11 @@
-import { Component, inject } from '@angular/core';
+import { Component, ElementRef, inject, ViewChild } from '@angular/core';
 import { HeaderComponent } from "../../shared/components/header/header.component";
 import { FooterComponent } from "../../shared/components/footer/footer.component";
 import { PasswordInputComponent } from "../../shared/components/input-elements/password-input/password-input.component";
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EmailInputComponent } from "../../shared/components/input-elements/email-input/email-input.component";
+import { ApiService } from '../../shared/services/api.service';
+import { ErrorService } from '../../shared/services/error.service';
 
 @Component({
   selector: 'app-login',
@@ -12,21 +14,19 @@ import { EmailInputComponent } from "../../shared/components/input-elements/emai
   styleUrl: './login.component.scss'
 })
 export class LoginComponent {
+  @ViewChild('errorResponse') errorResponse: ElementRef | undefined;
   loginForm: FormGroup;
   private fb = inject(FormBuilder);
+  private api = inject(ApiService);
+  private errorService = inject(ErrorService);
 
   constructor() {
     this.loginForm = this.fb.group({
       email: ['', [
         Validators.required,
-        Validators.email,
-        Validators.minLength(5),
-        Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)
       ]],
       password: ['', [
         Validators.required,
-        Validators.minLength(8),
-        Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/)
       ]]
     });
   }
@@ -39,7 +39,36 @@ export class LoginComponent {
     return this.loginForm.get('email') as FormControl;
   }
 
+  async submitLoginForm() {
+    if (this.loginForm.valid) {
+      const email = this.loginForm.value.email;
+      const password = this.loginForm.value.password;
+      console.log('Login Form Submitted', { email, password });
+      await this.api.login(email, password).then(response => {
+        if (!response.ok) {
+          this.errorService.show(response.data.detail || 'Login failed. Please check your credentials.');
+          return;
+        }
 
+        this.api.AccessToken = response.data.access;
+        this.api.RefreshToken = response.data.refresh;
+        this.api.CurrentUser = response.data.user;
+
+      }).catch(error => {
+
+      });
+    } else {
+      console.log('Login Form is invalid');
+    }
+  }
+
+  errorHandling(response: any) {
+    const errorElement = this.errorResponse?.nativeElement;
+    if (errorElement) {
+      errorElement.textContent = response.data.detail || 'An error occurred during login. Please try again.';
+    }
+
+  }
 
 
 
