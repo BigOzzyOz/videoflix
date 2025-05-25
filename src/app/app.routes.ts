@@ -4,6 +4,7 @@ import { LegalNoticeComponent } from './components/legal-notice/legal-notice.com
 import { LoginComponent } from './components/login/login.component';
 import { LandingComponent } from './components/landing/landing.component';
 import { PasswordResetComponent } from './components/password-reset/password-reset.component';
+import { FourOFourComponent } from './shared/components/four-o-four/four-o-four.component';
 
 export const routes: Routes = [
     {
@@ -50,4 +51,12 @@ export const routes: Routes = [
         redirectTo: 'landing',
         pathMatch: 'full'
     },
+    {
+        path: '**',
+        component: FourOFourComponent,
+        title: '404 Not Found',
+        data: {
+            message: 'The page you are looking for does not exist.'
+        }
+    }
 ];

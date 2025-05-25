@@ -21,21 +21,24 @@ export class PasswordResetComponent {
   forgetForm: FormGroup;
 
 
-  passwordVerify: boolean = false;
+  accountVerify: boolean = false;
   passwordReset: boolean = false;
   resetToken: string = '';
   passwordForget: boolean = false;
 
 
   constructor() {
+    const path = this.activeRoute.snapshot.routeConfig?.path;
     this.activeRoute.queryParams.subscribe(params => {
-      if (params['reset'] === 'true') {
+      if (params['reset'] === 'true' && path === 'password/reset' && params['token']) {
         this.passwordReset = true;
         this.resetToken = params['token'] || '';
-      } else if (params['forgot'] === 'true') {
+      } else if (params['forgot'] === 'true' && path === 'password/forgot') {
         this.passwordForget = true;
+      } else if (path === 'verify') {
+        this.accountVerify = true;
       } else {
-        this.passwordVerify = true;
+        this.router.navigate(['**']);
       }
     });
 
