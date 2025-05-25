@@ -51,14 +51,14 @@ export class LoginComponent {
     console.log('Login Form Submitted', { email, password });
     try {
       const response = await this.api.login(email, password);
-      if (!response.ok) {
-        this.errorService.show(response.data.detail || 'Login failed. Please check your credentials.');
+      if (!response.ok || response.data === null) {
+        this.errorService.show(response);
         return;
       }
 
-      this.api.AccessToken = response.data.access;
-      this.api.RefreshToken = response.data.refresh;
-      this.api.CurrentUser = response.data.user;
+      this.api.AccessToken = response.data['access'];
+      this.api.RefreshToken = response.data['refresh'];
+      this.api.CurrentUser = response.data['user'];
 
       //TODO - redirect to the home page or dashboard
     } catch (error) {

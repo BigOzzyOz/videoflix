@@ -1,9 +1,14 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { Router } from '@angular/router';
+import { ErrorService } from './error.service';
+import { ApiResponse } from '../model/api-response';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
+  private router = inject(Router);
+  private errorService = inject(ErrorService);
   BASE_URL: string = 'http://localhost:8000/api';
   LOGIN_URL: string = `${this.BASE_URL}/users/login/`;
   LOGOUT_URL: string = `${this.BASE_URL}/users/logout/`;
@@ -26,6 +31,7 @@ export class ApiService {
     if (this.AccessToken) {
       headers.append('Authorization', `Bearer ${this.AccessToken}`);
     }
+
     return {
       method: apiMethod,
       headers: headers,
@@ -33,23 +39,34 @@ export class ApiService {
     };
   }
 
-  async fetchData(url: string, method: string, body?: any) {
-    const options = this.createHeaders(method);
-    if (body) {
-      options.body = JSON.stringify(body);
-    }
+  async fetchData(url: string, method: string, body?: Object): Promise<ApiResponse> {
+    let options = this.createPayload(method, body);
     try {
-      const response = await fetch(url, options);
-      const responseData = await response.json();
-      return {
-        ok: response.ok,
-        status: response.status,
-        data: responseData
+      let response = await fetch(url, options);
+      if (response.status === 401 && this.RefreshToken !== null) {
+        const tokenResponse: ApiResponse = await this.refreshToken();
+        if (!tokenResponse.ok || tokenResponse.data === null) {
+          this.errorService.show('Session expired. Please log in again.');
+          return this.logout();
+        }
+        this.AccessToken = tokenResponse.data['access'];
+        options = this.createPayload(method, body);
+        response = await fetch(url, options);
       }
+      const responseData = await ApiResponse.create(response);
+      return responseData;
     } catch (error) {
       console.error('Error fetching data:', error);
       throw error;
     }
+  }
+
+  createPayload(method: string, body?: any) {
+    const options = this.createHeaders(method);
+    if (body) {
+      options.body = JSON.stringify(body);
+    }
+    return options;
   }
 
   get CurrentUser(): any {
@@ -61,7 +78,12 @@ export class ApiService {
     sessionStorage.setItem('currentUser', JSON.stringify(user));
   }
 
-  set AccessToken(token: string) {
+  set AccessToken(token: string | null) {
+    if (!token) {
+      sessionStorage.removeItem('token');
+      this.access_token = null;
+      return;
+    }
     this.access_token = token;
     sessionStorage.setItem('token', token);
   }
@@ -70,7 +92,12 @@ export class ApiService {
     return this.access_token || sessionStorage.getItem('token');
 
   }
-  set RefreshToken(token: string) {
+  set RefreshToken(token: string | null) {
+    if (!token) {
+      sessionStorage.removeItem('refresh_token');
+      this.refresh_token = null;
+      return;
+    }
     this.refresh_token = token;
     sessionStorage.setItem('refresh_token', token);
   }
@@ -79,36 +106,43 @@ export class ApiService {
     return this.refresh_token || sessionStorage.getItem('refresh_token');
   }
 
-  async login(email: string, password: string) {
+  async login(email: string, password: string): Promise<ApiResponse> {
     const body = { username: email, password: password };
     return await this.fetchData(this.LOGIN_URL, 'POST', body);
   }
 
-  async register(email: string, password: string) {
-    const body = { email, password };
+  async register(email: string, password: string, repeatPassword: string): Promise<ApiResponse> {
+    const body = { email: email, password: password, password2: repeatPassword };
     return await this.fetchData(this.REGISTER_URL, 'POST', body);
   }
 
-  async verifyEmail(token: string) {
-    const body = { token };
+  async verifyEmail(token: string): Promise<ApiResponse> {
+    const body = { token: token };
     return await this.fetchData(this.VERIFY_URL, 'POST', body);
   }
 
-  async resetPassword(email: string) {
-    const body = { email };
+  async resetPassword(email: string): Promise<ApiResponse> {
+    const body = { email: email };
     return await this.fetchData(this.RESET_URL, 'POST', body);
   }
 
-  async resetPasswordConfirm(token: string, password: string) {
-    const body = { token, password };
+  async resetPasswordConfirm(token: string, password: string, confirmedPassword?: string): Promise<ApiResponse> {
+    const body = { token: token, new_password: password, new_password2: confirmedPassword };
     return await this.fetchData(this.RESET_CONFIRM_URL, 'POST', body);
   }
 
-  async logout() {
-    return await this.fetchData(this.LOGOUT_URL, 'POST');
+  async logout(): Promise<ApiResponse> {
+    this.AccessToken = null;
+    this.RefreshToken = null;
+    this.CurrentUser = null;
+    sessionStorage.clear();
+    this.router.navigate(['/']);
+    const apiResponse = await this.fetchData(this.LOGOUT_URL, 'POST');
+    return apiResponse;
   }
 
-  async refreshToken() {
+  async refreshToken(): Promise<ApiResponse> {
+    this.AccessToken = null;
     const body = { refresh_token: this.refreshToken };
     return await this.fetchData(this.LOGIN_URL, 'POST', body);
   }
