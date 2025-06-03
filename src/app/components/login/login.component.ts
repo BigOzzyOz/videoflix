@@ -48,7 +48,6 @@ export class LoginComponent {
     }
     const email = this.loginForm.value.email;
     const password = this.loginForm.value.password;
-    console.log('Login Form Submitted', { email, password });
     try {
       const response = await this.api.login(email, password);
       if (!response.ok || response.data === null) {

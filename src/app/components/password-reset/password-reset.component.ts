@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FooterComponent } from "../../shared/components/footer/footer.component";
 import { HeaderComponent } from "../../shared/components/header/header.component";
 import { PasswordInputComponent } from "../../shared/components/input-elements/password-input/password-input.component";
@@ -14,7 +14,7 @@ import { ErrorService } from '../../shared/services/error.service';
   templateUrl: './password-reset.component.html',
   styleUrl: './password-reset.component.scss'
 })
-export class PasswordResetComponent {
+export class PasswordResetComponent implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(ApiService)
   private activeRoute = inject(ActivatedRoute);
@@ -24,30 +24,17 @@ export class PasswordResetComponent {
   resetForm: FormGroup;
   forgetForm: FormGroup;
 
-
+  timeoutId: number | null = null;
   accountVerify: boolean = false;
   passwordReset: boolean = false;
   resetToken: string = '';
+  verifyToken: string = '';
   passwordForget: boolean = false;
   emailSent: boolean = false;
   passwordResetSuccess: boolean = false;
 
 
   constructor() {
-    const path = this.activeRoute.snapshot.routeConfig?.path;
-    this.activeRoute.queryParams.subscribe(params => {
-      if (params['reset'] === 'true' && path === 'password/reset' && params['token']) {
-        this.passwordReset = true;
-        this.resetToken = params['token'] || '';
-      } else if (params['forgot'] === 'true' && path === 'password/forgot') {
-        this.passwordForget = true;
-      } else if (path === 'verify') {
-        this.accountVerify = true;
-      } else {
-        this.router.navigate(['**']);
-      }
-    });
-
     this.resetForm = this.fb.group({
       password: ['', [
         Validators.required,
@@ -60,7 +47,9 @@ export class PasswordResetComponent {
         Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/),
 
       ]]
-    }, { validators: this.passwordsMatch });
+    },
+      { validators: this.passwordsMatch }
+    );
 
     this.forgetForm = this.fb.group({
       email: ['', [
@@ -68,7 +57,40 @@ export class PasswordResetComponent {
         Validators.email
       ]]
     });
+  }
 
+  async ngOnInit() {
+    const path = this.activeRoute.snapshot.routeConfig?.path;
+    const params = this.activeRoute.snapshot.queryParams;
+
+    if (path === 'verify' && params['token']) {
+      await this.verifyAccount(params['token']);
+    } else if (params['reset'] === 'true' && path === 'password/reset' && params['token']) {
+      this.passwordReset = true;
+      this.resetToken = params['token'] || '';
+    } else if (params['forgot'] === 'true' && path === 'password/forgot') {
+      this.passwordForget = true;
+    } else {
+      this.router.navigate(['**']);
+    }
+  }
+
+  private async verifyAccount(token: string) {
+
+    try {
+      const response = await this.api.verifyEmail(token);
+
+      if (response.ok) {
+        this.accountVerify = true;
+        this.timeoutId = setTimeout(() => this.router.navigate(['/login']), 5000);
+      } else {
+        this.errorService.show(response);
+        this.router.navigate(['**']);
+      }
+    } catch (error) {
+      this.errorService.show('Verification failed');
+      this.router.navigate(['**']);
+    }
   }
 
   async submitResetForm() {
@@ -122,6 +144,10 @@ export class PasswordResetComponent {
   }
 
   toLogin() {
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+      this.timeoutId = null;
+    }
     this.router.navigate(['/login']);
   }
 

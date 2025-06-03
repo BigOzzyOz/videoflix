@@ -37,6 +37,11 @@ export const routes: Routes = [
         title: 'Verify Account',
     },
     {
+        path: 'verify',
+        component: PasswordResetComponent,
+        title: 'Verify Account',
+    },
+    {
         path: 'imprint',
         component: LegalNoticeComponent,
         title: 'Imprint',

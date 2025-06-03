@@ -117,8 +117,8 @@ export class ApiService {
   }
 
   async verifyEmail(token: string): Promise<ApiResponse> {
-    const body = { token: token };
-    return await this.fetchData(this.VERIFY_URL, 'POST', body);
+    const url = `${this.VERIFY_URL}${token}/`;
+    return await this.fetchData(url, 'GET');
   }
 
   async resetPassword(email: string): Promise<ApiResponse> {

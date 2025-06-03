@@ -1,1 +1,58 @@
-<p>register works!</p>
+<app-header [responsiveLogo]="true" [loginButton]="true" />
+
+<section class="register">
+
+    <div class="register__container">
+
+        @if(registerSuccess) {
+
+            <div class="register__container__form">
+
+                <div class="register__container__form__inputfields">
+
+                    <h1>Email Send</h1>
+
+                    <p>Please verify your your account before continue.</p>
+
+                </div>
+
+                <div class="register__container__form__buttons">
+
+                    <button type="button" routerLink="/" class="register__container__form__buttons__register">Back to
+                        home</button>
+
+                </div>
+
+            </div>
+
+        } @else {
+
+            <form class="register__container__form" [formGroup]="registerForm" (ngSubmit)="submitRegisterForm()">
+
+                <h1>Sign up</h1>
+
+                <div class="register__container__form__inputfields">
+
+                    <app-email-input [email]="email" />
+
+                    <app-password-input [password]="password" placeholder="Enter a password" />
+
+                    <app-password-input [password]="confirmedPassword" placeholder="Confirm Password" />
+
+                </div>
+
+                <div class="register__container__form__buttons">
+
+                    <button type="submit" class="register__container__form__buttons__register">Get Started</button>
+
+                </div>
+
+            </form>
+
+        }
+
+    </div>
+
+</section>
+
+<app-footer />
