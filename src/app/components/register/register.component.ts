@@ -1,10 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ErrorService } from '../../shared/services/error.service';
 import { ApiService } from '../../shared/services/api.service';
-import { ApiResponse } from '../../shared/model/api-response';
 import { HeaderComponent } from '../../shared/components/header/header.component';
 import { FooterComponent } from '../../shared/components/footer/footer.component';
 import { EmailInputComponent } from '../../shared/components/input-elements/email-input/email-input.component';
@@ -19,9 +17,9 @@ import { PasswordInputComponent } from '../../shared/components/input-elements/p
 export class RegisterComponent {
     private fb = inject(FormBuilder);
     private activeRoute = inject(ActivatedRoute);
+    private router = inject(Router)
     private api = inject(ApiService);
     private errorService = inject(ErrorService);
-    private router = inject(Router);
 
     tempEmail: string = '';
     registerSuccess: boolean = false;
@@ -86,6 +84,10 @@ export class RegisterComponent {
 
     get confirmedPassword(): FormControl {
         return this.registerForm.get('confirmedPassword') as FormControl;
+    }
+
+    toHome() {
+        this.router.navigate(['/']);
     }
 
     passwordsMatch(group: AbstractControl): ValidationErrors | null {

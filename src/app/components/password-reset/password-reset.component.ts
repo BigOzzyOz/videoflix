@@ -3,7 +3,7 @@ import { FooterComponent } from "../../shared/components/footer/footer.component
 import { HeaderComponent } from "../../shared/components/header/header.component";
 import { PasswordInputComponent } from "../../shared/components/input-elements/password-input/password-input.component";
 import { EmailInputComponent } from "../../shared/components/input-elements/email-input/email-input.component";
-import { FormGroup, FormBuilder, ReactiveFormsModule, FormControl, Validators, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
+import { FormGroup, FormBuilder, ReactiveFormsModule, FormControl, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../shared/services/api.service';
 import { ErrorService } from '../../shared/services/error.service';
