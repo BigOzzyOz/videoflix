@@ -1,0 +1,47 @@
+.four-o-four {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+    gap: 3rem;
+    background:
+        linear-gradient(to bottom,
+            rgba(0, 0, 0, 1) 0%,
+            rgba(0, 0, 0, 0.55) 50%,
+            rgba(0, 0, 0, 1) 100%),
+        url('/assets/images/bg_landing.png') no-repeat center center fixed;
+    background-size: cover;
+
+    &__container {
+        width: 100%;
+        max-width: 60rem;
+        background-color: var(--card-background);
+        border-radius: 6rem;
+        padding: 5rem 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3rem;
+
+        h1 {
+            font-size: 8rem;
+            font-weight: 700;
+
+        }
+
+        p {
+            font-size: 3em;
+            font-weight: 400;
+
+        }
+    }
+
+    &__image {
+        width: 100%;
+        max-width: 40rem;
+        height: auto;
+        object-fit: cover;
+    }
+}

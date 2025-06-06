@@ -1,0 +1,113 @@
+@use 'index' as *;
+
+.landing {
+    @include flex-column-center;
+    padding: 0 2rem;
+    width: 100%;
+    height: 100%;
+    gap: 2rem;
+    height: 100%;
+    background-color: $bg-color;
+    background:
+        linear-gradient(to bottom,
+            rgba(0, 0, 0, 1) 0%,
+            rgba(0, 0, 0, 0.55) 50%,
+            rgba(0, 0, 0, 1) 100%),
+        url('/assets/images/bg_landing.png') no-repeat center center fixed;
+    background-size: 100% cover;
+
+    &__title {
+        @include flex-column-center;
+        width: 100%;
+        gap: 2rem;
+        text-align: center;
+    }
+
+    &__description {
+        text-align: center;
+    }
+
+    &__input {
+        @include flex-column-center;
+        width: 100%;
+        gap: 2rem;
+
+        &__field {
+            max-width: 40rem;
+            flex: 1;
+        }
+
+
+        &__button {
+            gap: 2rem;
+
+            &__icon {
+                fill: $secondary-color;
+                transition: all 125ms ease;
+            }
+
+            &:hover {
+                .landing__button__icon {
+                    fill: $primary-color;
+                }
+            }
+        }
+
+    }
+
+    @include respond-to(small) {
+        padding: 0rem 3rem;
+        gap: 3rem;
+
+        .landing__input {
+            gap: 3rem;
+
+            &__field {
+                max-width: 50rem;
+            }
+        }
+
+    }
+
+    @include respond-to(medium) {
+        padding: 0rem 4rem;
+        gap: 3.5rem;
+
+        .landing__title {
+            gap: 3rem;
+        }
+
+        .landing__input {
+            flex-direction: row;
+            gap: 3.5rem;
+
+        }
+
+    }
+
+    @include respond-to(large) {
+        padding: 0rem 8rem;
+        gap: 4rem;
+
+        .landing__title {
+            gap: 4rem;
+        }
+
+    }
+
+    @include respond-to(xlarge) {
+        padding: 0rem 12rem;
+
+        .landing__title {
+            gap: 5rem;
+        }
+
+        .landing__input {
+
+            &__field {
+                max-width: 60rem;
+            }
+        }
+
+    }
+}

@@ -1,0 +1,8 @@
+@use 'index' as *;
+
+#email-input {
+    background: url('/assets/icons/mail.svg') no-repeat 2rem center;
+    padding: 1.5rem 3rem 1.5rem 6rem;
+    width: 100%;
+    border: 1px solid $primary-color;
+}

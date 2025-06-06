@@ -1,0 +1,64 @@
+@mixin respond-to($breakpoint) {
+    @if $breakpoint ==small {
+        @media (min-width: 576px) {
+            @content;
+        }
+    }
+
+    @else if $breakpoint ==medium {
+        @media (min-width: 768px) {
+            @content;
+        }
+    }
+
+    @else if $breakpoint ==large {
+        @media (min-width: 992px) {
+            @content;
+        }
+    }
+
+    @else if $breakpoint ==xlarge {
+        @media (min-width: 1200px) {
+            @content;
+        }
+    }
+}
+
+
+@mixin flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+@mixin flex-column-center {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+@mixin flex-column-start {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+@mixin flex-start {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+@mixin absolute-top-left {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+@mixin absolute-bottom-left {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+}

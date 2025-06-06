@@ -1,0 +1,42 @@
+<app-header [responsiveLogo]="true" />
+
+<section class="login">
+
+    <div class="login__container">
+
+        <form class="login__container__form" [formGroup]="loginForm" (ngSubmit)="submitLoginForm()">
+
+            <h1>Log In</h1>
+
+            <div class="login__container__form__inputfields">
+
+                <app-email-input [email]="email" />
+
+                <app-password-input [password]="password" />
+
+            </div>
+
+            <div class="login__container__form__buttons">
+
+                <button type="submit" class="login__container__form__buttons__login">Log In</button>
+
+                <a (click)="toPasswordForget()" class="login__container__form__buttons__forgotpassword bold">Forgot
+                    Password?</a>
+
+                <div class="login__container__form__buttons__signup">
+
+                    <p>New to Videoflix?</p>
+
+                    <a (click)="toRegister()" class="bold">Sign Up now</a>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</section>
+
+<app-footer />

@@ -1,0 +1,47 @@
+@use 'index' as *;
+
+footer {
+    @include absolute-bottom-left;
+    @include flex-center;
+    background-color: transparent;
+    height: auto;
+    width: 100%;
+    max-width: 1920px;
+    padding: 1rem 2rem;
+    gap: 2rem;
+
+    .footer__content {
+        @include flex-column-center;
+        gap: 2rem;
+
+        &__nav {
+            @include flex-center;
+            gap: 6rem;
+        }
+
+        &__text {
+            font-size: 1.5rem;
+            text-align: center;
+        }
+    }
+
+    @include respond-to(small) {
+        padding: 1rem 3rem;
+
+    }
+
+    @include respond-to(medium) {
+        padding: 1rem 4rem;
+
+    }
+
+    @include respond-to(large) {
+        padding: 1rem 8rem;
+
+    }
+
+    @include respond-to(xlarge) {
+        padding: 1rem 12rem;
+
+    }
+}

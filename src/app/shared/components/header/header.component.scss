@@ -1,0 +1,52 @@
+@use 'index' as *;
+
+header {
+    @include absolute-top-left;
+    @include flex-center;
+    width: 100%;
+    max-width: 1920px;
+    height: 104px;
+    background-color: transparent;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+
+    .header__back_arrow {
+        cursor: pointer;
+
+        path {
+            transition: all 125ms ease;
+            transform-origin: center;
+            fill: $secondary-color;
+        }
+
+
+        &:hover {
+            path {
+                fill: $primary-color;
+                transform: scale(0.9);
+            }
+
+        }
+    }
+
+    @include respond-to(small) {
+        padding: 1rem 3rem;
+
+    }
+
+    @include respond-to(medium) {
+        padding: 1rem 4rem;
+
+    }
+
+    @include respond-to(large) {
+        padding: 1rem 8rem;
+
+    }
+
+    @include respond-to(xlarge) {
+        padding: 1rem 12rem;
+
+    }
+
+}

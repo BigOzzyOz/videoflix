@@ -1,0 +1,16 @@
+<div class="inputfield">
+    <input id="email-input" type="email" [placeholder]="placeholder" [formControl]="email" autocomplete="email" />
+    @if(email.invalid && email.touched) {
+        <small class="error">
+            @if(email.errors?.['required']) {
+                Email is required
+            } @else if(email.errors?.['email'] || email.errors?.['pattern']) {
+                Invalid email address
+            } @else if(email.errors?.['minlength']) {
+                Email too short
+            } @else {
+                Email is invalid
+            }
+        </small>
+    }
+</div>
