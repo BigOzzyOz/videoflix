@@ -3,7 +3,7 @@ export class ApiResponse {
     status: number;
     data: { [key: string]: any } | null = null;
 
-    private constructor(ok: boolean, status: number, data: any) {
+    constructor(ok: boolean, status: number, data: any) {
         this.ok = ok;
         this.status = status;
         this.data = data;

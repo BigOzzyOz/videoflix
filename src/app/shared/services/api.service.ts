@@ -20,6 +20,7 @@ export class ApiService {
   access_token: string | null = null;
   refresh_token: string | null = null;
   currentUser: any = null;
+  currentProfile: any = null;
 
   constructor() { }
 
