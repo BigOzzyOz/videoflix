@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { ApiService } from './api.service';
 import { ErrorService } from './error.service';
-import { ApiResponse } from '../model/api-response';
+import { ApiResponse } from '../models/api-response';
 
 describe('ApiService', () => {
   let service: ApiService;

@@ -1,7 +1,9 @@
 import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { ErrorService } from './error.service';
-import { ApiResponse } from '../model/api-response';
+import { ApiResponse } from '../models/api-response';
+import { User } from '../models/user';
+import { Profile } from '../models/profile';
 
 @Injectable({
   providedIn: 'root'
@@ -19,8 +21,8 @@ export class ApiService {
 
   access_token: string | null = null;
   refresh_token: string | null = null;
-  currentUser: any = null;
-  currentProfile: any = null;
+  currentUser: User = new User({});
+  currentProfile: Profile = new Profile({});
 
   constructor() { }
 
@@ -71,11 +73,11 @@ export class ApiService {
   }
 
   get CurrentUser(): any {
-    return this.currentUser || JSON.parse(sessionStorage.getItem('currentUser') || 'null');
+    return this.currentUser || new User(JSON.parse(sessionStorage.getItem('currentUser') || 'null'));
   }
 
   set CurrentUser(user: any) {
-    this.currentUser = user;
+    this.currentUser = new User(user);
     sessionStorage.setItem('currentUser', JSON.stringify(user));
   }
 
