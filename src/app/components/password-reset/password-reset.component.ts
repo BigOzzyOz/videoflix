@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, Renderer2 } from '@angular/core';
 import { FooterComponent } from "../../shared/components/footer/footer.component";
 import { HeaderComponent } from "../../shared/components/header/header.component";
 import { PasswordInputComponent } from "../../shared/components/input-elements/password-input/password-input.component";
@@ -15,6 +15,7 @@ import { ErrorService } from '../../shared/services/error.service';
   styleUrl: './password-reset.component.scss'
 })
 export class PasswordResetComponent implements OnInit {
+  private renderer = inject(Renderer2);
   private fb = inject(FormBuilder);
   private api = inject(ApiService)
   private activeRoute = inject(ActivatedRoute);
@@ -60,6 +61,7 @@ export class PasswordResetComponent implements OnInit {
   }
 
   async ngOnInit() {
+    this.renderer.addClass(document.body, 'login-bg');
     const path = this.activeRoute.snapshot.routeConfig?.path;
     const params = this.activeRoute.snapshot.queryParams;
 
@@ -72,6 +74,14 @@ export class PasswordResetComponent implements OnInit {
       this.passwordForget = true;
     } else {
       this.router.navigate(['**']);
+    }
+  }
+
+  ngOnDestroy() {
+    this.renderer.removeClass(document.body, 'login-bg');
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+      this.timeoutId = null;
     }
   }
 

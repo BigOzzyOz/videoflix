@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, Renderer2 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { HeaderComponent } from "../../shared/components/header/header.component";
 import { FooterComponent } from "../../shared/components/footer/footer.component";
@@ -9,8 +9,9 @@ import { FooterComponent } from "../../shared/components/footer/footer.component
   templateUrl: './legal-notice.component.html',
   styleUrl: './legal-notice.component.scss'
 })
-export class LegalNoticeComponent {
+export class LegalNoticeComponent implements OnInit, OnDestroy {
   private activeRoute = inject(ActivatedRoute);
+  private renderer = inject(Renderer2);
 
   subSite: string = '';
   constructor() {
@@ -18,6 +19,14 @@ export class LegalNoticeComponent {
       this.subSite = params['subSite'] || '';
     }
     );
+  }
+
+  ngOnInit() {
+    this.renderer.addClass(document.body, 'legal-notice-bg');
+  }
+
+  ngOnDestroy() {
+    this.renderer.removeClass(document.body, 'legal-notice-bg');
   }
 
 }

@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, ViewChild, OnInit, OnDestroy, Renderer2 } from '@angular/core';
 import { HeaderComponent } from "../../shared/components/header/header.component";
 import { FooterComponent } from "../../shared/components/footer/footer.component";
 import { PasswordInputComponent } from "../../shared/components/input-elements/password-input/password-input.component";
@@ -14,9 +14,10 @@ import { Router } from '@angular/router';
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit, OnDestroy {
   @ViewChild('errorResponse') errorResponse: ElementRef | undefined;
   loginForm: FormGroup;
+  private renderer = inject(Renderer2);
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
   private errorService = inject(ErrorService);
@@ -31,6 +32,14 @@ export class LoginComponent {
         Validators.required,
       ]]
     });
+  }
+
+  ngOnInit() {
+    this.renderer.addClass(document.body, 'login-bg');
+  }
+
+  ngOnDestroy() {
+    this.renderer.removeClass(document.body, 'login-bg');
   }
 
   get password(): FormControl {
