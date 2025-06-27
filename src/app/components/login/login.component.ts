@@ -6,6 +6,7 @@ import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } 
 import { EmailInputComponent } from "../../shared/components/input-elements/email-input/email-input.component";
 import { ApiService } from '../../shared/services/api.service';
 import { ErrorService } from '../../shared/services/error.service';
+import { DialogService } from '../../shared/services/dialog.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -21,6 +22,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
   private errorService = inject(ErrorService);
+  private dialogService = inject(DialogService);
   private router = inject(Router);
 
   constructor() {
@@ -57,6 +59,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     }
     const email = this.loginForm.value.email;
     const password = this.loginForm.value.password;
+
     try {
       const response = await this.api.login(email, password);
       if (!response.ok || response.data === null) {
@@ -68,11 +71,33 @@ export class LoginComponent implements OnInit, OnDestroy {
       this.api.RefreshToken = response.data['refresh'];
       this.api.CurrentUser = response.data['user'];
 
-      //TODO - redirect to the home page or dashboard
+      await this.handleProfileSelection();
     } catch (error) {
       this.errorService.show('An error occurred during login. Please try again later.');
     }
+  }
 
+  private async handleProfileSelection(): Promise<void> {
+    const user = this.api.CurrentUser;
+
+    if (user.profiles.length > 1) {
+      try {
+        const selectedProfile = await this.dialogService.openProfileSelection(user.profiles);
+        this.api.Profile = selectedProfile;
+        this.navigateToMain();
+      } catch (error) {
+        this.errorService.show('Profile selection was cancelled or timed out.');
+      }
+    } else if (user.profiles.length === 1) {
+      this.api.Profile = user.profiles[0];
+      this.navigateToMain();
+    } else {
+      this.errorService.show('No profiles available for this account.');
+    }
+  }
+
+  private navigateToMain(): void {
+    this.router.navigate(['/main']);
   }
 
   toPasswordForget() {
@@ -85,5 +110,4 @@ export class LoginComponent implements OnInit, OnDestroy {
   toRegister() {
     this.router.navigate(['/register']);
   }
-
 }

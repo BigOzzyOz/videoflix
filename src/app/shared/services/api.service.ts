@@ -21,8 +21,8 @@ export class ApiService {
 
   access_token: string | null = null;
   refresh_token: string | null = null;
-  currentUser: User = new User({});
-  currentProfile: Profile = new Profile({});
+  currentUser: User | null = null;
+  currentProfile: Profile | null = null;
 
   constructor() { }
 
@@ -72,13 +72,22 @@ export class ApiService {
     return options;
   }
 
-  get CurrentUser(): any {
+  get CurrentUser(): User {
     return this.currentUser || new User(JSON.parse(sessionStorage.getItem('currentUser') || 'null'));
   }
 
-  set CurrentUser(user: any) {
-    this.currentUser = new User(user);
+  set CurrentUser(user: User | null) {
+    this.currentUser = user ? new User(user) : null;
     sessionStorage.setItem('currentUser', JSON.stringify(user));
+  }
+
+  get Profile(): Profile {
+    return this.currentProfile || new Profile(JSON.parse(sessionStorage.getItem('currentProfile') || 'null'));
+  }
+
+  set Profile(profile: Profile | null) {
+    this.currentProfile = profile ? new Profile(profile) : null;
+    sessionStorage.setItem('currentProfile', JSON.stringify(profile));
   }
 
   set AccessToken(token: string | null) {

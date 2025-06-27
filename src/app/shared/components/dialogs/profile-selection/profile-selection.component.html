@@ -1,0 +1,27 @@
+@if(isVisible) {
+    <div class="profile-selection-overlay" (click)="closeDialog()">
+        <div class="profile-selection-dialog" (click)="$event.stopPropagation()">
+            <h2>Choose Profile</h2>
+
+            <div class="profiles-grid">
+                @for(profile of profiles; track profile.id) {
+                    <div class="profile-card" (click)="selectProfile(profile)">
+                        @if(profile.profile_picture) {
+                            <img [src]="profile.profile_picture" [alt]="profile.profile_name" class="profile-image">
+                        } @else {
+                            <div class="profile-placeholder">
+                                {{ profile.profile_name.charAt(0).toUpperCase() }}
+                            </div>
+                        }
+                        <span class="profile-name">{{ profile.profile_name }}</span>
+                        @if(profile.is_kid) {
+                            <span class="kid-badge">Kid</span>
+                        }
+                    </div>
+                }
+            </div>
+
+            <button type="button" class="close-button" (click)="closeDialog()">Cancel</button>
+        </div>
+    </div>
+}

@@ -1,4 +1,4 @@
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ErrorService } from '../../../services/error.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 
