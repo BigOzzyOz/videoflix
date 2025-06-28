@@ -24,7 +24,24 @@ export class ApiService {
   currentUser: User | null = null;
   currentProfile: Profile | null = null;
 
-  constructor() { }
+  constructor() {
+    const storedToken = sessionStorage.getItem('token');
+    if (storedToken) {
+      this.access_token = storedToken;
+    }
+    const storedRefreshToken = sessionStorage.getItem('refresh_token');
+    if (storedRefreshToken) {
+      this.refresh_token = storedRefreshToken;
+    }
+    const storedUser = sessionStorage.getItem('currentUser');
+    if (storedUser) {
+      this.currentUser = new User(JSON.parse(storedUser));
+    }
+    const storedProfile = sessionStorage.getItem('currentProfile');
+    if (storedProfile) {
+      this.currentProfile = new Profile(JSON.parse(storedProfile));
+    }
+  }
 
   createHeaders(method: string): RequestInit {
     const headers = new Headers();

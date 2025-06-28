@@ -13,12 +13,12 @@ header {
     .header__profile {
         display: flex;
         align-items: center;
-        gap: 2rem;
+        gap: 3rem;
 
         .profile-picture {
             cursor: pointer;
-            width: 40px;
-            height: 40px;
+            width: 6rem;
+            height: 6rem;
             border-radius: 50%;
             object-fit: cover;
             transition: all 125ms ease;
@@ -30,16 +30,16 @@ header {
 
         .profile-placeholder {
             cursor: pointer;
-            width: 40px;
-            height: 40px;
+            width: 6rem;
+            height: 6rem;
             border-radius: 50%;
             background-color: $primary-color;
             display: flex;
             align-items: center;
             justify-content: center;
             color: $secondary-color;
-            font-size: 2.5rem;
-            font-weight: 600;
+            font-size: 3rem;
+            font-weight: 700;
             transition: all 125ms ease;
 
             &:hover {
