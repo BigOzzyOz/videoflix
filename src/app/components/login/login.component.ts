@@ -77,7 +77,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async handleProfileSelection(): Promise<void> {
+  async handleProfileSelection(): Promise<void> {
     const user = this.api.CurrentUser;
 
     if (user.profiles.length > 1) {
@@ -96,7 +96,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     }
   }
 
-  private navigateToMain(): void {
+  navigateToMain(): void {
     this.router.navigate(['/main']);
   }
 

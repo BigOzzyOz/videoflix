@@ -10,6 +10,60 @@ header {
     justify-content: space-between;
     padding: 1rem 2rem;
 
+    .header__profile {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+
+        .profile-picture {
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            transition: all 125ms ease;
+
+            &:hover {
+                transform: scale(0.9);
+            }
+        }
+
+        .profile-placeholder {
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: $primary-color;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: $secondary-color;
+            font-size: 2.5rem;
+            font-weight: 600;
+            transition: all 125ms ease;
+
+            &:hover {
+                background-color: $secondary-color;
+                color: $primary-color;
+                transform: scale(0.9);
+            }
+        }
+    }
+
+    .logout-button {
+        &:hover {
+            p {
+                color: $primary-color;
+            }
+
+            svg {
+                path {
+                    fill: $primary-color;
+                }
+            }
+        }
+    }
+
     .header__back_arrow {
         cursor: pointer;
 
