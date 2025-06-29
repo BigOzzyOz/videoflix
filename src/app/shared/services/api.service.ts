@@ -19,6 +19,7 @@ export class ApiService {
   RESET_URL: string = `${this.BASE_URL}/users/password-reset/`;
   RESET_CONFIRM_URL: string = `${this.BASE_URL}/users/password-reset/confirm/`;
   GENRES_COUNT_URL: string = `${this.BASE_URL}/videos/genre-count/`;
+  VIDEOS_URL: string = `${this.BASE_URL}/videos/`;
 
   access_token: string | null = null;
   refresh_token: string | null = null;
@@ -180,6 +181,12 @@ export class ApiService {
   async getGenresCount(): Promise<ApiResponse> {
     const url = this.GENRES_COUNT_URL;
     return await this.fetchData(url, 'GET');
+  }
+
+  async getVideos(params: string): Promise<ApiResponse> {
+    const url = this.VIDEOS_URL;
+    const fullUrl = params ? `${url}?${params}` : url;
+    return await this.fetchData(fullUrl, 'GET');
   }
 
 
