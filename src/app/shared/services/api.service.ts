@@ -76,6 +76,11 @@ export class ApiService {
         options = this.createPayload(method, body);
         response = await fetch(url, options);
       }
+
+      if (response.status === 204 || response.status === 205 || !response.headers.get('content-length') || response.headers.get('content-length') === '0') {
+        return new ApiResponse(response.ok, response.status, null);
+      }
+
       const responseData = await ApiResponse.create(response);
       return responseData;
     } catch (error) {
@@ -164,13 +169,23 @@ export class ApiService {
   }
 
   async logout(): Promise<ApiResponse> {
-    this.AccessToken = null;
-    this.RefreshToken = null;
-    this.CurrentUser = null;
-    sessionStorage.clear();
-    this.router.navigate(['/']);
-    const apiResponse = await this.fetchData(this.LOGOUT_URL, 'POST');
-    return apiResponse;
+    const body = { refresh_token: this.RefreshToken };
+    try {
+      const response = await this.fetchData(this.LOGOUT_URL, 'POST', body);
+      if (!response.ok) {
+        this.errorService.show('Logout failed. Please try again.');
+        return response;
+      }
+      this.AccessToken = null;
+      this.RefreshToken = null;
+      this.CurrentUser = null;
+      sessionStorage.clear();
+      this.router.navigate(['/']);
+      return response;
+    } catch (error) {
+      this.errorService.show('An error occurred while logging out. Please try again.');
+      return new ApiResponse(false, 500, 'Logout failed due to an error.');
+    }
   }
 
   async refreshToken(): Promise<ApiResponse> {
