@@ -43,6 +43,7 @@ export class ApiService {
     if (storedProfile) {
       this.currentProfile = new Profile(JSON.parse(storedProfile));
     }
+    console.log('ApiService initialized');
   }
 
   createHeaders(method: string): RequestInit {

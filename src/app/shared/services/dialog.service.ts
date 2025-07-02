@@ -33,7 +33,6 @@ export class DialogService {
       this.profileSelectionData$.next({ profiles });
       this.profileSelectionVisible$.next(true);
 
-      // Subscribe to result and resolve when profile is selected
       const subscription = this.profileSelectionResult$.subscribe(profile => {
         if (profile) {
           subscription.unsubscribe();

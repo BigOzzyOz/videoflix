@@ -16,12 +16,12 @@
         <button class="login-button" (click)="toLogin()">Log In</button>
     } @else if (logoutButton) {
         <div class="header__profile">
-            @if(this.api.currentProfile?.profile_picture) {
-                <img class="profile-picture" [src]="this.api.currentProfile?.profile_picture" alt="Profile Picture"
+            @if(this.api.currentProfile?.profilePic) {
+                <img class="profile-picture" [src]="this.api.currentProfile?.profilePic" alt="Profile Picture"
                     (click)="toProfile()">
             } @else {
                 <div class="profile-placeholder" (click)="toProfile()">
-                    {{ this.api.currentProfile?.profile_name!.charAt(0).toUpperCase() }}
+                    {{ this.api.currentProfile?.name!.charAt(0).toUpperCase() }}
                 </div>
             }
 
