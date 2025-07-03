@@ -6,6 +6,7 @@ import { ApiService } from '../../shared/services/api.service';
 import { ErrorService } from '../../shared/services/error.service';
 import { Video } from '../../shared/models/video';
 import { VideoCollections } from '../../shared/models/video-collection';
+import { GenreCountData } from '../../shared/interfaces/genre-count-data';
 
 @Component({
   selector: 'app-main',
@@ -58,9 +59,10 @@ export class MainComponent implements OnInit, OnDestroy {
     try {
       const response = await this.api.getGenresCount();
       if (response.ok && response.data) {
-        const sortedGenres = Object.entries(response.data)
-          .filter(([key, value]) => value != null && value > 0)
-          .sort(([, a], [, b]) => (b as number) - (a as number))
+        const genreData: GenreCountData = response.data;
+        const sortedGenres = Object.entries(genreData)
+          .filter(([key, value]) => value > 0)
+          .sort(([, a], [, b]) => b - a)
           .map(([key]) => key);
         this.videoGenres = sortedGenres;
         this.videoGenres.unshift('new');

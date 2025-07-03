@@ -17,7 +17,7 @@
     } @else if (logoutButton) {
         <div class="header__profile">
             @if(this.api.currentProfile?.profilePic) {
-                <img class="profile-picture" [src]="this.api.currentProfile?.profilePic" alt="Profile Picture"
+                <img class="profile-picture" [src]="this.api.currentProfile?.getProfileImage()" alt="Profile Picture"
                     (click)="toProfile()">
             } @else {
                 <div class="profile-placeholder" (click)="toProfile()">

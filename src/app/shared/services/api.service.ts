@@ -16,6 +16,7 @@ export class ApiService {
   LOGOUT_URL: string = `${this.BASE_URL}/users/logout/`;
   REGISTER_URL: string = `${this.BASE_URL}/users/register/`;
   VERIFY_URL: string = `${this.BASE_URL}/users/verify-email/`;
+  REFRESH_URL: string = `${this.BASE_URL}/token/refresh/`;
   RESET_URL: string = `${this.BASE_URL}/users/password-reset/`;
   RESET_CONFIRM_URL: string = `${this.BASE_URL}/users/password-reset/confirm/`;
   GENRES_COUNT_URL: string = `${this.BASE_URL}/videos/genre-count/`;
@@ -67,6 +68,7 @@ export class ApiService {
     try {
       let response = await fetch(url, options);
       if (response.status === 401 && this.RefreshToken !== null) {
+        this.AccessToken = null;
         const tokenResponse: ApiResponse = await this.refreshToken();
         if (!tokenResponse.ok || tokenResponse.data === null) {
           this.errorService.show('Session expired. Please log in again.');
@@ -106,11 +108,11 @@ export class ApiService {
     sessionStorage.setItem('currentUser', JSON.stringify(user));
   }
 
-  get Profile(): Profile {
+  get CurrentProfile(): Profile {
     return this.currentProfile || new Profile(JSON.parse(sessionStorage.getItem('currentProfile') || 'null'));
   }
 
-  set Profile(profile: Profile | null) {
+  set CurrentProfile(profile: Profile | null) {
     this.currentProfile = profile ? new Profile(profile) : null;
     sessionStorage.setItem('currentProfile', JSON.stringify(profile));
   }
@@ -179,6 +181,7 @@ export class ApiService {
       this.AccessToken = null;
       this.RefreshToken = null;
       this.CurrentUser = null;
+      this.CurrentProfile = null;
       sessionStorage.clear();
       this.router.navigate(['/']);
       return response;
@@ -190,8 +193,9 @@ export class ApiService {
 
   async refreshToken(): Promise<ApiResponse> {
     this.AccessToken = null;
-    const body = { refresh_token: this.refreshToken };
-    return await this.fetchData(this.LOGIN_URL, 'POST', body);
+    const body = { refresh: this.RefreshToken };
+    console.log('Refreshing token with body:', body);
+    return await this.fetchData(this.REFRESH_URL, 'POST', body);
   }
 
   async getGenresCount(): Promise<ApiResponse> {
@@ -200,9 +204,8 @@ export class ApiService {
   }
 
   async getVideos(params: string): Promise<ApiResponse> {
-    const url = this.VIDEOS_URL;
-    const fullUrl = params ? `${url}?${params}` : url;
-    return await this.fetchData(fullUrl, 'GET');
+    const url = params ? `${this.VIDEOS_URL}?${params}` : this.VIDEOS_URL;
+    return await this.fetchData(url, 'GET');
   }
 
 

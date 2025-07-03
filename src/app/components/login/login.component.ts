@@ -83,13 +83,13 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (user.profiles.length > 1) {
       try {
         const selectedProfile = await this.dialogService.openProfileSelection(user.profiles);
-        this.api.Profile = selectedProfile;
+        this.api.CurrentProfile = selectedProfile;
         this.navigateToMain();
       } catch (error) {
         this.errorService.show('Profile selection was cancelled or timed out.');
       }
     } else if (user.profiles.length === 1) {
-      this.api.Profile = user.profiles[0];
+      this.api.CurrentProfile = user.profiles[0];
       this.navigateToMain();
     } else {
       this.errorService.show('No profiles available for this account.');

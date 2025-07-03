@@ -1,20 +1,14 @@
 import { Video } from "./video";
-
-interface VideoCollectionData {
-    lastUpdated: string;
-    videos: Video[];
-    next: string | null;
-    previous: string | null;
-    params: string;
-}
+import { VideoCollectionData } from "../interfaces/video-collection-data";
+import { VideoCollectionApiData } from "../interfaces/video-collection-api-data";
 
 export class VideoCollections {
     [key: string]: VideoCollectionData;
 
-    constructor(key: string, data: any, params: string = '') {
+    constructor(key: string, data: VideoCollectionApiData, params: string = '') {
         this[key] = {
             lastUpdated: new Date().toISOString(),
-            videos: data.results.map((video: any) => new Video(video)),
+            videos: data.results.map((videoData: any) => new Video(videoData)),
             next: data.next || null,
             previous: data.previous || null,
             params: params

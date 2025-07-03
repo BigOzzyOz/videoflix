@@ -7,7 +7,7 @@
                 @for(profile of profiles; track profile.id) {
                     <div class="profile-card" (click)="selectProfile(profile)">
                         @if(profile.profilePic) {
-                            <img [src]="profile.profilePic" [alt]="profile.name" class="profile-image">
+                            <img [src]="profile.getProfileImage()" [alt]="profile.name" class="profile-image">
                         } @else {
                             <div class="profile-placeholder">
                                 {{ profile.name.charAt(0).toUpperCase() }}
