@@ -1,0 +1,171 @@
+@use 'index' as *;
+
+.featuredVideo {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    grid-template-columns: 1fr;
+    overflow: hidden;
+
+    @include respond-to(large) {
+        grid-template-rows: 1fr;
+        grid-template-columns: 1fr;
+    }
+
+    &__media {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+
+        video,
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        video {
+            background: black;
+        }
+
+        &__controls {
+            position: absolute;
+            bottom: 2rem;
+            right: 2rem;
+            width: 100%;
+            height: 5rem;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 1rem;
+            z-index: 1;
+            transition: all 125ms ease;
+            opacity: 1;
+            visibility: visible;
+
+            @include respond-to(small) {
+                bottom: 3rem;
+                right: 3rem;
+            }
+
+            @include respond-to(medium) {
+                bottom: 4rem;
+                right: 4rem;
+                opacity: 0;
+                visibility: hidden;
+            }
+
+            @include respond-to(large) {
+                bottom: 8rem;
+                right: 8rem;
+            }
+
+            @include respond-to(xlarge) {
+                bottom: 12rem;
+                right: 12rem;
+            }
+
+            button {
+                padding: 2rem;
+
+                svg {
+                    width: 2rem;
+                    height: 2rem;
+                    cursor: pointer;
+                    fill: white;
+                    transition: all 125ms ease;
+                }
+
+                @include respond-to(medium) {
+                    &:hover {
+                        svg {
+                            transform: scale(1.2);
+
+                            path {
+                                fill: $primary-color;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        &__overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom,
+                    rgba(0, 0, 0, 1) 0%,
+                    rgba(0, 0, 0, 0.55) 50%,
+                    rgba(0, 0, 0, 1) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @include respond-to(medium) {
+            &:hover {
+                .featuredVideo__media__controls {
+                    opacity: 1;
+                    visibility: visible;
+                }
+            }
+        }
+    }
+
+    &__content {
+        @include flex-column-start;
+        padding: 4rem 2rem;
+        gap: 4rem;
+        background-color: $bg-color;
+
+        @include respond-to(small) {
+            padding: 4rem 3rem;
+        }
+
+        @include respond-to(medium) {
+            padding: 4rem 4rem;
+        }
+
+        @include respond-to(large) {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            padding: 8rem;
+        }
+
+        @include respond-to(xlarge) {
+            padding: 12rem;
+        }
+
+        .video-description {
+            max-height: 60%;
+            word-break: break-all;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .play-button {
+            @include flex-center;
+
+            svg {
+                width: 2rem;
+                height: 2rem;
+                fill: $secondary-color;
+                margin-right: 1rem;
+            }
+
+            &:hover {
+                svg {
+                    fill: $primary-color;
+                }
+            }
+        }
+    }
+}

@@ -1,5 +1,19 @@
 <app-header [logoutButton]="true" [shortLogo]="true" />
-<app-featured />
 <app-footer />
 
-<div class="main-content">Main Content</div>
+<section class="dashboard">
+
+    <div class="dashboard__top">
+        <app-featured [class.hide]="!showFeaturedVideo" [video]="featuredVideo" />
+        <button class="close-button" [class.hide]="!showFeaturedVideo" (click)="hideFeaturedVideo()">Close</button>
+    </div>
+
+    <div class="dashboard__bottom">
+        @for (collection of videoCollection; track $index) {
+            <app-slider [collection]="collection" (videoSelected)="onVideoSelected($event)" />
+        }
+    </div>
+
+
+
+</section>

@@ -1,1 +1,8 @@
-<p>slider works!</p>
+<section class="slider">
+    <p class="slider__genre">{{ collection?.getName() }}</p>
+    <div class="slider__container">
+        @for (video of collection?.getVideos(); track video.id) {
+            <app-movie [video]="video" (videoSelected)="onVideoSelected($event)" />
+        }
+    </div>
+</section>

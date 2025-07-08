@@ -1,0 +1,55 @@
+@use 'index' as *;
+
+.dashboard {
+    @include flex-column-start;
+    position: relative;
+    height: 100%;
+    width: 100%;
+
+
+
+    &__top {
+        app-featured {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            transition: all 125ms ease;
+            transform: translate(0);
+            z-index: 5;
+        }
+
+        .close-button {
+            position: absolute;
+            bottom: 2rem;
+            right: 2rem;
+            left: 2rem;
+            z-index: 10;
+            margin: auto;
+            max-width: fit-content;
+        }
+
+        .hide {
+            transform: translateX(100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+    }
+
+    &__bottom {
+        @include flex-column-start;
+        position: relative;
+        gap: 2rem;
+        padding: 0 2rem;
+        margin: 13rem 0 7.5rem;
+        overflow-y: auto;
+        height: calc(100% - 20.5rem);
+        width: 100%;
+
+        app-slider {
+            width: 100%;
+        }
+    }
+
+}

@@ -91,6 +91,17 @@ export class ApiService {
     }
   }
 
+  private async directFetch(url: string, method: string, body?: Object): Promise<ApiResponse> {
+    const options = this.createPayload(method, body);
+    try {
+      const response = await fetch(url, options);
+      return await ApiResponse.create(response);
+    } catch (error) {
+      console.error('Error in directFetch:', error);
+      throw error;
+    }
+  }
+
   createPayload(method: string, body?: any) {
     const options = this.createHeaders(method);
     if (body) {
@@ -173,7 +184,7 @@ export class ApiService {
   async logout(): Promise<ApiResponse> {
     const body = { refresh_token: this.RefreshToken };
     try {
-      const response = await this.fetchData(this.LOGOUT_URL, 'POST', body);
+      const response = await this.directFetch(this.LOGOUT_URL, 'POST', body);
       if (!response.ok) {
         this.errorService.show('Logout failed. Please try again.');
         return response;
@@ -195,7 +206,7 @@ export class ApiService {
     this.AccessToken = null;
     const body = { refresh: this.RefreshToken };
     console.log('Refreshing token with body:', body);
-    return await this.fetchData(this.REFRESH_URL, 'POST', body);
+    return await this.directFetch(this.REFRESH_URL, 'POST', body);
   }
 
   async getGenresCount(): Promise<ApiResponse> {

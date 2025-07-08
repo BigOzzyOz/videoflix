@@ -2,6 +2,7 @@ import { Component, inject, OnDestroy, OnInit, Renderer2 } from '@angular/core';
 import { HeaderComponent } from "../../shared/components/header/header.component";
 import { FooterComponent } from "../../shared/components/footer/footer.component";
 import { FeaturedComponent } from "./featured/featured.component";
+import { SliderComponent } from "./slider/slider.component";
 import { ApiService } from '../../shared/services/api.service';
 import { ErrorService } from '../../shared/services/error.service';
 import { Video } from '../../shared/models/video';
@@ -10,7 +11,7 @@ import { GenreCountData } from '../../shared/interfaces/genre-count-data';
 
 @Component({
   selector: 'app-main',
-  imports: [HeaderComponent, FooterComponent, FeaturedComponent],
+  imports: [HeaderComponent, FooterComponent, FeaturedComponent, SliderComponent],
   templateUrl: './main.component.html',
   styleUrl: './main.component.scss'
 })
@@ -22,7 +23,7 @@ export class MainComponent implements OnInit, OnDestroy {
   videoGenres: string[] = [];
   featuredVideo: Video | null = null;
   videoCollection: VideoCollections[] = [];
-
+  showFeaturedVideo: boolean = false;
 
   constructor() { }
 
@@ -45,14 +46,22 @@ export class MainComponent implements OnInit, OnDestroy {
     }
 
     console.log('MainComponent initialized');
-    console.log('Current Profile:', this.api.currentProfile);
-    console.log('Video Genres:', this.videoGenres);
-    console.log('Video Collection:', this.videoCollection);
-    console.log('Featured Video:', this.featuredVideo);
   }
 
   ngOnDestroy() {
     this.renderer.removeClass(document.body, 'main-bg');
+  }
+
+  onVideoSelected(video: Video): void {
+    console.log('Video selected:', video.title);
+    this.featuredVideo = video;
+    this.showFeaturedVideo = true;
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  hideFeaturedVideo(): void {
+    this.showFeaturedVideo = false;
   }
 
   async getGenreCount(): Promise<void> {
@@ -78,7 +87,7 @@ export class MainComponent implements OnInit, OnDestroy {
   async getVideoCollection(): Promise<void> {
     for (const genre of this.videoGenres) {
       try {
-        const paramGenre = genre === 'new' ? 'newly_released=true' : 'genre=' + genre;
+        const paramGenre = genre === 'new' ? 'newly_released=true' : 'genres=' + genre;
         let paramLanguage = 'language=' + this.api.currentProfile?.language;
         let params = `${paramGenre}&${paramLanguage}`;
         let response = await this.api.getVideos(params);
@@ -99,6 +108,5 @@ export class MainComponent implements OnInit, OnDestroy {
         this.errorService.show('Failed to load videos for genre ' + genre + ': ' + errorMsg);
       }
     }
-
   }
 }

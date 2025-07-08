@@ -1,0 +1,25 @@
+@use 'index' as *;
+
+.slider {
+    @include flex-column-start;
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    gap: 2rem;
+
+
+    &__genre {
+        font-size: 2.5rem;
+    }
+
+    &__container {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        gap: 2rem;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+}

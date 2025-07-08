@@ -3,7 +3,7 @@ import { VideoCollectionData } from "../interfaces/video-collection-data";
 import { VideoCollectionApiData } from "../interfaces/video-collection-api-data";
 
 export class VideoCollections {
-    [key: string]: VideoCollectionData;
+    [key: string]: VideoCollectionData | any; // Index Signature hinzufügen
 
     constructor(key: string, data: VideoCollectionApiData, params: string = '') {
         this[key] = {
@@ -13,5 +13,28 @@ export class VideoCollections {
             previous: data.previous || null,
             params: params
         };
+    }
+
+    getName(): string {
+        const genre = Object.keys(this).find(key => key !== 'constructor') || '';
+        if (genre.includes('new')) {
+            return genre.replace('new', 'Recently Added').replace(/_/g, ' ');
+        } else {
+            return (genre.charAt(0).toUpperCase() + genre.slice(1)).replace(/_/g, ' ');
+        }
+    }
+
+    getFirstGenreKey(): string | null {
+        const keys = Object.keys(this).filter(key => key !== 'constructor');
+        return keys.length > 0 ? keys[0] : null;
+    }
+
+    getGenreData(key: string): VideoCollectionData | null {
+        return this[key] || null;
+    }
+
+    getVideos(): Video[] {
+        const firstKey = this.getFirstGenreKey();
+        return firstKey ? this[firstKey].videos : [];
     }
 }
