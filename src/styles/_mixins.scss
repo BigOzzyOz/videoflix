@@ -62,3 +62,210 @@
     bottom: 0;
     left: 0;
 }
+
+// Hinzufügen zu Ihrer _mixins.scss:
+
+// Basis Mixin für Overflow-Container
+@mixin overflow-container {
+    position: relative;
+    overflow: hidden;
+}
+
+// Mixin für scrollbaren Container mit Overflow-Detection
+@mixin scrollable-container {
+    position: relative;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    
+    &::-webkit-scrollbar {
+        display: none;
+    }
+    
+    // Für Firefox
+    scrollbar-width: none;
+}
+
+// Gradient Overlays für Overflow-Anzeige
+@mixin overflow-gradient($direction: 'right', $color: rgba(0, 0, 0, 1), $size: 100px) {
+    position: absolute;
+    top: 0;
+    width: $size;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    
+    @if $direction == 'right' {
+        right: 0;
+        background: linear-gradient(
+            to left,
+            $color 0%,
+            rgba(red($color), green($color), blue($color), alpha($color) * 0.8) 30%,
+            transparent 100%
+        );
+    } @else if $direction == 'left' {
+        left: 0;
+        background: linear-gradient(
+            to right,
+            $color 0%,
+            rgba(red($color), green($color), blue($color), alpha($color) * 0.8) 30%,
+            transparent 100%
+        );
+    }
+    
+    &.show {
+        opacity: 1;
+    }
+}
+
+// Mixin für Overflow-Detection States
+@mixin overflow-states {
+    // Wenn Content am Anfang ist
+    &.at-start {
+        .gradient-left {
+            opacity: 0;
+        }
+    }
+    
+    // Wenn Content am Ende ist
+    &.at-end {
+        .gradient-right {
+            opacity: 0;
+        }
+    }
+    
+    // Wenn Content in der Mitte ist
+    &.at-middle {
+        .gradient-left,
+        .gradient-right {
+            opacity: 1;
+        }
+    }
+    
+    // Wenn kein Overflow vorhanden
+    &.no-overflow {
+        .gradient-left,
+        .gradient-right {
+            opacity: 0;
+        }
+    }
+}
+
+// Utility Mixin für absolute positioning
+@mixin absolute-full {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+@mixin absolute-top-right {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+@mixin absolute-bottom-right {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+
+// Responsive Gradient Sizes
+@mixin responsive-gradient-size {
+    width: 50px;
+    
+    @include respond-to(medium) {
+        width: 75px;
+    }
+    
+    @include respond-to(large) {
+        width: 100px;
+    }
+    
+    @include respond-to(xlarge) {
+        width: 150px;
+    }
+}
+
+// Zu Ihrer _mixins.scss hinzufügen:
+
+// Touch/Mouse Detection Mixins
+@mixin touch-device {
+    @media (pointer: coarse) {
+        @content;
+    }
+}
+
+@mixin mouse-device {
+    @media (pointer: fine) {
+        @content;
+    }
+}
+
+@mixin hover-capable {
+    @media (hover: hover) {
+        @content;
+    }
+}
+
+@mixin no-hover {
+    @media (hover: none) {
+        @content;
+    }
+}
+
+// Combined Touch/Mouse Mixins
+@mixin touch-interactions {
+    @media (pointer: coarse) and (hover: none) {
+        @content;
+    }
+}
+
+@mixin mouse-interactions {
+    @media (pointer: fine) and (hover: hover) {
+        @content;
+    }
+}
+
+// Erweiterte Touch/Mouse Mixins für Pfeil-Kontrolle
+@mixin arrow-visibility-desktop {
+    @media (pointer: fine) {
+        opacity: 0;
+        visibility: hidden;
+        
+        &:not(.disabled) {
+            &:hover {
+                opacity: 1;
+                visibility: visible;
+            }
+        }
+    }
+}
+
+@mixin arrow-visibility-mobile {
+    @media (pointer: coarse) {
+        &:not(.disabled) {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        &.disabled {
+            opacity: 0;
+            visibility: hidden;
+        }
+    }
+}
+
+@mixin container-hover-arrows {
+    @media (pointer: fine) {
+        &:hover {
+            .slider__arrow:not(.disabled) {
+                opacity: 1;
+                visibility: visible;
+            }
+        }
+    }
+}

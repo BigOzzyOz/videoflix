@@ -123,7 +123,12 @@
         @include flex-column-start;
         padding: 4rem 2rem;
         gap: 4rem;
-        background-color: $bg-color;
+        background:
+            linear-gradient(to bottom,
+                rgba(0, 0, 0, 1) 0%,
+                rgba(0, 0, 0, 0.55) 50%,
+                rgba(0, 0, 0, 1) 100%),
+            $bg-color;
 
         @include respond-to(small) {
             padding: 4rem 3rem;

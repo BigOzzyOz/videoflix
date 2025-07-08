@@ -40,7 +40,7 @@
     &__bottom {
         @include flex-column-start;
         position: relative;
-        gap: 2rem;
+        gap: 4rem;
         padding: 0 2rem;
         margin: 13rem 0 7.5rem;
         overflow-y: auto;
