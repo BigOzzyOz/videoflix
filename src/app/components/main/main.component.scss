@@ -6,9 +6,20 @@
     height: 100%;
     width: 100%;
 
-
+    @include respond-to(medium) {
+        display: grid;
+        grid-template-rows: 1fr 1fr;
+        grid-template-columns: 1fr;
+        overflow: hidden;
+    }
 
     &__top {
+
+        @include respond-to(medium) {
+            position: relative;
+            height: 100%;
+        }
+
         app-featured {
             position: absolute;
             top: 0;
@@ -17,7 +28,8 @@
             width: 100%;
             transition: all 125ms ease;
             transform: translate(0);
-            z-index: 5;
+            z-index: 10;
+
         }
 
         .close-button {
@@ -28,12 +40,23 @@
             z-index: 10;
             margin: auto;
             max-width: fit-content;
+
+            @include respond-to(medium) {
+                display: none;
+
+            }
         }
 
         .hide {
             transform: translateX(100%);
             opacity: 0;
             pointer-events: none;
+
+            @include respond-to(medium) {
+                transform: translateY(0);
+                opacity: 1;
+                pointer-events: auto;
+            }
         }
     }
 
@@ -46,6 +69,27 @@
         overflow-y: auto;
         height: calc(100% - 20.5rem);
         width: 100%;
+
+        @include respond-to(small) {
+            padding: 0 3rem;
+        }
+
+        @include respond-to(medium) {
+            top: -7rem;
+            margin: 0;
+            padding: 2rem 4rem 0;
+            margin-bottom: 7rem;
+            height: 100%;
+            z-index: 11;
+        }
+
+        @include respond-to(large) {
+            padding: 2rem 8rem 0;
+        }
+
+        @include respond-to(xlarge) {
+            padding: 2rem 12rem 0;
+        }
 
         app-slider {
             width: 100%;

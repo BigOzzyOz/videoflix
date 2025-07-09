@@ -9,6 +9,7 @@ footer {
     max-width: 1920px;
     padding: 1rem 2rem;
     gap: 2rem;
+    z-index: 6;
 
     .footer__content {
         @include flex-column-center;

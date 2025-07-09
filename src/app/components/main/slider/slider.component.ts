@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ViewChild, ElementRef, AfterViewInit, OnDestroy, inject, HostListener, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ViewChild, ElementRef, AfterViewInit, OnDestroy, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { VideoCollections } from '../../../shared/models/video-collection';
 import { Video } from '../../../shared/models/video';
 import { ApiService } from '../../../shared/services/api.service';
@@ -28,6 +28,8 @@ export class SliderComponent implements AfterViewInit, OnDestroy {
   atStart: boolean = true;
   atEnd: boolean = false;
   atMiddle: boolean = false;
+  private scrollTimeout: number | undefined;
+  private resizeTimeout: number | undefined;
 
   // Für Debug (optional)
   overflowState: OverflowState = {
@@ -44,8 +46,6 @@ export class SliderComponent implements AfterViewInit, OnDestroy {
     percentage: 0
   };
 
-  private scrollTimeout: number | undefined;
-  private resizeTimeout: number | undefined;
 
   ngAfterViewInit(): void {
     // Mehrere Frames warten für DOM-Stabilität

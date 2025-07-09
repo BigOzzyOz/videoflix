@@ -9,7 +9,7 @@
     grid-template-columns: 1fr;
     overflow: hidden;
 
-    @include respond-to(large) {
+    @include respond-to(medium) {
         grid-template-rows: 1fr;
         grid-template-columns: 1fr;
     }
@@ -60,12 +60,10 @@
             }
 
             @include respond-to(large) {
-                bottom: 8rem;
                 right: 8rem;
             }
 
             @include respond-to(xlarge) {
-                bottom: 12rem;
                 right: 12rem;
             }
 
@@ -107,6 +105,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+
         }
 
         @include respond-to(medium) {
@@ -135,18 +134,22 @@
         }
 
         @include respond-to(medium) {
-            padding: 4rem 4rem;
+            @include flex-column-center;
+            position: absolute;
+            bottom: 0;
+            top: 0;
+            margin: auto 0;
+            left: 4rem;
+            background: none;
+            padding: 0;
         }
 
         @include respond-to(large) {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            padding: 8rem;
+            left: 8rem;
         }
 
         @include respond-to(xlarge) {
-            padding: 12rem;
+            left: 12rem;
         }
 
         .video-description {

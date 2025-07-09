@@ -63,25 +63,21 @@
     left: 0;
 }
 
-// Hinzufügen zu Ihrer _mixins.scss:
 
-// Basis Mixin für Overflow-Container
 @mixin overflow-container {
     position: relative;
     overflow: hidden;
 }
 
-// Mixin für scrollbaren Container mit Overflow-Detection
 @mixin scrollable-container {
     position: relative;
     overflow-x: auto;
     scroll-behavior: smooth;
-    
+
     &::-webkit-scrollbar {
         display: none;
     }
-    
-    // Für Firefox
+
     scrollbar-width: none;
 }
 
@@ -95,25 +91,23 @@
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.3s ease;
-    
-    @if $direction == 'right' {
+
+    @if $direction =='right' {
         right: 0;
-        background: linear-gradient(
-            to left,
-            $color 0%,
-            rgba(red($color), green($color), blue($color), alpha($color) * 0.8) 30%,
-            transparent 100%
-        );
-    } @else if $direction == 'left' {
-        left: 0;
-        background: linear-gradient(
-            to right,
-            $color 0%,
-            rgba(red($color), green($color), blue($color), alpha($color) * 0.8) 30%,
-            transparent 100%
-        );
+        background: linear-gradient(to left,
+                $color 0%,
+                rgba(red($color), green($color), blue($color), alpha($color) * 0.8) 30%,
+                transparent 100%);
     }
-    
+
+    @else if $direction =='left' {
+        left: 0;
+        background: linear-gradient(to right,
+                $color 0%,
+                rgba(red($color), green($color), blue($color), alpha($color) * 0.8) 30%,
+                transparent 100%);
+    }
+
     &.show {
         opacity: 1;
     }
@@ -121,30 +115,33 @@
 
 // Mixin für Overflow-Detection States
 @mixin overflow-states {
+
     // Wenn Content am Anfang ist
     &.at-start {
         .gradient-left {
             opacity: 0;
         }
     }
-    
+
     // Wenn Content am Ende ist
     &.at-end {
         .gradient-right {
             opacity: 0;
         }
     }
-    
+
     // Wenn Content in der Mitte ist
     &.at-middle {
+
         .gradient-left,
         .gradient-right {
             opacity: 1;
         }
     }
-    
+
     // Wenn kein Overflow vorhanden
     &.no-overflow {
+
         .gradient-left,
         .gradient-right {
             opacity: 0;
@@ -176,15 +173,15 @@
 // Responsive Gradient Sizes
 @mixin responsive-gradient-size {
     width: 50px;
-    
+
     @include respond-to(medium) {
         width: 75px;
     }
-    
+
     @include respond-to(large) {
         width: 100px;
     }
-    
+
     @include respond-to(xlarge) {
         width: 150px;
     }
@@ -235,7 +232,7 @@
     @media (pointer: fine) {
         opacity: 0;
         visibility: hidden;
-        
+
         &:not(.disabled) {
             &:hover {
                 opacity: 1;
@@ -251,7 +248,7 @@
             opacity: 1;
             visibility: visible;
         }
-        
+
         &.disabled {
             opacity: 0;
             visibility: hidden;
