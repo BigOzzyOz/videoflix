@@ -14,9 +14,11 @@ export class FeaturedComponent implements OnInit, OnDestroy, OnChanges {
 
   @Input() video: Video | null = null;
   @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
+  @ViewChild('videoDescription') videoDescription!: ElementRef<HTMLDivElement>;
 
   isPreviewPlaying: boolean = false;
   isSoundEnabled: boolean = true;
+  hasDescriptionOverflow: boolean = false;
 
   constructor() {
 
@@ -34,6 +36,9 @@ export class FeaturedComponent implements OnInit, OnDestroy, OnChanges {
         video.currentTime = 0;
         video.load();
         setTimeout(() => {
+          this.checkTextOverflow();
+        }, 100);
+        setTimeout(() => {
           video.play();
         }, 2000);
       }
@@ -43,6 +48,43 @@ export class FeaturedComponent implements OnInit, OnDestroy, OnChanges {
 
   ngOnDestroy(): void {
 
+  }
+
+  private checkTextOverflow(): void {
+    if (!this.videoDescription || !this.video) return;
+
+    const element = this.videoDescription.nativeElement;
+
+    const computedStyle = window.getComputedStyle(element);
+    const lineHeight = parseFloat(computedStyle.lineHeight);
+    const fontSize = parseFloat(computedStyle.fontSize);
+
+    const actualLineHeight = lineHeight || fontSize;
+
+    const maxVisibleLines = 5;
+    const maxVisibleHeight = maxVisibleLines * actualLineHeight;
+
+    element.style.height = 'auto';
+    element.style.overflow = 'visible';
+    element.style.display = 'block';
+
+    const naturalHeight = element.scrollHeight;
+
+    element.style.height = '10rem';
+    element.style.overflow = 'hidden';
+    element.style.display = 'grid';
+
+    const hasOverflow = naturalHeight > maxVisibleHeight;
+
+    this.hasDescriptionOverflow = hasOverflow;
+
+    if (hasOverflow) {
+      element.setAttribute('data-has-overflow', 'true');
+      element.setAttribute('data-full-text', this.video.description);
+    } else {
+      element.removeAttribute('data-has-overflow');
+      element.removeAttribute('data-full-text');
+    }
   }
 
   togglePreview() {

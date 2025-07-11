@@ -53,10 +53,11 @@ export class MainComponent implements OnInit, OnDestroy {
   }
 
   onVideoSelected(video: Video): void {
-    console.log('Video selected:', video.title);
     this.featuredVideo = video;
-    this.showFeaturedVideo = true;
-
+    const screenwidth = window.innerWidth;
+    if (screenwidth < 768 && this.featuredVideo) {
+      this.showFeaturedVideo = true;
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 

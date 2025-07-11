@@ -5,7 +5,7 @@
     height: 100%;
     width: 100%;
     display: grid;
-    grid-template-rows: 1fr 1fr;
+    grid-template-rows: 50% 50%;
     grid-template-columns: 1fr;
     overflow: hidden;
 
@@ -120,8 +120,11 @@
 
     &__content {
         @include flex-column-start;
+        justify-content: space-evenly;
+        height: 100%;
+        width: 100%;
         padding: 4rem 2rem;
-        gap: 4rem;
+        gap: 2rem;
         background:
             linear-gradient(to bottom,
                 rgba(0, 0, 0, 1) 0%,
@@ -134,14 +137,16 @@
         }
 
         @include respond-to(medium) {
-            @include flex-column-center;
             position: absolute;
             bottom: 0;
             top: 0;
+            gap: 0;
             margin: auto 0;
             left: 4rem;
             background: none;
             padding: 0;
+            width: 70%;
+            height: 75%;
         }
 
         @include respond-to(large) {
@@ -153,10 +158,49 @@
         }
 
         .video-description {
-            max-height: 60%;
-            word-break: break-all;
+            height: 10rem;
+            width: 100%;
+            font-size: 2rem;
+            display: grid;
+            grid-template-rows: 1fr;
+            align-items: end;
             overflow: hidden;
-            text-overflow: ellipsis;
+            position: relative;
+            cursor: default;
+
+            &[data-has-overflow="true"] {
+                cursor: help;
+
+                &::after {
+                    content: "...";
+                    position: absolute;
+                    bottom: 0;
+                    right: 0;
+                    background: linear-gradient(to left, $bg-color 60%, transparent);
+                    padding-left: 1rem;
+                }
+
+                &:hover {
+                    &::before {
+                        content: attr(data-full-text);
+                        position: absolute;
+                        bottom: 110%;
+                        left: 0;
+                        width: 100%;
+                        max-width: 320px;
+                        background: rgba($bg-color, 0.8);
+                        color: white;
+                        padding: 1rem;
+                        border-radius: 2rem;
+                        font-size: 2rem;
+                        z-index: 1000;
+                        white-space: normal;
+                        word-wrap: break-word;
+                        border: 1px solid rgba($primary-color, 0.8);
+                        animation: fadeInUp 125ms ease;
+                    }
+                }
+            }
         }
 
         .play-button {
@@ -175,5 +219,17 @@
                 }
             }
         }
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }

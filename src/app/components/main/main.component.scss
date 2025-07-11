@@ -40,10 +40,25 @@
             z-index: 10;
             margin: auto;
             max-width: fit-content;
+            padding: 2rem;
+
+            svg {
+                width: 2rem;
+                height: 2rem;
+                fill: $secondary-color;
+                transition: all 125ms ease;
+
+            }
+
+            &:hover {
+                svg {
+                    fill: $primary-color;
+                    transform: scale(1.2);
+                }
+            }
 
             @include respond-to(medium) {
                 display: none;
-
             }
         }
 
