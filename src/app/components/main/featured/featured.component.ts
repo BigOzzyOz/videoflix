@@ -2,6 +2,7 @@ import { Component, inject, Input, OnDestroy, OnInit, OnChanges, SimpleChanges, 
 import { Video } from '../../../shared/models/video';
 import { ApiService } from '../../../shared/services/api.service';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-featured',
@@ -11,6 +12,7 @@ import { CommonModule } from '@angular/common';
 })
 export class FeaturedComponent implements OnInit, OnDestroy, OnChanges {
   api = inject(ApiService);
+  private router = inject(Router);
 
   @Input() video: Video | null = null;
   @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
@@ -115,7 +117,12 @@ export class FeaturedComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-  playVideo() {
-    throw new Error('Method not implemented.');
+  playVideo(videoId: string): void {
+    if (!videoId) return;
+    this.endPreview();
+    this.isPreviewPlaying = false;
+    this.router.navigate(['/video'], {
+      queryParams: { videoId: videoId },
+    });
   }
 }

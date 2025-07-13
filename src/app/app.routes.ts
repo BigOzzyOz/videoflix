@@ -6,6 +6,7 @@ import { LandingComponent } from './components/landing/landing.component';
 import { PasswordResetComponent } from './components/password-reset/password-reset.component';
 import { FourOFourComponent } from './shared/components/four-o-four/four-o-four.component';
 import { MainComponent } from './components/main/main.component';
+import { PlayerComponent } from './components/player/player.component';
 
 export const routes: Routes = [
     {
@@ -56,6 +57,11 @@ export const routes: Routes = [
         path: 'main',
         component: MainComponent,
         title: 'Main',
+    },
+    {
+        path: 'video',
+        component: PlayerComponent,
+        title: 'Player',
     },
     {
         path: '',

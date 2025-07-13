@@ -34,6 +34,7 @@
               }
             ],
             "styles": [
+              "node_modules/video.js/dist/video-js.css",
               "src/styles/styles.scss"
             ],
             "scripts": [],

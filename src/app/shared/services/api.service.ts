@@ -219,6 +219,11 @@ export class ApiService {
     return await this.fetchData(url, 'GET');
   }
 
+  async getVideoById(videoId: string): Promise<ApiResponse> {
+    const url = `${this.VIDEOS_URL}${videoId}/`;
+    return await this.fetchData(url, 'GET');
+  }
+
 
 
 }
