@@ -1,0 +1,430 @@
+@use 'index' as *;
+
+button {
+    padding: 0;
+    background: none;
+    border: none;
+
+    &:hover {
+        box-shadow: none;
+        background: none;
+        border: none;
+    }
+
+    &:active,
+    &:focus {
+        border: none;
+        box-shadow: none;
+        background: none;
+    }
+
+    svg {
+        width: 4rem;
+        height: 4rem;
+        fill: $secondary-color;
+        transition: transform 125ms ease;
+
+        &:hover {
+            transform: scale(1.2);
+        }
+    }
+}
+
+.vjs-portrait-warning {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: $bg-color;
+    color: $secondary-color;
+    font-size: 2rem;
+    text-align: center;
+    z-index: 100;
+}
+
+.vjs-video-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    background: $bg-color;
+
+    &.hide-cursor {
+        cursor: none;
+
+        * {
+            cursor: none !important;
+        }
+    }
+
+    video {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+}
+
+.video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 10;
+    background:
+        linear-gradient(to bottom,
+            rgba(0, 0, 0, 1) 0%,
+            transparent 50%,
+            rgba(0, 0, 0, 1) 100%);
+
+    opacity: 1;
+    transition: opacity 125ms ease;
+
+    &.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .vjs-topbar,
+    .vjs-bottom {
+        pointer-events: auto;
+        width: 100%;
+        height: 10rem;
+        @include flex-center;
+        justify-content: space-between;
+        position: absolute;
+        left: 0;
+        right: 0;
+    }
+
+    .vjs-center {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        @include flex-column-center;
+        width: 100%;
+        height: 100%;
+
+        @include respond-to(medium) {
+            display: none;
+        }
+
+        .vjs-center-controls {
+            @include flex-center;
+            justify-content: space-evenly;
+            gap: 3rem;
+            z-index: 20;
+
+            @include respond-to(medium) {
+                display: none;
+            }
+
+            button {
+                width: 10rem;
+                height: 10rem;
+                pointer-events: all;
+
+                svg {
+                    width: 8rem;
+                    height: 8rem;
+                }
+            }
+        }
+    }
+}
+
+.vjs-topbar {
+    top: 0;
+    padding: 2rem 2rem 0;
+
+    .logo-container {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+
+        .title-top {
+            font-size: 3rem;
+            color: $secondary-color;
+            font-weight: bold;
+        }
+    }
+
+    .vjs-back {
+
+        .player__back_arrow {
+            display: none;
+
+            @include respond-to(medium) {
+                display: block;
+            }
+        }
+
+        .player__back_x {
+            display: block;
+
+            @include respond-to(medium) {
+                display: none;
+            }
+        }
+
+    }
+}
+
+.vjs-bottom {
+    bottom: 0;
+    padding: 0 2rem 2rem;
+
+    .vjs-bottom-wrapper {
+        @include flex-center;
+        align-items: end;
+        gap: 1rem;
+        position: relative;
+        width: 100%;
+        height: 100%;
+
+
+        .vjs-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+
+            &.left {
+                display: none;
+
+                @include respond-to(medium) {
+                    display: flex;
+                }
+
+                .vjs-sound-control {
+                    position: relative;
+                    display: flex;
+                    flex-direction: column-reverse;
+                    align-items: center;
+                    justify-content: flex-end;
+                    gap: 0.5rem;
+
+                    .volume-control {
+                        position: absolute;
+                        top: -2rem;
+                        left: 50%;
+                        transform: translate(-50%, -100%);
+                        display: flex;
+                        flex-direction: column-reverse;
+                        align-items: center;
+                        gap: 0.5rem;
+                        direction: rtl;
+                        writing-mode: vertical-rl;
+                    }
+                }
+            }
+
+            &.right {
+                .vjs-speed-control {
+                    position: relative;
+
+                    .vjs-time-control {
+                        @include flex-center;
+                        gap: 1rem;
+
+                        .vjs-speed-text {
+                            font-size: 2rem;
+
+                            @include respond-to(medium) {
+                                font-size: 1.5rem;
+                            }
+                        }
+                    }
+
+                    .speed-menu {
+                        position: absolute;
+                        bottom: 100%;
+                        right: 50%;
+                        transform: translateX(50%);
+                        background: $card-background;
+                        border-radius: 1rem;
+                        padding: 1.5rem;
+                        margin-bottom: 1rem;
+                        min-width: 30rem;
+                        backdrop-filter: blur(10px);
+                        border: 1px solid rgba($bg-color, 0.1);
+                        z-index: 100;
+
+                        .speed-label {
+                            color: $secondary-color;
+                            font-size: 2rem;
+                            margin-bottom: 1.5rem;
+                            text-align: center;
+                            font-weight: 600;
+                        }
+
+                        .speed-options {
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            gap: 0;
+                            position: relative;
+
+                            .speed-option {
+                                @include flex-column-center;
+                                cursor: pointer;
+                                transition: all 125ms ease;
+                                position: relative;
+                                flex: 1;
+                                padding: 1rem;
+                                gap: 1rem;
+
+                                &:not(:last-child)::after {
+                                    content: '';
+                                    position: absolute;
+                                    right: 0;
+                                    top: 2rem;
+                                    transform: translateX(50%);
+                                    width: 2rem;
+                                    height: 1px;
+                                    background: $utility-color;
+                                }
+
+                                &:hover {
+
+                                    .radio-button {
+                                        border-color: rgba($primary-color, 0.7);
+                                        transform: scale(1.1);
+                                    }
+
+                                    label {
+                                        color: rgba($primary-color, 0.9);
+                                    }
+                                }
+
+                                .radio-button {
+                                    width: 2rem;
+                                    height: 2rem;
+                                    border: 2px solid $utility-color;
+                                    border-radius: 50%;
+                                    position: relative;
+                                    cursor: pointer;
+                                    transition: all 125ms ease;
+                                    margin-bottom: 0.8rem;
+
+                                    &.active {
+                                        border-color: $secondary-color;
+                                        background-color: transparent;
+
+                                        &::after {
+                                            content: '';
+                                            position: absolute;
+                                            top: 50%;
+                                            left: 50%;
+                                            transform: translate(-50%, -50%);
+                                            width: 1rem;
+                                            height: 1rem;
+                                            background-color: $secondary-color;
+                                            border-radius: 50%;
+                                        }
+                                    }
+                                }
+
+                                input[type="radio"] {
+                                    display: none;
+                                }
+
+                                label {
+                                    font-size: 2rem;
+                                    cursor: pointer;
+                                    transition: all 125ms ease;
+                                    text-align: center;
+                                    min-width: 5rem;
+
+
+                                    &.active {
+                                        font-weight: 600;
+                                        font-size: 2rem;
+                                        color: $secondary-color;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                .vjs-fullscreen {
+                    display: none;
+
+                    @include respond-to(medium) {
+                        display: block;
+                    }
+                }
+            }
+        }
+
+        .vjs-title {
+            display: none;
+
+            @include respond-to(medium) {
+                display: block;
+            }
+        }
+
+        .vjs-progress {
+            @include flex-center;
+            justify-content: space-between;
+            position: absolute;
+            top: 0;
+            left: 0;
+            gap: 1rem;
+            width: 100%;
+
+            span {
+                font-size: 1.5rem;
+                width: 10%;
+
+                &:last-child {
+                    text-align: right;
+                }
+            }
+
+            .progress-container {
+                @include flex-center;
+                position: relative;
+                max-width: 80%;
+                flex: 1;
+
+                input[type="range"] {
+                    width: 100%;
+                    padding: 0;
+
+                }
+
+                .time-tooltip {
+                    position: absolute;
+                    bottom: 30px;
+                    transform: translateX(-50%);
+                    background: rgba(0, 0, 0, 0.8);
+                    color: white;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    white-space: nowrap;
+                    pointer-events: none;
+                    z-index: 10;
+                }
+
+                .time-tooltip::after {
+                    content: '';
+                    position: absolute;
+                    top: 100%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    border: 5px solid transparent;
+                    border-top-color: rgba(0, 0, 0, 0.8);
+                }
+            }
+        }
+    }
+}

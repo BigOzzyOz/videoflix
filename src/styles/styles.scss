@@ -44,7 +44,7 @@
 
 ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg,
-            lighten($primary-color, 15%) 0%,
+            hsl(from $primary-color h s calc(l + 15%)) 0%,
             $primary-color 30%,
             rgba($primary-color, 0.8) 70%,
             rgba($primary-color, 0.6) 100%);
