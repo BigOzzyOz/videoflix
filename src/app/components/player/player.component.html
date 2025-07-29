@@ -1,8 +1,5 @@
-@if(isPortrait) {
-    <div class="vjs-portrait-warning">
-        <p>Please rotate your device to landscape mode for the best viewing experience.</p>
-    </div>
-}
+<app-orientation-warning message="Please rotate your device to landscape mode for the best video experience"
+    [requiredOrientation]="'landscape'" [showOnlyOnMobile]="true" />
 
 <section class="vjs-video-container" [class.hide-cursor]="!showOverlay && isPlaying">
 

@@ -30,23 +30,6 @@ button {
     }
 }
 
-.vjs-portrait-warning {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background-color: $bg-color;
-    color: $secondary-color;
-    font-size: 2rem;
-    text-align: center;
-    z-index: 100;
-}
-
 .vjs-video-container {
     position: relative;
     width: 100%;
@@ -381,7 +364,7 @@ button {
             width: 100%;
 
             span {
-                font-size: 1.5rem;
+                font-size: 2rem;
                 width: 10%;
 
                 &:last-child {
@@ -403,13 +386,13 @@ button {
 
                 .time-tooltip {
                     position: absolute;
-                    bottom: 30px;
+                    bottom: 3rem;
                     transform: translateX(-50%);
-                    background: rgba(0, 0, 0, 0.8);
-                    color: white;
-                    padding: 4px 8px;
-                    border-radius: 4px;
-                    font-size: 12px;
+                    background: $card-background;
+                    color: $secondary-color;
+                    padding: 0.5rem 1rem;
+                    border-radius: 0.5rem;
+                    font-size: 2rem;
                     white-space: nowrap;
                     pointer-events: none;
                     z-index: 10;

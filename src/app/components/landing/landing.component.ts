@@ -3,10 +3,11 @@ import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from "../../shared/components/header/header.component";
 import { FooterComponent } from "../../shared/components/footer/footer.component";
 import { Router } from '@angular/router';
+import { OrientationWarningComponent } from '../../shared/components/orientation-warning/orientation-warning.component';
 
 @Component({
   selector: 'app-landing',
-  imports: [HeaderComponent, FooterComponent, FormsModule],
+  imports: [HeaderComponent, FooterComponent, FormsModule, OrientationWarningComponent],
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.scss'
 })

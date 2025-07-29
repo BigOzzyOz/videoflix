@@ -7,10 +7,11 @@ import { FormGroup, FormBuilder, ReactiveFormsModule, FormControl, Validators, A
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../shared/services/api.service';
 import { ErrorService } from '../../shared/services/error.service';
+import { OrientationWarningComponent } from '../../shared/components/orientation-warning/orientation-warning.component';
 
 @Component({
   selector: 'app-password-reset',
-  imports: [FooterComponent, HeaderComponent, PasswordInputComponent, EmailInputComponent, ReactiveFormsModule],
+  imports: [FooterComponent, HeaderComponent, PasswordInputComponent, EmailInputComponent, ReactiveFormsModule, OrientationWarningComponent],
   templateUrl: './password-reset.component.html',
   styleUrl: './password-reset.component.scss'
 })

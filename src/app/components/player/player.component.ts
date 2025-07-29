@@ -17,10 +17,11 @@ import { ApiService } from '../../shared/services/api.service';
 import { ErrorService } from '../../shared/services/error.service';
 import { Video } from '../../shared/models/video';
 import { VideoTimePipe } from '../../shared/pipes/video-time.pipe';
+import { OrientationWarningComponent } from '../../shared/components/orientation-warning/orientation-warning.component';
 
 @Component({
   selector: 'app-player',
-  imports: [FormsModule, VideoTimePipe],
+  imports: [FormsModule, VideoTimePipe, OrientationWarningComponent],
   templateUrl: './player.component.html',
   styleUrls: ['./player.component.scss'],
   encapsulation: ViewEncapsulation.None,
@@ -38,7 +39,6 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   videoUrl: string = '';
   videoId: string = '';
   isOptimizing: boolean = false;
-  isPortrait: boolean = false;
 
   isPlaying: boolean = false;
   progressTime: number = 0;
@@ -66,51 +66,10 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   private lastSeekTime = 0;
 
   constructor() {
-    this.checkOrientation(); // Initial check
     this.activeRoute.queryParams.subscribe(params => {
       this.videoId = params['videoId'] || '';
     });
     console.log('PlayerComponent initialized with videoId:', this.videoId);
-  }
-
-  // Lausche auf Orientierungsänderungen
-  @HostListener('window:orientationchange', ['$event'])
-  @HostListener('window:resize', ['$event'])
-  onOrientationChange(event: Event): void {
-    // Kurze Verzögerung damit Browser Zeit hat die Orientierung zu ändern
-    setTimeout(() => {
-      this.checkOrientation();
-
-      // Player bei Orientierungsänderung neu initialisieren falls nötig
-      if (this.player && this.videoUrl) {
-        this.reinitializePlayerOnOrientationChange();
-      }
-    }, 100);
-  }
-
-  private checkOrientation(): void {
-    this.isPortrait = window.innerHeight > window.innerWidth;
-    console.log('Orientation check:', this.isPortrait ? 'Portrait' : 'Landscape');
-  }
-
-  private reinitializePlayerOnOrientationChange(): void {
-    if (!this.player) return;
-
-    // Aktuelle Zeit und Zustand speichern
-    const currentTime = this.player.currentTime();
-    const isPaused = this.player.paused();
-
-    // Player kurz neu aufsetzen
-    setTimeout(() => {
-      if (this.player && currentTime) {
-        this.player.currentTime(currentTime);
-        if (!isPaused) {
-          this.player.play().catch((err: any) => {
-            console.error('Error resuming after orientation change:', err);
-          });
-        }
-      }
-    }, 200);
   }
 
   async ngOnInit() {

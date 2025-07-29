@@ -8,10 +8,11 @@ import { ApiService } from '../../shared/services/api.service';
 import { ErrorService } from '../../shared/services/error.service';
 import { DialogService } from '../../shared/services/dialog.service';
 import { Router } from '@angular/router';
+import { OrientationWarningComponent } from '../../shared/components/orientation-warning/orientation-warning.component';
 
 @Component({
   selector: 'app-login',
-  imports: [HeaderComponent, FooterComponent, PasswordInputComponent, ReactiveFormsModule, EmailInputComponent],
+  imports: [HeaderComponent, FooterComponent, PasswordInputComponent, ReactiveFormsModule, EmailInputComponent, OrientationWarningComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })

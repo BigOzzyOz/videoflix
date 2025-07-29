@@ -7,10 +7,11 @@ import { HeaderComponent } from '../../shared/components/header/header.component
 import { FooterComponent } from '../../shared/components/footer/footer.component';
 import { EmailInputComponent } from '../../shared/components/input-elements/email-input/email-input.component';
 import { PasswordInputComponent } from '../../shared/components/input-elements/password-input/password-input.component';
+import { OrientationWarningComponent } from '../../shared/components/orientation-warning/orientation-warning.component';
 
 @Component({
     selector: 'app-register',
-    imports: [FormsModule, HeaderComponent, FooterComponent, EmailInputComponent, PasswordInputComponent, ReactiveFormsModule],
+    imports: [FormsModule, HeaderComponent, FooterComponent, EmailInputComponent, PasswordInputComponent, ReactiveFormsModule, OrientationWarningComponent],
     templateUrl: './register.component.html',
     styleUrl: './register.component.scss'
 })
