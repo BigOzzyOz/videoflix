@@ -1,39 +1,10 @@
 @use 'index' as *;
 
-button {
-    padding: 0;
-    background: none;
-    border: none;
-
-    &:hover {
-        box-shadow: none;
-        background: none;
-        border: none;
-    }
-
-    &:active,
-    &:focus {
-        border: none;
-        box-shadow: none;
-        background: none;
-    }
-
-    svg {
-        width: 4rem;
-        height: 4rem;
-        fill: $secondary-color;
-        transition: transform 125ms ease;
-
-        &:hover {
-            transform: scale(1.2);
-        }
-    }
-}
-
 .vjs-video-container {
     position: relative;
     width: 100%;
     height: 100vh;
+    @include flex-column-center;
     background: $bg-color;
 
     &.hide-cursor {
@@ -48,6 +19,36 @@ button {
         width: 100%;
         height: 100%;
         object-fit: contain;
+    }
+
+    button {
+        padding: 0;
+        background: none;
+        border: none;
+
+        &:hover {
+            box-shadow: none;
+            background: none;
+            border: none;
+        }
+
+        &:active,
+        &:focus {
+            border: none;
+            box-shadow: none;
+            background: none;
+        }
+
+        svg {
+            width: 4rem;
+            height: 4rem;
+            fill: $secondary-color;
+            transition: transform 125ms ease;
+
+            &:hover {
+                transform: scale(1.2);
+            }
+        }
     }
 }
 

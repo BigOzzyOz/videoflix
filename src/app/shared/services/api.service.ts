@@ -21,6 +21,10 @@ export class ApiService {
   RESET_CONFIRM_URL: string = `${this.BASE_URL}/users/password-reset/confirm/`;
   GENRES_COUNT_URL: string = `${this.BASE_URL}/videos/genre-count/`;
   VIDEOS_URL: string = `${this.BASE_URL}/videos/`;
+  PROGRESS_UPDATE_URL(profileId: string, videoFileId: string) {
+    return `${this.BASE_URL}/users/me/profiles/${profileId}/progress/${videoFileId}/update/`;
+  }
+
 
   access_token: string | null = null;
   refresh_token: string | null = null;
@@ -222,6 +226,12 @@ export class ApiService {
   async getVideoById(videoId: string): Promise<ApiResponse> {
     const url = `${this.VIDEOS_URL}${videoId}/`;
     return await this.fetchData(url, 'GET');
+  }
+
+  async updateVideoProgress(profileId: string, videoFileId: string, progress: number): Promise<ApiResponse> {
+    const url = this.PROGRESS_UPDATE_URL(profileId, videoFileId);
+    const body = { current_time: progress };
+    return await this.fetchData(url, 'POST', body);
   }
 
 

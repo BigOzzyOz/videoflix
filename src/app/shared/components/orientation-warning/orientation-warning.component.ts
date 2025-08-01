@@ -20,7 +20,7 @@ export class OrientationWarningComponent {
   constructor() { }
 
   get shouldShow(): boolean {
-    if (this.showOnlyOnMobile && window.innerWidth > 768) {
+    if (this.showOnlyOnMobile && window.innerWidth >= 768) {
       return false;
     }
 

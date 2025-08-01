@@ -18,6 +18,7 @@ import { ErrorService } from '../../shared/services/error.service';
 import { Video } from '../../shared/models/video';
 import { VideoTimePipe } from '../../shared/pipes/video-time.pipe';
 import { OrientationWarningComponent } from '../../shared/components/orientation-warning/orientation-warning.component';
+import { Profile } from '../../shared/models/profile';
 
 @Component({
   selector: 'app-player',
@@ -34,12 +35,15 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   errorService = inject(ErrorService);
 
   @ViewChild('vjs', { static: true }) vjsRef!: ElementRef<HTMLVideoElement>;
+
+  readonly OVERLAY_HIDE_DELAY = 3000;
+  readonly SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5];
+
   video: Video | null = null;
   player: any;
   videoUrl: string = '';
   videoId: string = '';
   isOptimizing: boolean = false;
-
   isPlaying: boolean = false;
   progressTime: number = 0;
   videoDuration: number = 0;
@@ -47,21 +51,13 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   volume: number = 0.5;
   isFullscreen: boolean = false;
   isScrubbing: boolean = false;
-
   showTooltip: boolean = false;
   tooltipTime: number = 0;
   tooltipPosition: number = 0;
-
-  // Neue Properties für Overlay-Verhalten
   showOverlay: boolean = true;
   overlayTimeoutId: any = null;
-  readonly OVERLAY_HIDE_DELAY = 3000; // 3 Sekunden
-
-  // Neue Properties für Speed-Kontrolle
   playbackSpeed: number = 1;
-  readonly SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5];
   showSpeedMenu: boolean = false;
-
   private viewInitialized = false;
   private lastSeekTime = 0;
 
@@ -69,22 +65,30 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     this.activeRoute.queryParams.subscribe(params => {
       this.videoId = params['videoId'] || '';
     });
+    if (sessionStorage.getItem(this.videoId)) {
+      this.video = new Video(JSON.parse(sessionStorage.getItem(this.videoId)!));
+      this.videoUrl = this.video.hls;
+      this.videoId = this.video.id;
+    }
     console.log('PlayerComponent initialized with videoId:', this.videoId);
   }
 
   async ngOnInit() {
-    const videoData = await this.api.getVideoById(this.videoId);
+    if (!this.video) {
+      const videoData = await this.api.getVideoById(this.videoId);
 
-    if (videoData.isSuccess()) {
-      this.video = new Video(videoData.data);
-      this.videoUrl = this.video.hls;
-
-      if (this.viewInitialized) this.initializePlayer();
-    }
-    else {
-      this.errorService.show('Video not found or could not be loaded.');
+      if (videoData.isSuccess()) {
+        this.video = new Video(videoData.data);
+        this.videoUrl = this.video.hls;
+        sessionStorage.setItem('videoId', this.video.id);
+        if (this.viewInitialized) this.initializePlayer();
+      }
+      else {
+        this.errorService.show('Video not found or could not be loaded.');
+      }
     }
     console.log('Video URL:', this.videoUrl);
+
   }
 
   ngAfterViewInit(): void {
@@ -95,7 +99,6 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private initializePlayer(): void {
-    // Element-Validierung
     if (!this.vjsRef?.nativeElement) {
       console.error('Video element not found!');
       this.errorService.show('Video player could not be initialized');
@@ -105,14 +108,13 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     console.log('Initializing player with element:', this.vjsRef.nativeElement);
     console.log('Video URL:', this.videoUrl);
 
-    // iOS/Safari Detection
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
     this.player = videojs(this.vjsRef.nativeElement, {
       autoplay: false,
       preload: 'metadata',
-      controls: false, // Eigene Controls verwenden
+      controls: false,
       fluid: true,
       responsive: true,
       playsinline: true,
@@ -124,7 +126,7 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
       ],
       html5: {
         vhs: {
-          overrideNative: !(isIOS || isSafari), // Native HLS für iOS/Safari
+          overrideNative: !(isIOS || isSafari),
           enableLowInitialPlaylist: true,
           smoothQualityChange: true
         }
@@ -135,13 +137,51 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     this.player.ready(() => {
       console.log('Player ready, tech:', this.player.tech_.name_);
 
+      // Event Handler nur einmal registrieren
+      let lastSaveTime = 0;
+
+      // EINMAL loadedmetadata Handler
       this.player.one('loadedmetadata', () => {
         console.log('Metadata loaded, duration:', this.player?.duration());
         this.videoDuration = this.player?.duration() || 0;
         this.timeJump(0, true);
       });
 
-      // Erweiterte Error-Behandlung
+      // EINMAL timeupdate Handler
+      this.player.on('timeupdate', async () => {
+        if (!this.isScrubbing) {
+          this.progressTime = this.player.currentTime();
+        }
+
+        // Progress Update nur alle 15 Sekunden
+        lastSaveTime = await this.updateProgress(
+          this.api.CurrentProfile.id || '',
+          this.video?.id || '',
+          lastSaveTime
+        );
+      });
+
+      // Pause/End Handler
+      this.player.on(['pause', 'ended'], async () => {
+        if (this.videoId && this.player) {
+          const currentTime = this.player.currentTime();
+          if (currentTime) {
+            lastSaveTime = await this.updateProgress(
+              this.api.CurrentProfile.id || '',
+              this.videoId,
+              0 // Force save on pause/end
+            );
+          }
+          this.isPlaying = false;
+        }
+      });
+
+      // Video Ende - SessionStorage cleanen
+      this.player.on('ended', () => {
+        sessionStorage.removeItem(this.key());
+      });
+
+      // Error Handler
       this.player.on('error', (error: any) => {
         console.error('Player error:', error);
         const playerError = this.player.error();
@@ -167,52 +207,9 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       });
     });
-
-    /* === Fortschritt speichern === */
-    let lastSaveTime = 0;
-    this.player.on('timeupdate', () => {
-
-      if (!this.videoId || !this.player) return;
-      this.isPlaying = !this.player.paused();
-      const currentTime = this.player.currentTime();
-      const now = Date.now();
-
-      this.progressTime = currentTime;
-
-
-      if (currentTime && now - lastSaveTime > 2000) {
-        localStorage.setItem(this.key(), currentTime.toString());
-        lastSaveTime = now;
-      }
-    });
-
-    this.player.on(['pause', 'ended'], () => {
-      if (this.videoId && this.player) {
-        const currentTime = this.player.currentTime();
-        if (currentTime) {
-          localStorage.setItem(this.key(), currentTime.toString());
-        }
-        this.isPlaying = false;
-      }
-    });
-
-    // Progress löschen wenn Video zu Ende
-    this.player.on('ended', () => {
-      localStorage.removeItem(this.key());
-    });
-
-    this.player.on('loadedmetadata', () => {
-      this.videoDuration = this.player.duration();
-    });
-
-    this.player.on('timeupdate', () => {
-      if (!this.isScrubbing) { // Nur updaten wenn nicht gerade gezogen wird
-        this.progressTime = this.player.currentTime();
-      }
-    });
   }
 
-  // Mouse and Touch Events für Overlay-Steuerung
+
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(): void {
     this.showOverlay = true;
@@ -231,7 +228,6 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     this.showOverlay = true;
     this.resetOverlayTimer();
 
-    // Tastatur-Shortcuts
     switch (event.code) {
       case 'Space':
         event.preventDefault();
@@ -260,7 +256,7 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.player) {
       const currentTime = this.player.currentTime();
       if (this.videoId && currentTime && currentTime > 0) {
-        localStorage.setItem(this.key(), currentTime.toString());
+        sessionStorage.setItem(this.key(), currentTime.toString());
       }
       this.player.dispose();
     }
@@ -282,7 +278,7 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!isInit && now - this.lastSeekTime < 500) return;
     this.lastSeekTime = now;
 
-    const resume = this.videoId ? Number(localStorage.getItem(this.key())) : 0;
+    const resume = this.videoId ? this.getResumeTime() : 0;
     const duration = this.player?.duration();
     const currentTime = this.player?.currentTime();
 
@@ -307,10 +303,10 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
         this.player.play().catch((err: any) => {
           console.error('Error playing video:', err);
         });
-        this.resetOverlayTimer(); // Timer starten wenn Video startet
+        this.resetOverlayTimer();
       } else {
         this.player.pause();
-        this.showOverlay = true; // Overlay anzeigen wenn pausiert
+        this.showOverlay = true;
         if (this.overlayTimeoutId) {
           clearTimeout(this.overlayTimeoutId);
         }
@@ -321,6 +317,13 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   toggleSound(): void {
     if (this.player) {
       this.player.muted(!this.player.muted());
+      this.isMuted = this.player.muted();
+      if (this.isMuted) {
+        this.volume = this.player.volume();
+        this.player.volume(0);
+      } else {
+        this.player.volume(this.volume);
+      }
     }
   }
 
@@ -328,8 +331,10 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.player) {
       if (this.player.isFullscreen()) {
         this.player.exitFullscreen();
+        this.isFullscreen = false;
       } else {
         this.player.requestFullscreen();
+        this.isFullscreen = true;
       }
     }
   }
@@ -358,11 +363,10 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  // Range Input Methods:
   onSeekStart(): void {
     this.isScrubbing = true;
     if (this.player) {
-      this.player.pause(); // Video pausieren während scrubbing
+      this.player.pause();
     }
   }
 
@@ -370,7 +374,7 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     const target = event.target as HTMLInputElement;
     const time = parseFloat(target.value);
     this.progressTime = time;
-    this.tooltipTime = time; // Tooltip beim Scrubbing updaten
+    this.tooltipTime = time;
 
     if (this.player) {
       this.player.currentTime(time);
@@ -407,12 +411,10 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private resetOverlayTimer(): void {
-    // Bestehenden Timer löschen
     if (this.overlayTimeoutId) {
       clearTimeout(this.overlayTimeoutId);
     }
 
-    // Neuen Timer nur setzen wenn Video spielt
     if (this.isPlaying) {
       this.overlayTimeoutId = setTimeout(() => {
         this.showOverlay = false;
@@ -420,7 +422,6 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  // Speed-Kontrolle Methoden
   toggleSpeedMenu(): void {
     this.showSpeedMenu = !this.showSpeedMenu;
   }
@@ -429,8 +430,65 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.player) {
       this.player.playbackRate(speed);
       this.playbackSpeed = speed;
-      // Menu nach Auswahl schließen (optional)
-      // this.showSpeedMenu = false;
+      this.showSpeedMenu = false;
     }
   }
+
+  async updateProgress(profileId: string, videoFileId: string, lastSaveTime: number): Promise<number> {
+    if (!this.player || !this.videoId) return lastSaveTime;
+
+    const currentTime = this.player.currentTime();
+    if (currentTime <= 0) return lastSaveTime;
+
+    this.isPlaying = !this.player.paused();
+    const now = Date.now();
+
+    // Force save wenn lastSaveTime = 0 (bei pause/end)
+    const shouldSave = lastSaveTime === 0 || (now - lastSaveTime > 15000);
+
+    if (currentTime && shouldSave) {
+      sessionStorage.setItem(this.key(), currentTime.toString());
+      const newLastSaveTime = now;
+
+      try {
+        const response = await this.api.updateVideoProgress(profileId, videoFileId, currentTime);
+
+        if (response.isSuccess()) {
+          this.api.CurrentProfile = new Profile(response.data);
+          console.log('Progress updated successfully');
+          return newLastSaveTime;
+        } else {
+          this.errorService.show('Failed to update video progress');
+          return lastSaveTime;
+        }
+      } catch (error) {
+        console.error('Error updating video progress:', error);
+        this.errorService.show('An error occurred while updating video progress');
+        return lastSaveTime;
+      }
+    }
+
+    return lastSaveTime;
+  }
+
+  getResumeTime(): number {
+    if (!this.videoId || !this.api.CurrentProfile) {
+      return 0;
+    }
+
+    const data = this.api.CurrentProfile.videoProgress || [];
+    const videoProgress = data.find(item => item.id === this.videoId);
+
+    if (videoProgress && videoProgress.currentTime) {
+      console.log('Resume time found:', videoProgress.currentTime);
+      sessionStorage.setItem(this.key(), videoProgress.currentTime.toString());
+      return videoProgress.currentTime;
+    }
+
+    const localResumeTime = Number(sessionStorage.getItem(this.key())) || 0;
+    console.log('Local resume time:', localResumeTime);
+
+    return localResumeTime;
+  }
+
 }
