@@ -142,7 +142,7 @@
                             (mouseleave)="hideVolumeControlDelayed()">
 
                             <div class="volume-track" (click)="setVolumeFromClick($event)">
-                                <div class="volume-progress" [style.height.%]="volume * 100"></div>
+                                <div class="volume-progress"></div>
                                 <div class="volume-handle" (mousedown)="startVolumeDrag($event)"></div>
                             </div>
 

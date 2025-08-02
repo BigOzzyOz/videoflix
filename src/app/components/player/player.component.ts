@@ -415,17 +415,8 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
       this.volume = Math.max(0, Math.min(1, volume));
       this.player.volume(this.volume);
 
-      // Handle Position berechnen (mathematisch korrekt)
-      const trackHeight = 14; // rem (16rem - 2rem padding)
-      const handleHeight = 1.6; // rem  
-      const padding = 1; // rem
-      const availableHeight = trackHeight - handleHeight; // 12.4rem
-      const position = padding + (availableHeight * this.volume); // 1rem + (12.4rem * volume)
-
-      const volumeHandle = document.querySelector('.volume-handle') as HTMLElement;
-      if (volumeHandle) {
-        volumeHandle.style.bottom = `${position}rem`;
-      }
+      // Beide - Progress und Handle - in einer Methode updaten
+      this.updateVolumeHandlePosition();
 
       // Auto unmute/mute
       if (this.volume > 0 && this.player.muted()) {
@@ -708,15 +699,26 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Hilfsmethode hinzufügen
   private updateVolumeHandlePosition(): void {
-    const trackHeight = 14;
-    const handleHeight = 1.6;
-    const padding = 1;
-    const availableHeight = trackHeight - handleHeight;
-    const position = padding + (availableHeight * this.volume);
+    const trackHeight = 14; // rem
+    const handleHeight = 1.6; // rem  
+    const padding = 1; // rem
+    const availableHeight = trackHeight - handleHeight; // 12.4rem
+    const position = padding + (availableHeight * this.volume); // Handle Position
+    const progressHeight = trackHeight * this.volume; // Progress Höhe
 
+    // Volume Progress updaten
+    const volumeProgress = document.querySelector('.volume-progress') as HTMLElement;
+    if (volumeProgress) {
+      volumeProgress.style.height = `${progressHeight}rem`;
+      volumeProgress.style.bottom = `${padding}rem`;
+      console.log('Volume progress height set to:', progressHeight);
+    }
+
+    // Volume Handle updaten
     const volumeHandle = document.querySelector('.volume-handle') as HTMLElement;
     if (volumeHandle) {
       volumeHandle.style.bottom = `${position}rem`;
+      console.log('Volume handle position set to:', position);
     }
   }
 }

@@ -229,9 +229,7 @@
 
                 .vjs-sound-control {
                     position: relative;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
+                    @include flex-center;
                     padding: 0;
                     background: none;
                     border: none;
@@ -240,24 +238,9 @@
                     height: 4rem;
 
                     .sound-icon {
-                        width: 3rem;
-                        height: 3rem;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
+                        @include flex-center;
                         transition: transform 0.2s ease;
                         cursor: pointer;
-
-                        &:hover {
-                            transform: scale(1.1);
-                        }
-
-                        svg {
-                            width: 2.4rem;
-                            height: 2.4rem;
-                            fill: $secondary-color;
-                            transition: fill 0.2s ease;
-                        }
                     }
 
                     .volume-slider-container {
@@ -265,7 +248,7 @@
                         bottom: 100%;
                         left: 50%;
                         transform: translateX(-50%);
-                        margin-bottom: 1rem;
+                        margin-bottom: 2rem;
                         opacity: 0;
                         visibility: hidden;
                         transition: all 125ms ease;
@@ -276,7 +259,6 @@
                             visibility: visible;
                         }
 
-                        // Volume Slider bleibt während Drag sichtbar
                         &:hover {
                             opacity: 1;
                             visibility: visible;
@@ -293,7 +275,6 @@
                             backdrop-filter: blur(10px);
                             border: 1px solid rgba($bg-color, 0.1);
 
-                            // Track Background
                             &::before {
                                 content: '';
                                 position: absolute;
@@ -315,15 +296,12 @@
 
                             .volume-progress {
                                 position: absolute;
-                                bottom: 1rem;
                                 left: 50%;
                                 transform: translateX(-50%);
                                 width: 0.6rem;
                                 background: $secondary-color;
                                 border-radius: 0.3rem;
-                                transition: all 125ms ease;
                                 z-index: 2;
-                                max-height: 14rem;
                             }
 
                             .volume-handle {
@@ -333,13 +311,12 @@
                                 width: 1.6rem;
                                 height: 1.6rem;
                                 background: $secondary-color;
-                                border: 3px solid white;
+                                border: 0.5rem solid $secondary-color;
                                 border-radius: 50%;
                                 cursor: grab;
                                 opacity: 0;
-                                transition: all 125ms ease;
+                                transition: opacity 125ms ease, transform 125ms ease;
                                 z-index: 3;
-                                // Keine bottom-Position hier - wird via TypeScript gesetzt
 
                                 &:hover {
                                     transform: translateX(-50%) scale(1.1);
@@ -350,21 +327,20 @@
                                     transform: translateX(-50%) scale(1.1);
                                     cursor: grabbing;
                                     opacity: 1;
-                                    pointer-events: auto;
                                 }
                             }
                         }
 
                         .volume-tooltip {
                             position: absolute;
-                            left: -5rem;
+                            left: -8rem;
                             top: 50%;
                             transform: translateY(-50%);
                             background: rgba($card-background, 0.95);
                             color: $secondary-color;
-                            padding: 0.6rem 1rem;
-                            border-radius: 0.6rem;
-                            font-size: 1.4rem;
+                            padding: 1rem;
+                            border-radius: 1rem;
+                            font-size: 2rem;
                             font-weight: 600;
                             white-space: nowrap;
                             pointer-events: none;
@@ -378,21 +354,9 @@
                                 left: 100%;
                                 top: 50%;
                                 transform: translateY(-50%);
-                                border: 6px solid transparent;
+                                border: 1rem solid transparent;
                                 border-left-color: rgba($card-background, 0.95);
                             }
-                        }
-                    }
-
-                    // Hover-Effekt für ganzen Button
-                    &:hover {
-                        .sound-icon svg {
-                            fill: white;
-                        }
-
-                        .volume-slider-container {
-                            opacity: 1;
-                            visibility: visible;
                         }
                     }
                 }
