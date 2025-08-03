@@ -1,6 +1,8 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { VideoTitleComponent } from '../sub/video-title/video-title.component';
+import { PlayerStateService } from '../../../shared/services/player-state.service';
 
 @Component({
   selector: 'app-top-bar',
@@ -13,15 +15,10 @@ import { VideoTitleComponent } from '../sub/video-title/video-title.component';
   styleUrl: './top-bar.component.scss'
 })
 export class TopBarComponent {
-  // Inputs
-  @Input() title: string | undefined = '';
-  @Input() isOptimizing = false;
+  private router = inject(Router);
+  playerState = inject(PlayerStateService);
 
-  // Outputs
-  @Output() backClick = new EventEmitter<void>();
-
-  // Event Handler Methoden
-  toMain(): void {
-    this.backClick.emit();
+  goBack(): void {
+    this.router.navigate(['/main']);
   }
 }

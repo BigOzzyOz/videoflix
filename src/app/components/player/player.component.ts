@@ -21,6 +21,7 @@ import { Profile } from '../../shared/models/profile';
 import { BottomBarComponent } from './bottom-bar/bottom-bar.component';
 import { CenterControlsComponent } from './center-controls/center-controls.component';
 import { TopBarComponent } from "./top-bar/top-bar.component";
+import { PlayerStateService } from '../../shared/services/player-state.service';
 
 @Component({
   selector: 'app-player',
@@ -35,6 +36,7 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   activeRoute = inject(ActivatedRoute);
   api = inject(ApiService);
   errorService = inject(ErrorService);
+  playerState = inject(PlayerStateService);
 
   @ViewChild('vjs', { static: true }) vjsRef!: ElementRef<HTMLVideoElement>;
 
@@ -45,11 +47,6 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   videoUrl: string = '';
   videoId: string = '';
   isOptimizing: boolean = false;
-  isPlaying: boolean = false;
-  progressTime: number = 0;
-  videoDuration: number = 0;
-  isMuted: boolean = false;
-  volume: number = 0.5;
   isFullscreen: boolean = false;
   isScrubbing: boolean = false;
   showOverlay: boolean = true;
@@ -59,10 +56,6 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   private viewInitialized = false;
   private lastSeekTime = 0;
 
-  // Füge diese Properties hinzu:
-  showVolumeControl: boolean = false;
-  volumeTooltipPosition: number = 0;
-  showVolumeTooltip: boolean = false;
   private volumeHideTimeout: any = null;
   private isDraggingVolume: boolean = false;
 
@@ -79,6 +72,14 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async ngOnInit() {
+    console.log('PlayerState Service injected:', this.playerState);
+    this.playerState.setVideoId(this.videoId);
+
+    // TEST: Video auch im Service setzen
+    if (this.video) {
+      this.playerState.setVideo(this.video);
+    }
+
     if (!this.video) {
       const videoData = await this.api.getVideoById(this.videoId);
 
@@ -86,6 +87,10 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
         this.video = new Video(videoData.data);
         this.videoUrl = this.video.hls;
         sessionStorage.setItem('videoId', this.video.id);
+
+        // TEST: Video auch im Service setzen
+        this.playerState.setVideo(this.video);
+
         if (this.viewInitialized) this.initializePlayer();
       }
       else {
@@ -93,16 +98,10 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }
     console.log('Video URL:', this.videoUrl);
-
   }
 
   ngAfterViewInit(): void {
     this.viewInitialized = true;
-
-    // Initial volume handle position setzen
-    setTimeout(() => {
-      this.updateVolumeHandlePosition();
-    }, 100);
 
     if (this.videoUrl) this.initializePlayer();
   }
@@ -143,78 +142,82 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
       techOrder: ['html5']
     });
 
+    // WICHTIG: Player an Service weiterleiten
+    this.playerState.player = this.player;
+
     this.player.ready(() => {
       console.log('Player ready, tech:', this.player.tech_.name_);
+      console.log('Player available in service:', !!this.playerState.player);
+    });
 
-      // Event Handler nur einmal registrieren
-      let lastSaveTime = 0;
+    // Event Handler nur einmal registrieren
+    let lastSaveTime = 0;
 
-      // EINMAL loadedmetadata Handler
-      this.player.one('loadedmetadata', () => {
-        console.log('Metadata loaded, duration:', this.player?.duration());
-        this.videoDuration = this.player?.duration() || 0;
-        this.timeJump(0, true);
-      });
+    // EINMAL loadedmetadata Handler
+    this.player.one('loadedmetadata', () => {
+      console.log('Metadata loaded, duration:', this.player?.duration());
+      this.playerState.setVideoDuration(this.player?.duration() || 0);
+      this.timeJump(0, true);
+    });
 
-      // EINMAL timeupdate Handler
-      this.player.on('timeupdate', async () => {
-        if (!this.isScrubbing) {
-          this.progressTime = this.player.currentTime();
+    // EINMAL timeupdate Handler
+    this.player.on('timeupdate', async () => {
+      if (!this.isScrubbing) {
+        this.playerState.setProgressTime(this.player.currentTime());
+      }
+
+      // Progress Update nur alle 15 Sekunden
+      lastSaveTime = await this.updateProgress(
+        this.api.CurrentProfile.id || '',
+        this.video?.id || '',
+        lastSaveTime
+      );
+    });
+
+    // Pause/End Handler
+    this.player.on(['pause', 'ended'], async () => {
+      if (this.videoId && this.player) {
+        const currentTime = this.player.currentTime();
+        if (currentTime) {
+          lastSaveTime = await this.updateProgress(
+            this.api.CurrentProfile.id || '',
+            this.videoId,
+            0 // Force save on pause/end
+          );
         }
+        this.playerState.setIsPlaying(false);
+      }
+    });
 
-        // Progress Update nur alle 15 Sekunden
-        lastSaveTime = await this.updateProgress(
-          this.api.CurrentProfile.id || '',
-          this.video?.id || '',
-          lastSaveTime
-        );
-      });
+    // Video Ende - SessionStorage cleanen
+    this.player.on('ended', () => {
+      sessionStorage.removeItem(this.key());
+    });
 
-      // Pause/End Handler
-      this.player.on(['pause', 'ended'], async () => {
-        if (this.videoId && this.player) {
-          const currentTime = this.player.currentTime();
-          if (currentTime) {
-            lastSaveTime = await this.updateProgress(
-              this.api.CurrentProfile.id || '',
-              this.videoId,
-              0 // Force save on pause/end
-            );
-          }
-          this.isPlaying = false;
+    // Error Handler
+    this.player.on('error', (error: any) => {
+      console.error('Player error:', error);
+      const playerError = this.player.error();
+      console.error('Player error details:', playerError);
+
+      if (playerError) {
+        switch (playerError.code) {
+          case 1: // MEDIA_ERR_ABORTED
+            this.errorService.show('Video loading was aborted');
+            break;
+          case 2: // MEDIA_ERR_NETWORK
+            this.errorService.show('Network error while loading video');
+            break;
+          case 3: // MEDIA_ERR_DECODE
+            this.errorService.show('Video could not be decoded');
+            break;
+          case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
+            this.errorService.show('Video format not supported');
+            break;
+          default:
+            this.errorService.show('Unknown video error occurred');
         }
-      });
-
-      // Video Ende - SessionStorage cleanen
-      this.player.on('ended', () => {
-        sessionStorage.removeItem(this.key());
-      });
-
-      // Error Handler
-      this.player.on('error', (error: any) => {
-        console.error('Player error:', error);
-        const playerError = this.player.error();
-        console.error('Player error details:', playerError);
-
-        if (playerError) {
-          switch (playerError.code) {
-            case 1: // MEDIA_ERR_ABORTED
-              this.errorService.show('Video loading was aborted');
-              break;
-            case 2: // MEDIA_ERR_NETWORK
-              this.errorService.show('Network error while loading video');
-              break;
-            case 3: // MEDIA_ERR_DECODE
-              this.errorService.show('Video could not be decoded');
-              break;
-            case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
-              this.errorService.show('Video format not supported');
-              break;
-            default:
-              this.errorService.show('Unknown video error occurred');
-          }
-        }
-      });
+      }
     });
   }
 
@@ -265,9 +268,9 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   onDocumentClick(event: Event): void {
     const target = event.target as HTMLElement;
 
-    // Volume Control nur schließen wenn außerhalb geklickt UND nicht gedraggt wird
-    if (!target.closest('.vjs-sound-control') && !this.isDraggingVolume) {
-      this.showVolumeControl = false;
+    // Volume Control nur schließen wenn außerhalb geklickt
+    if (!target.closest('.vjs-sound-control')) {
+      this.playerState.setShowVolumeControl(false);
     }
 
     if (!target.closest('.vjs-speed-control')) {
@@ -277,14 +280,13 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Volume Control ein-/ausblenden (Netflix-Style)
   toggleVolumeControl(): void {
-    // Beim ersten Klick: Mute/Unmute
-    if (!this.showVolumeControl) {
+    if (!this.playerState.showVolumeControl()) {
       this.toggleSound();
     }
+    // ÄNDERN: PlayerStateService nutzen
+    this.playerState.toggleVolumeControl();
 
-    // Volume Control anzeigen/verstecken
-    this.showVolumeControl = !this.showVolumeControl;
-    if (this.showVolumeControl) {
+    if (this.playerState.showVolumeControl()) {
       this.clearVolumeHideTimeout();
     }
   }
@@ -295,9 +297,10 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.isDraggingVolume) {
       this.volumeHideTimeout = setTimeout(() => {
         console.log('Hiding volume control after timeout');
-        this.showVolumeControl = false;
-        this.showVolumeTooltip = false;
-      }, 1500); // Längeres Delay für bessere UX
+        // ÄNDERN: PlayerStateService nutzen
+        this.playerState.setShowVolumeControl(false);
+        this.playerState.setShowVolumeTooltip(false);
+      }, 1500);
     }
   }
 
@@ -308,123 +311,19 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  // Netflix-Style Volume Click
-  setVolumeFromClick(event: MouseEvent): void {
-    // Nur wenn nicht auf Handle geklickt wurde
-    if ((event.target as HTMLElement).classList.contains('volume-handle')) {
-      return;
-    }
-
-    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-    const y = event.clientY - rect.top;
-    const percentage = Math.max(0, Math.min(1, 1 - (y / rect.height)));
-
-    console.log('Click volume:', percentage);
-    this.setVolume(percentage);
-    this.showVolumeTooltip = true;
-
-    setTimeout(() => {
-      this.showVolumeTooltip = false;
-    }, 1000);
-  }
-
-  startVolumeDrag(event: MouseEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-
-    this.isDraggingVolume = true;
-    this.showVolumeTooltip = true;
-    this.showVolumeControl = true; // Force zeigen während Drag
-    this.clearVolumeHideTimeout();
-
-    const handle = event.target as HTMLElement;
-    handle.classList.add('dragging');
-
-    const track = handle.parentElement as HTMLElement;
-    const rect = track.getBoundingClientRect();
-
-    console.log('Drag started', { track: rect });
-
-    const onMouseMove = (e: MouseEvent) => {
-      // Auch außerhalb der Bounds erlauben
-      const y = e.clientY - rect.top;
-      const percentage = Math.max(0, Math.min(1, 1 - (y / rect.height)));
-      console.log('Dragging to:', percentage);
-      this.setVolume(percentage);
-    };
-
-    const onMouseUp = () => {
-      console.log('Drag ended');
-      this.isDraggingVolume = false;
-      handle.classList.remove('dragging');
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-
-      // Volume Control sichtbar lassen nach Drag
-      setTimeout(() => {
-        this.showVolumeTooltip = false;
-        // Volume Control bleibt offen für weitere Interaktion
-      }, 1000);
-    };
-
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
-  }
-
-  // Touch Drag erweitern
-  startVolumeTouchDrag(event: TouchEvent): void {
-    event.preventDefault();
-    this.isDraggingVolume = true;
-    this.showVolumeTooltip = true;
-    this.showVolumeControl = true; // Force zeigen während Drag
-    this.clearVolumeHideTimeout();
-
-    const touch = event.touches[0];
-    const handle = event.target as HTMLElement;
-    handle.classList.add('dragging');
-
-    const track = handle.parentElement as HTMLElement;
-    const rect = track.getBoundingClientRect();
-
-    const onTouchMove = (e: TouchEvent) => {
-      const touch = e.touches[0];
-      const y = touch.clientY - rect.top;
-      const percentage = Math.max(0, Math.min(1, 1 - (y / rect.height)));
-      this.setVolume(percentage);
-    };
-
-    const onTouchEnd = () => {
-      this.isDraggingVolume = false;
-      handle.classList.remove('dragging');
-      document.removeEventListener('touchmove', onTouchMove);
-      document.removeEventListener('touchend', onTouchEnd);
-
-      setTimeout(() => {
-        this.showVolumeTooltip = false;
-        // Volume Control bleibt offen
-      }, 1000);
-    };
-
-    document.addEventListener('touchmove', onTouchMove);
-    document.addEventListener('touchend', onTouchEnd);
-  }
-
   // Verbesserte setVolume Methode
   setVolume(volume: number): void {
     if (this.player) {
-      this.volume = Math.max(0, Math.min(1, volume));
-      this.player.volume(this.volume);
+      const clampedVolume = Math.max(0, Math.min(1, volume));
+      this.playerState.setVolume(clampedVolume);
+      this.player.volume(clampedVolume);
 
-      // Beide - Progress und Handle - in einer Methode updaten
-      this.updateVolumeHandlePosition();
-
-      // Auto unmute/mute
-      if (this.volume > 0 && this.player.muted()) {
+      if (clampedVolume > 0 && this.player.muted()) {
         this.player.muted(false);
-        this.isMuted = false;
-      } else if (this.volume === 0 && !this.player.muted()) {
+        this.playerState.setIsMuted(false);
+      } else if (clampedVolume === 0 && !this.player.muted()) {
         this.player.muted(true);
-        this.isMuted = true;
+        this.playerState.setIsMuted(true);
       }
     }
   }
@@ -481,9 +380,17 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
         this.player.play().catch((err: any) => {
           console.error('Error playing video:', err);
         });
+
+        // ÄNDERN: PlayerStateService nutzen statt this.isPlaying = true
+        this.playerState.setIsPlaying(true);
+
         this.resetOverlayTimer();
       } else {
         this.player.pause();
+
+        // ÄNDERN: PlayerStateService nutzen statt this.isPlaying = false
+        this.playerState.setIsPlaying(false);
+
         this.showOverlay = true;
         if (this.overlayTimeoutId) {
           clearTimeout(this.overlayTimeoutId);
@@ -495,16 +402,13 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   // Sound Icon Click Handler hinzufügen
   toggleSound(): void {
     if (this.player) {
-      if (this.player.muted() || this.volume === 0) {
-        // Unmute und restore volume
+      if (this.player.muted() || this.playerState.volume() === 0) {
         this.player.muted(false);
-        this.isMuted = false;
-        const targetVolume = this.volume > 0 ? this.volume : 0.5;
-        this.setVolume(targetVolume);
+        this.playerState.setIsMuted(false);
+        this.setVolume(this.playerState.volume() > 0 ? this.playerState.volume() : 0.5);
       } else {
-        // Mute
         this.player.muted(true);
-        this.isMuted = true;
+        this.playerState.setIsMuted(true);
       }
     }
   }
@@ -521,34 +425,9 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  // Volume Tooltip Methoden
-  updateVolumeTooltip(event: MouseEvent): void {
-    const target = event.currentTarget as HTMLElement;
-    const rect = target.getBoundingClientRect();
-    const y = event.clientY - rect.top;
-    const percentage = 1 - (y / rect.height); // Umgekehrt weil vertical
-
-    this.volumeTooltipPosition = y;
-    this.showVolumeTooltip = true;
-  }
-
-  hideVolumeTooltip(): void {
-    this.showVolumeTooltip = false;
-  }
-
-  onVolumeChange(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    const volume = parseFloat(target.value);
-    this.setVolume(volume);
-
-    // CSS Variable für Progress-Anzeige updaten
-    const volumeElement = target as HTMLElement;
-    volumeElement.style.setProperty('--volume-progress', `${volume * 100}%`);
-  }
-
   // Volume in Prozent für Tooltip
   get volumePercentage(): number {
-    return Math.round(this.volume * 100);
+    return Math.round(this.playerState.volume() * 100);
   }
 
   seekTo(time: number): void {
@@ -579,7 +458,7 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   onScrubbing(event: Event): void {
     const target = event.target as HTMLInputElement;
     const time = parseFloat(target.value);
-    this.progressTime = time;
+    this.playerState.setProgressTime(time);
 
     if (this.player) {
       this.player.currentTime(time);
@@ -605,7 +484,7 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
       clearTimeout(this.overlayTimeoutId);
     }
 
-    if (this.isPlaying) {
+    if (this.playerState.isPlaying()) {
       this.overlayTimeoutId = setTimeout(() => {
         this.showOverlay = false;
       }, this.OVERLAY_HIDE_DELAY);
@@ -630,7 +509,7 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     const currentTime = this.player.currentTime();
     if (currentTime <= 0) return lastSaveTime;
 
-    this.isPlaying = !this.player.paused();
+    this.playerState.setIsPlaying(!this.player.paused());
     const now = Date.now();
 
     // Force save wenn lastSaveTime = 0 (bei pause/end)
@@ -679,31 +558,6 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     console.log('Local resume time:', localResumeTime);
 
     return localResumeTime;
-  }
-
-  // Hilfsmethode hinzufügen
-  private updateVolumeHandlePosition(): void {
-    const trackHeight = 14; // rem
-    const handleHeight = 1.6; // rem  
-    const padding = 1; // rem
-    const availableHeight = trackHeight - handleHeight; // 12.4rem
-    const position = padding + (availableHeight * this.volume); // Handle Position
-    const progressHeight = trackHeight * this.volume; // Progress Höhe
-
-    // Volume Progress updaten
-    const volumeProgress = document.querySelector('.volume-progress') as HTMLElement;
-    if (volumeProgress) {
-      volumeProgress.style.height = `${progressHeight}rem`;
-      volumeProgress.style.bottom = `${padding}rem`;
-      console.log('Volume progress height set to:', progressHeight);
-    }
-
-    // Volume Handle updaten
-    const volumeHandle = document.querySelector('.volume-handle') as HTMLElement;
-    if (volumeHandle) {
-      volumeHandle.style.bottom = `${position}rem`;
-      console.log('Volume handle position set to:', position);
-    }
   }
 
 }

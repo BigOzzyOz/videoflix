@@ -18,6 +18,7 @@
         justify-content: space-evenly;
         gap: 3rem;
         z-index: 20;
+        pointer-events: all;
 
         @include respond-to(medium) {
             display: none;

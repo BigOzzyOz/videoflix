@@ -1,24 +1,18 @@
 <app-orientation-warning message="Please rotate your device to landscape mode for the best video experience"
     [requiredOrientation]="'landscape'" [showOnlyOnMobile]="true" />
 
-<section class="vjs-video-container" [class.hide-cursor]="!showOverlay && isPlaying">
+<section class="vjs-video-container" [class.hide-cursor]="!showOverlay && playerState.isPlaying()">
 
     <video #vjs id="my-player" class="video-js vjs-theme-netflix" playsinline preload="metadata"></video>
 
     <div class="video-overlay" [class.hidden]="!showOverlay">
 
-        <app-top-bar [title]="video?.title" [isOptimizing]="isOptimizing" (backClick)="goBack()" />
+        <app-top-bar />
 
-        <app-center-controls [isPlaying]="isPlaying" (playToggle)="togglePlay()" (seek)="timeJump($event)" />
+        <app-center-controls />
 
-        <app-bottom-bar [isPlaying]="isPlaying" [volume]="volume" [isMuted]="isMuted"
-            [showVolumeControl]="showVolumeControl" [showVolumeTooltip]="showVolumeTooltip" [title]="video?.title"
-            [playbackSpeed]="playbackSpeed" [showSpeedMenu]="showSpeedMenu" [isFullscreen]="isFullscreen"
-            [progressTime]="progressTime" [videoDuration]="videoDuration" [isScrubbing]="isScrubbing"
-            (playToggle)="togglePlay()" (seek)="timeJump($event)" (toggleSound)="toggleSound()"
-            (showVolumeControlChange)="showVolumeControl = $event" (volumeControlDelayed)="hideVolumeControlDelayed()"
-            (clearVolumeTimeout)="clearVolumeHideTimeout()" (volumeClick)="setVolumeFromClick($event)"
-            (volumeDragStart)="startVolumeDrag($event)" (speedChange)="setPlaybackSpeed($event)"
+        <app-bottom-bar [playbackSpeed]="playbackSpeed" [showSpeedMenu]="showSpeedMenu" [isFullscreen]="isFullscreen"
+            [isScrubbing]="isScrubbing" (seek)="timeJump($event)" (speedChange)="setPlaybackSpeed($event)"
             (speedMenuToggle)="toggleSpeedMenu()" (fullscreenToggle)="toggleFullscreen()" (seekStart)="onSeekStart()"
             (scrubbing)="onScrubbing($event)" (seekEnd)="onSeekEnd($event)" />
     </div>

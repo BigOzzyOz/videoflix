@@ -1,5 +1,6 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { PlayerStateService } from '../../../../shared/services/player-state.service';
 
 @Component({
   selector: 'app-play-button',
@@ -8,10 +9,26 @@ import { CommonModule } from '@angular/common';
   styleUrl: './play-button.component.scss'
 })
 export class PlayButtonComponent {
-  @Input() isPlaying = false;
-  @Output() playToggle = new EventEmitter<void>();
+  playerState = inject(PlayerStateService);
 
-  onTogglePlay(): void {
-    this.playToggle.emit();
+  togglePlay(): void {
+    const player = this.playerState.player;
+
+    if (player) {
+      if (player.paused()) {
+        player.play().then(() => {
+          this.playerState.setIsPlaying(true);
+          console.log('Video started playing');
+        }).catch((error: any) => {
+          console.error('Play failed:', error);
+        });
+      } else {
+        player.pause();
+        this.playerState.setIsPlaying(false);
+        console.log('Video paused');
+      }
+    } else {
+      console.error('Player not available');
+    }
   }
 }

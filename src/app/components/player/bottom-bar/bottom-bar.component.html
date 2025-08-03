@@ -3,17 +3,13 @@
     <div class="vjs-bottom-wrapper">
         <div class="vjs-controls left">
 
-            <app-play-button [isPlaying]="isPlaying" (playToggle)="onTogglePlay()" />
+            <app-play-button (playToggle)="onTogglePlay()" />
 
             <app-seek-button direction="back" [seconds]="10" (seek)="onTimeJump($event)" />
 
             <app-seek-button direction="forward" [seconds]="10" (seek)="onTimeJump($event)" />
 
-            <app-volume-control [volume]="volume" [isMuted]="isMuted" [showVolumeControl]="showVolumeControl"
-                [showVolumeTooltip]="showVolumeTooltip" (toggleSound)="toggleSound.emit()"
-                (showVolumeControlChange)="showVolumeControlChange.emit($event)"
-                (volumeControlDelayed)="volumeControlDelayed.emit()" (clearVolumeTimeout)="clearVolumeTimeout.emit()"
-                (volumeClick)="volumeClick.emit($event)" (volumeDragStart)="volumeDragStart.emit($event)" />
+            <app-volume-control />
 
 
         </div>

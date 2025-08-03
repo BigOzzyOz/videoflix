@@ -1,12 +1,18 @@
-import { Component, Input } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { PlayerStateService } from '../../../../shared/services/player-state.service';
 
 @Component({
   selector: 'app-video-title',
+  standalone: true,
   imports: [CommonModule],
-  templateUrl: './video-title.component.html',
+  template: `
+    <div class="vjs-title">
+      {{ playerState.title() }}
+    </div>
+  `,
   styleUrl: './video-title.component.scss'
 })
 export class VideoTitleComponent {
-  @Input() title: string | undefined = '';
+  playerState = inject(PlayerStateService);
 }
