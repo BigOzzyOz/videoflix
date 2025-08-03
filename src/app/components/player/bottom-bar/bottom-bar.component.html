@@ -1,0 +1,36 @@
+<div class="vjs-bottom">
+
+    <div class="vjs-bottom-wrapper">
+        <div class="vjs-controls left">
+
+            <app-play-button [isPlaying]="isPlaying" (playToggle)="onTogglePlay()" />
+
+            <app-seek-button direction="back" [seconds]="10" (seek)="onTimeJump($event)" />
+
+            <app-seek-button direction="forward" [seconds]="10" (seek)="onTimeJump($event)" />
+
+            <app-volume-control [volume]="volume" [isMuted]="isMuted" [showVolumeControl]="showVolumeControl"
+                [showVolumeTooltip]="showVolumeTooltip" (toggleSound)="toggleSound.emit()"
+                (showVolumeControlChange)="showVolumeControlChange.emit($event)"
+                (volumeControlDelayed)="volumeControlDelayed.emit()" (clearVolumeTimeout)="clearVolumeTimeout.emit()"
+                (volumeClick)="volumeClick.emit($event)" (volumeDragStart)="volumeDragStart.emit($event)" />
+
+
+        </div>
+
+        <app-video-title [title]="title"></app-video-title>
+
+        <div class="vjs-controls right">
+
+            <app-speed-control [playbackSpeed]="playbackSpeed" [showSpeedMenu]="showSpeedMenu"
+                (speedChange)="speedChange.emit($event)" (speedMenuToggle)="speedMenuToggle.emit()" />
+
+            <app-fullscreen-button [isFullscreen]="isFullscreen" (fullscreenToggle)="fullscreenToggle.emit()" />
+
+        </div>
+
+        <app-progress-bar [progressTime]="progressTime" [videoDuration]="videoDuration" [isScrubbing]="isScrubbing"
+            (seekStart)="seekStart.emit()" (scrubbing)="scrubbing.emit($event)" (seekEnd)="seekEnd.emit($event)" />
+
+    </div>
+</div>

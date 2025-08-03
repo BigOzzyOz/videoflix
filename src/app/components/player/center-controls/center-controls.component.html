@@ -1,0 +1,13 @@
+        <div class="vjs-center">
+
+            <div class="vjs-center-controls">
+
+                <app-seek-button direction="back" [seconds]="10" (seek)="onTimeJump($event)" />
+
+                <app-play-button [isPlaying]="isPlaying" (playToggle)="onTogglePlay()" />
+
+                <app-seek-button direction="forward" [seconds]="10" (seek)="onTimeJump($event)" />
+
+            </div>
+
+        </div>

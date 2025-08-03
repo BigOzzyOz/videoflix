@@ -16,13 +16,15 @@ import '@videojs/http-streaming';
 import { ApiService } from '../../shared/services/api.service';
 import { ErrorService } from '../../shared/services/error.service';
 import { Video } from '../../shared/models/video';
-import { VideoTimePipe } from '../../shared/pipes/video-time.pipe';
 import { OrientationWarningComponent } from '../../shared/components/orientation-warning/orientation-warning.component';
 import { Profile } from '../../shared/models/profile';
+import { BottomBarComponent } from './bottom-bar/bottom-bar.component';
+import { CenterControlsComponent } from './center-controls/center-controls.component';
+import { TopBarComponent } from "./top-bar/top-bar.component";
 
 @Component({
   selector: 'app-player',
-  imports: [FormsModule, VideoTimePipe, OrientationWarningComponent],
+  imports: [FormsModule, OrientationWarningComponent, BottomBarComponent, CenterControlsComponent, TopBarComponent],
   templateUrl: './player.component.html',
   styleUrls: ['./player.component.scss'],
   encapsulation: ViewEncapsulation.None,
@@ -37,7 +39,6 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('vjs', { static: true }) vjsRef!: ElementRef<HTMLVideoElement>;
 
   readonly OVERLAY_HIDE_DELAY = 3000;
-  readonly SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5];
 
   video: Video | null = null;
   player: any;
@@ -51,9 +52,6 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   volume: number = 0.5;
   isFullscreen: boolean = false;
   isScrubbing: boolean = false;
-  showTooltip: boolean = false;
-  tooltipTime: number = 0;
-  tooltipPosition: number = 0;
   showOverlay: boolean = true;
   overlayTimeoutId: any = null;
   playbackSpeed: number = 1;
@@ -293,8 +291,10 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Hide Delayed Methode erweitern
   hideVolumeControlDelayed(): void {
+    console.log('hideVolumeControlDelayed called');
     if (!this.isDraggingVolume) {
       this.volumeHideTimeout = setTimeout(() => {
+        console.log('Hiding volume control after timeout');
         this.showVolumeControl = false;
         this.showVolumeTooltip = false;
       }, 1500); // Längeres Delay für bessere UX
@@ -447,7 +447,7 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     return `resume:${this.videoId}`;
   }
 
-  toMain(): void {
+  goBack(): void {
     window.history.back();
   }
 
@@ -580,7 +580,6 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     const target = event.target as HTMLInputElement;
     const time = parseFloat(target.value);
     this.progressTime = time;
-    this.tooltipTime = time;
 
     if (this.player) {
       this.player.currentTime(time);
@@ -599,21 +598,6 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
         console.error('Error playing after seek:', err);
       });
     }
-  }
-
-  updateTooltip(event: MouseEvent): void {
-    const target = event.currentTarget as HTMLElement;
-    const rect = target.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const percentage = x / rect.width;
-
-    this.tooltipTime = percentage * this.videoDuration;
-    this.tooltipPosition = x;
-    this.showTooltip = true;
-  }
-
-  hideTooltip(): void {
-    this.showTooltip = false;
   }
 
   private resetOverlayTimer(): void {
@@ -721,4 +705,5 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
       console.log('Volume handle position set to:', position);
     }
   }
+
 }

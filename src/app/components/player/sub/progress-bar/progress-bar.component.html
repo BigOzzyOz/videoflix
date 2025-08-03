@@ -1,0 +1,17 @@
+<div class="vjs-progress">
+    <span class="vjs-current-time">{{ progressTime | videoTime }}</span>
+
+    <div class="progress-container" (mousemove)="updateTooltip($event)" (mouseleave)="hideTooltip()">
+
+        <input type="range" min="0" [max]="videoDuration" step="0.01" [value]="progressTime" (mousedown)="onSeekStart()"
+            (input)="onScrubbing($event)" (change)="onSeekEnd($event)" class="progress-slider" />
+
+        @if(showTooltip) {
+            <div class="time-tooltip" [style.left.px]="tooltipPosition">
+                {{ tooltipTime | videoTime }}
+            </div>
+        }
+    </div>
+
+    <span class="vjs-duration">{{ videoDuration | videoTime }}</span>
+</div>
