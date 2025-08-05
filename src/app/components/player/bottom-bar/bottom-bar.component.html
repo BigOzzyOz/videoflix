@@ -14,13 +14,13 @@
 
         </div>
 
-        <app-video-title [title]="title"></app-video-title>
+        <app-video-title [title]="title" />
 
         <div class="vjs-controls right">
 
             <app-speed-control />
 
-            <app-fullscreen-button [isFullscreen]="isFullscreen" (fullscreenToggle)="fullscreenToggle.emit()" />
+            <app-fullscreen-button />
 
         </div>
 

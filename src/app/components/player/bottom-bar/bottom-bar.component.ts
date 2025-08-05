@@ -41,9 +41,6 @@ export class BottomBarComponent {
   @Input() playbackSpeed = 1;
   @Input() showSpeedMenu = false;
 
-  // Fullscreen Input
-  @Input() isFullscreen = false;
-
   // Progress Bar Inputs
   @Input() progressTime = 0;
   @Input() videoDuration = 0;
@@ -66,9 +63,6 @@ export class BottomBarComponent {
   // Speed Control Outputs
   @Output() speedChange = new EventEmitter<number>();
   @Output() speedMenuToggle = new EventEmitter<void>();
-
-  // Fullscreen Output
-  @Output() fullscreenToggle = new EventEmitter<void>();
 
   // Progress Bar Outputs
   @Output() seekStart = new EventEmitter<void>();

@@ -47,7 +47,6 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   videoUrl: string = '';
   videoId: string = '';
   isOptimizing: boolean = false;
-  isFullscreen: boolean = false;
   isScrubbing: boolean = false;
   showOverlay: boolean = true;
   overlayTimeoutId: any = null;
@@ -257,7 +256,7 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
         break;
       case 'KeyF':
         event.preventDefault();
-        this.toggleFullscreen();
+        this.playerState.toggleFullscreen();
         break;
     }
   }
@@ -414,18 +413,6 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
       } else {
         this.player.muted(true);
         this.playerState.setIsMuted(true);
-      }
-    }
-  }
-
-  toggleFullscreen(): void {
-    if (this.player) {
-      if (this.player.isFullscreen()) {
-        this.player.exitFullscreen();
-        this.isFullscreen = false;
-      } else {
-        this.player.requestFullscreen();
-        this.isFullscreen = true;
       }
     }
   }

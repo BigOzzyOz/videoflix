@@ -210,7 +210,37 @@ export class PlayerStateService {
   }
 
   toggleFullscreen(): void {
-    this.setIsFullscreen(!this.isFullscreen());
+    if (this.isFullscreen()) {
+      this.exitFullscreen();
+    } else {
+      this.enterFullscreen();
+    }
+  }
+
+  enterFullscreen(): void {
+    const element = document.documentElement;
+
+    if (element.requestFullscreen) {
+      element.requestFullscreen();
+    } else if ((element as any).webkitRequestFullscreen) {
+      (element as any).webkitRequestFullscreen();
+    } else if ((element as any).msRequestFullscreen) {
+      (element as any).msRequestFullscreen();
+    }
+
+    console.log('Entering fullscreen');
+  }
+
+  exitFullscreen(): void {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if ((document as any).webkitExitFullscreen) {
+      (document as any).webkitExitFullscreen();
+    } else if ((document as any).msExitFullscreen) {
+      (document as any).msExitFullscreen();
+    }
+
+    console.log('Exiting fullscreen');
   }
 
   toggleSpeedMenu(): void {
