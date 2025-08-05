@@ -44,6 +44,9 @@ export class PlayerStateService {
   private _seekTooltipPosition = signal<number>(0);
   private _bufferedTime = signal<number>(0);
 
+  // === Speed Control State ===
+  private _availableSpeeds = signal<number[]>([0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]);
+
   // === Player Reference ===
   get player() { return this._player; }
   set player(value: any) { this._player = value; }
@@ -72,6 +75,7 @@ export class PlayerStateService {
   readonly seekTooltipTime = this._seekTooltipTime.asReadonly();
   readonly seekTooltipPosition = this._seekTooltipPosition.asReadonly();
   readonly bufferedTime = this._bufferedTime.asReadonly();
+  readonly availableSpeeds = this._availableSpeeds.asReadonly();
 
   // === Computed Values ===
   readonly volumePercentage = computed(() => Math.round(this.volume() * 100));
@@ -128,7 +132,12 @@ export class PlayerStateService {
   }
 
   setPlaybackSpeed(speed: number): void {
-    this._playbackSpeed.set(speed);
+    const player = this.player;
+    if (player) {
+      player.playbackRate(speed);
+      this._playbackSpeed.set(speed);
+      console.log('Playback speed set to:', speed);
+    }
   }
 
   setVolume(volume: number): void {
@@ -187,6 +196,10 @@ export class PlayerStateService {
     this._bufferedTime.set(buffered);
   }
 
+  setAvailableSpeeds(speeds: number[]): void {
+    this._availableSpeeds.set(speeds);
+  }
+
   // === Toggle Methods ===
   togglePlay(): void {
     this.setIsPlaying(!this.isPlaying());
@@ -233,6 +246,8 @@ export class PlayerStateService {
     this._seekTooltipTime.set(0);
     this._seekTooltipPosition.set(0);
     this._bufferedTime.set(0);
+    this._showSpeedMenu.set(false);
+    this._playbackSpeed.set(1);
   }
 
   // === Utility Methods ===
@@ -271,5 +286,10 @@ export class PlayerStateService {
   seekToPercentage(percentage: number): void {
     const time = percentage * this.videoDuration();
     this.seekToTime(time);
+  }
+
+  // Speed-Formatierung für UI
+  getSpeedLabel(speed: number): string {
+    return speed === 1 ? 'Normal' : `${speed}x`;
   }
 }

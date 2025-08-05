@@ -51,8 +51,6 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   isScrubbing: boolean = false;
   showOverlay: boolean = true;
   overlayTimeoutId: any = null;
-  playbackSpeed: number = 1;
-  showSpeedMenu: boolean = false;
   private viewInitialized = false;
   private lastSeekTime = 0;
 
@@ -268,13 +266,14 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   onDocumentClick(event: Event): void {
     const target = event.target as HTMLElement;
 
-    // Volume Control nur schließen wenn außerhalb geklickt
+    // Volume Control schließen
     if (!target.closest('.vjs-sound-control')) {
       this.playerState.setShowVolumeControl(false);
     }
 
+    // Speed Control schließen
     if (!target.closest('.vjs-speed-control')) {
-      this.showSpeedMenu = false;
+      this.playerState.setShowSpeedMenu(false);
     }
   }
 
@@ -448,36 +447,6 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  onSeekStart(): void {
-    this.isScrubbing = true;
-    if (this.player) {
-      this.player.pause();
-    }
-  }
-
-  onScrubbing(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    const time = parseFloat(target.value);
-    this.playerState.setProgressTime(time);
-
-    if (this.player) {
-      this.player.currentTime(time);
-    }
-  }
-
-  onSeekEnd(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    const time = parseFloat(target.value);
-
-    this.isScrubbing = false;
-
-    if (this.player) {
-      this.player.currentTime(time);
-      this.player.play().catch((err: any) => {
-        console.error('Error playing after seek:', err);
-      });
-    }
-  }
 
   private resetOverlayTimer(): void {
     if (this.overlayTimeoutId) {
@@ -488,18 +457,6 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
       this.overlayTimeoutId = setTimeout(() => {
         this.showOverlay = false;
       }, this.OVERLAY_HIDE_DELAY);
-    }
-  }
-
-  toggleSpeedMenu(): void {
-    this.showSpeedMenu = !this.showSpeedMenu;
-  }
-
-  setPlaybackSpeed(speed: number): void {
-    if (this.player) {
-      this.player.playbackRate(speed);
-      this.playbackSpeed = speed;
-      this.showSpeedMenu = false;
     }
   }
 

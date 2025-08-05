@@ -18,8 +18,7 @@
 
         <div class="vjs-controls right">
 
-            <app-speed-control [playbackSpeed]="playbackSpeed" [showSpeedMenu]="showSpeedMenu"
-                (speedChange)="speedChange.emit($event)" (speedMenuToggle)="speedMenuToggle.emit()" />
+            <app-speed-control />
 
             <app-fullscreen-button [isFullscreen]="isFullscreen" (fullscreenToggle)="fullscreenToggle.emit()" />
 

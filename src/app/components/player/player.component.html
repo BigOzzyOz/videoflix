@@ -11,9 +11,7 @@
 
         <app-center-controls />
 
-        <app-bottom-bar [playbackSpeed]="playbackSpeed" [showSpeedMenu]="showSpeedMenu" [isFullscreen]="isFullscreen"
-            [isScrubbing]="isScrubbing" (seek)="timeJump($event)" (speedChange)="setPlaybackSpeed($event)"
-            (speedMenuToggle)="toggleSpeedMenu()" (fullscreenToggle)="toggleFullscreen()" (seekStart)="onSeekStart()"
-            (scrubbing)="onScrubbing($event)" (seekEnd)="onSeekEnd($event)" />
+        <app-bottom-bar [isFullscreen]="isFullscreen" [isScrubbing]="isScrubbing" (seek)="timeJump($event)"
+            (fullscreenToggle)="toggleFullscreen()" />
     </div>
 </section>
