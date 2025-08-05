@@ -38,6 +38,12 @@ export class PlayerStateService {
   private _viewInitialized = signal<boolean>(false);
   private _lastSeekTime = signal<number>(0);
 
+  // === Progress Bar Tooltip State ===
+  private _showSeekTooltip = signal<boolean>(false);
+  private _seekTooltipTime = signal<number>(0);
+  private _seekTooltipPosition = signal<number>(0);
+  private _bufferedTime = signal<number>(0);
+
   // === Player Reference ===
   get player() { return this._player; }
   set player(value: any) { this._player = value; }
@@ -62,6 +68,10 @@ export class PlayerStateService {
   readonly volumeTooltipPosition = this._volumeTooltipPosition.asReadonly();
   readonly viewInitialized = this._viewInitialized.asReadonly();
   readonly lastSeekTime = this._lastSeekTime.asReadonly();
+  readonly showSeekTooltip = this._showSeekTooltip.asReadonly();
+  readonly seekTooltipTime = this._seekTooltipTime.asReadonly();
+  readonly seekTooltipPosition = this._seekTooltipPosition.asReadonly();
+  readonly bufferedTime = this._bufferedTime.asReadonly();
 
   // === Computed Values ===
   readonly volumePercentage = computed(() => Math.round(this.volume() * 100));
@@ -70,6 +80,14 @@ export class PlayerStateService {
   readonly progress = computed(() => {
     const duration = this.videoDuration();
     return duration > 0 ? (this.progressTime() / duration) * 100 : 0;
+  });
+  readonly bufferedPercentage = computed(() => {
+    const buffered = this.bufferedTime();
+    const total = this.videoDuration();
+    return total > 0 ? (buffered / total) * 100 : 0;
+  });
+  readonly seekTooltipTimeFormatted = computed(() => {
+    return this.getFormattedTime(this.seekTooltipTime());
   });
 
   // === State Setters ===
@@ -153,6 +171,22 @@ export class PlayerStateService {
     this._lastSeekTime.set(time);
   }
 
+  setShowSeekTooltip(show: boolean): void {
+    this._showSeekTooltip.set(show);
+  }
+
+  setSeekTooltipTime(time: number): void {
+    this._seekTooltipTime.set(time);
+  }
+
+  setSeekTooltipPosition(position: number): void {
+    this._seekTooltipPosition.set(position);
+  }
+
+  setBufferedTime(buffered: number): void {
+    this._bufferedTime.set(buffered);
+  }
+
   // === Toggle Methods ===
   togglePlay(): void {
     this.setIsPlaying(!this.isPlaying());
@@ -195,6 +229,10 @@ export class PlayerStateService {
     this._volumeTooltipPosition.set(0);
     this._viewInitialized.set(false);
     this._lastSeekTime.set(0);
+    this._showSeekTooltip.set(false);
+    this._seekTooltipTime.set(0);
+    this._seekTooltipPosition.set(0);
+    this._bufferedTime.set(0);
   }
 
   // === Utility Methods ===
@@ -219,5 +257,19 @@ export class PlayerStateService {
 
   getDurationFormatted(): string {
     return this.getFormattedTime(this.videoDuration());
+  }
+
+  // === Seeking Utility Methods ===
+  seekToTime(time: number): void {
+    if (this.player && this.canSeek()) {
+      const clampedTime = Math.max(0, Math.min(time, this.videoDuration()));
+      this.player.currentTime(clampedTime);
+      this.setProgressTime(clampedTime);
+    }
+  }
+
+  seekToPercentage(percentage: number): void {
+    const time = percentage * this.videoDuration();
+    this.seekToTime(time);
   }
 }

@@ -16,7 +16,6 @@ export class VolumeControlComponent implements AfterViewInit {
   private volumeHideTimeout: any = null;
 
   ngAfterViewInit(): void {
-    // Initial volume handle position setzen
     setTimeout(() => {
       this.updateVolumeHandlePosition();
     }, 100);

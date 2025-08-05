@@ -1,17 +1,42 @@
 <div class="vjs-progress">
-    <span class="vjs-current-time">{{ progressTime | videoTime }}</span>
+    <!-- Current Time -->
+    <span class="vjs-current-time">{{ playerState.progressTime() | videoTime }}</span>
 
-    <div class="progress-container" (mousemove)="updateTooltip($event)" (mouseleave)="hideTooltip()">
+    <!-- Progress Container -->
+    <div class="progress-container" (mousemove)="updateTooltip($event)" (mouseleave)="hideTooltip()"
+        (click)="onProgressClick($event)" (touchstart)="onTouchStart($event)" (touchmove)="onTouchMove($event)"
+        (touchend)="onTouchEnd($event)">
 
-        <input type="range" min="0" [max]="videoDuration" step="0.01" [value]="progressTime" (mousedown)="onSeekStart()"
-            (input)="onScrubbing($event)" (change)="onSeekEnd($event)" class="progress-slider" />
+        <!-- Netflix-Style Progress Track -->
+        <div class="progress-track">
 
-        @if(showTooltip) {
-            <div class="time-tooltip" [style.left.px]="tooltipPosition">
-                {{ tooltipTime | videoTime }}
+            <!-- Buffered Progress -->
+            <div class="progress-buffered" [style.width.%]="bufferedPercentage"></div>
+
+            <!-- Current Progress -->
+            <div class="progress-current" [style.width.%]="progressPercentage"></div>
+
+            <!-- Progress Handle -->
+            <div class="progress-handle" [style.left.%]="progressPercentage"
+                [class.visible]="playerState.isScrubbing()"></div>
+        </div>
+
+        <!-- HTML5 Range Input (Hidden, for better UX) -->
+        <input type="range" class="progress-slider" min="0" [max]="playerState.videoDuration()" step="0.01"
+            [value]="playerState.progressTime()" (mousedown)="onSeekStart()" (input)="onScrubbing($event)"
+            (change)="onSeekEnd($event)" (touchstart)="onTouchStart($event)" (touchend)="onTouchEnd($event)" />
+
+        <!-- Seek Tooltip -->
+        @if(playerState.showSeekTooltip()) {
+            <div class="time-tooltip" [style.left.px]="playerState.seekTooltipPosition()">
+                <div class="tooltip-content">
+                    {{ playerState.seekTooltipTime() | videoTime }}
+                </div>
+                <div class="tooltip-arrow"></div>
             </div>
         }
     </div>
 
-    <span class="vjs-duration">{{ videoDuration | videoTime }}</span>
+    <!-- Duration -->
+    <span class="vjs-duration">{{ playerState.videoDuration() | videoTime }}</span>
 </div>
