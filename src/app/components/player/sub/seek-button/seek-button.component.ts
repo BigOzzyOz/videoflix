@@ -1,5 +1,6 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { PlayerStateService } from '../../../../shared/services/player-state.service';
 
 @Component({
   selector: 'app-seek-button',
@@ -12,11 +13,15 @@ export class SeekButtonComponent {
   @Input() direction: 'forward' | 'back' = 'forward';
   @Input() seconds: number = 10;
 
-  @Output() seek = new EventEmitter<number>();
+  playerState = inject(PlayerStateService);
 
   onSeek(): void {
     const seekValue = this.direction === 'forward' ? this.seconds : -this.seconds;
-    this.seek.emit(seekValue);
+
+    console.log(`Seeking ${this.direction} by ${this.seconds} seconds`);
+
+    // PlayerStateService seekBy Methode nutzen (die wir hinzufügen)
+    this.playerState.seekBy(seekValue);
   }
 
   get buttonClass(): string {

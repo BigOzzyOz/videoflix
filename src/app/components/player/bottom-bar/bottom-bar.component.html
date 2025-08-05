@@ -5,9 +5,9 @@
 
             <app-play-button (playToggle)="onTogglePlay()" />
 
-            <app-seek-button direction="back" [seconds]="10" (seek)="onTimeJump($event)" />
+            <app-seek-button direction="back" [seconds]="10" />
 
-            <app-seek-button direction="forward" [seconds]="10" (seek)="onTimeJump($event)" />
+            <app-seek-button direction="forward" [seconds]="10" />
 
             <app-volume-control />
 

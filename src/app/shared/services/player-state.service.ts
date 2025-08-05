@@ -274,22 +274,45 @@ export class PlayerStateService {
     return this.getFormattedTime(this.videoDuration());
   }
 
+  // Speed-Formatierung für UI
+  getSpeedLabel(speed: number): string {
+    return speed === 1 ? 'Normal' : `${speed}x`;
+  }
+
   // === Seeking Utility Methods ===
-  seekToTime(time: number): void {
-    if (this.player && this.canSeek()) {
+  seekBy(seconds: number): void {
+    const player = this.player;
+    if (player && this.canSeek()) { // Verwende die oben definierte canSeek()
+      const currentTime = this.progressTime();
+      const duration = this.videoDuration();
+      const newTime = Math.max(0, Math.min(currentTime + seconds, duration - 1));
+
+      player.currentTime(newTime);
+      this.setProgressTime(newTime);
+
+      console.log(`Seeked by ${seconds}s from ${currentTime} to ${newTime}`);
+    }
+  }
+
+  seekTo(time: number): void {
+    const player = this.player;
+    if (player && this.canSeek()) { // Verwende die oben definierte canSeek()
       const clampedTime = Math.max(0, Math.min(time, this.videoDuration()));
-      this.player.currentTime(clampedTime);
+      player.currentTime(clampedTime);
       this.setProgressTime(clampedTime);
+
+      console.log(`Seeked to ${clampedTime}`);
     }
   }
 
   seekToPercentage(percentage: number): void {
     const time = percentage * this.videoDuration();
-    this.seekToTime(time);
+    this.seekTo(time);
   }
 
-  // Speed-Formatierung für UI
-  getSpeedLabel(speed: number): string {
-    return speed === 1 ? 'Normal' : `${speed}x`;
+  // Keyboard Shortcuts Support
+  handleKeyboardSeek(direction: 'left' | 'right', seconds: number = 10): void {
+    const seekValue = direction === 'right' ? seconds : -seconds;
+    this.seekBy(seekValue);
   }
 }

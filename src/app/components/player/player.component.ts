@@ -367,9 +367,15 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     if (resume > 0 && isInit) {
       const resumeTime = Math.min(resume, duration - 1);
       this.player.currentTime(resumeTime);
+
+      // HINZUFÜGEN: PlayerStateService aktualisieren
+      this.playerState.setProgressTime(resumeTime);
     } else {
       const newTime = Math.max(0, Math.min(currentTime + seconds, duration - 1));
       this.player.currentTime(newTime);
+
+      // HINZUFÜGEN: PlayerStateService aktualisieren
+      this.playerState.setProgressTime(newTime);
     }
   }
 
