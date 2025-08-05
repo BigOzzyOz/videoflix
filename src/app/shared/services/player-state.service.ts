@@ -312,6 +312,7 @@ export class PlayerStateService {
   // === Seeking Utility Methods ===
   seekBy(seconds: number): void {
     const player = this.player;
+    console.log(!!this.player, this.viewInitialized());
     if (player && this.canSeek()) { // Verwende die oben definierte canSeek()
       const currentTime = this.progressTime();
       const duration = this.videoDuration();

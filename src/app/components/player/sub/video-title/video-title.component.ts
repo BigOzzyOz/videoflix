@@ -6,11 +6,7 @@ import { PlayerStateService } from '../../../../shared/services/player-state.ser
   selector: 'app-video-title',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <div class="vjs-title">
-      {{ playerState.title() }}
-    </div>
-  `,
+  templateUrl: './video-title.component.html',
   styleUrl: './video-title.component.scss'
 })
 export class VideoTitleComponent {

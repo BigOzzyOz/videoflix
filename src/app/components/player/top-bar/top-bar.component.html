@@ -1,11 +1,10 @@
 <div class="vjs-topbar">
     <div class="logo-container">
         <img class="vjs-brand" src="assets/images/logo.png" alt="brand" />
-        <!-- Kein title Input mehr nötig -->
+
         <app-video-title />
     </div>
 
-    <!-- Direkter Aufruf statt Event Emission -->
     <button class="vjs-back" (click)="goBack()">
         <svg class="player__back_arrow" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
@@ -18,7 +17,6 @@
         </svg>
     </button>
 
-    <!-- Service Signal verwenden -->
     @if(playerState.isOptimizing()) {
         <span class="vjs-optimizing">Optimizing video...</span>
     }

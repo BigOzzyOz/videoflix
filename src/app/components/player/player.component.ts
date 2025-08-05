@@ -145,6 +145,7 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     this.player.ready(() => {
       console.log('Player ready, tech:', this.player.tech_.name_);
       console.log('Player available in service:', !!this.playerState.player);
+      this.playerState.setViewInitialized(true);
     });
 
     // Event Handler nur einmal registrieren
