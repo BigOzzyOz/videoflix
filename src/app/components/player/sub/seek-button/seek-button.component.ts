@@ -1,6 +1,7 @@
 import { Component, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PlayerStateService } from '../../../../shared/services/player-state.service';
+import { SeekService } from '../../../../shared/services/seek.service';
 
 @Component({
   selector: 'app-seek-button',
@@ -14,14 +15,11 @@ export class SeekButtonComponent {
   @Input() seconds: number = 10;
 
   playerState = inject(PlayerStateService);
+  seekService = inject(SeekService);
 
   onSeek(): void {
     const seekValue = this.direction === 'forward' ? this.seconds : -this.seconds;
-
-    console.log(`Seeking ${this.direction} by ${this.seconds} seconds`);
-
-    // PlayerStateService seekBy Methode nutzen (die wir hinzufügen)
-    this.playerState.seekBy(seekValue);
+    this.seekService.seekBy(seekValue);
   }
 
   get buttonClass(): string {

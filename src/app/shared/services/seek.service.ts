@@ -61,6 +61,40 @@ export class SeekService {
     this.setSeekTime(time, false);
   }
 
+  canSeek(): boolean {
+    return this.playerState.canPlay() && this.playerState.videoDuration() > 0;
+  }
+
+  seekBy(seconds: number): void {
+    const player = this.playerState.player;
+
+    if (player && this.canSeek()) {
+      const currentTime = this.playerState.progressTime();
+      const duration = this.playerState.videoDuration();
+      const newTime = Math.max(0, Math.min(currentTime + seconds, duration - 1));
+
+      this.setSeekTime(newTime, false);
+    }
+  }
+
+  seekTo(time: number): void {
+    const player = this.playerState.player;
+    if (player && this.canSeek()) {
+      const clampedTime = Math.max(0, Math.min(time, this.playerState.videoDuration()));
+      this.setSeekTime(clampedTime, false);
+    }
+  }
+
+  seekToPercentage(percentage: number): void {
+    const time = percentage * this.playerState.videoDuration();
+    this.seekTo(time);
+  }
+
+  handleKeyboardSeek(direction: 'left' | 'right', seconds: number = 10): void {
+    const seekValue = direction === 'right' ? seconds : -seconds;
+    this.seekBy(seekValue);
+  }
+
   setSeekTime(time: number, run: boolean): void {
     this.playerState.setProgressTime(time);
 

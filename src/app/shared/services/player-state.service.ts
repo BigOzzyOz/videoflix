@@ -248,10 +248,6 @@ export class PlayerStateService {
   }
 
   // === Utility Methods ===
-  canSeek(): boolean {
-    return this.canPlay() && this.videoDuration() > 0;
-  }
-
   getCurrentTimePercentage(): number {
     const duration = this.videoDuration();
     return duration > 0 ? (this.progressTime() / duration) * 100 : 0;
@@ -276,41 +272,4 @@ export class PlayerStateService {
     return speed === 1 ? 'Normal' : `${speed}x`;
   }
 
-  // === Seeking Utility Methods ===
-  seekBy(seconds: number): void {
-    const player = this.player;
-    console.log(!!this.player, this.viewInitialized());
-    if (player && this.canSeek()) { // Verwende die oben definierte canSeek()
-      const currentTime = this.progressTime();
-      const duration = this.videoDuration();
-      const newTime = Math.max(0, Math.min(currentTime + seconds, duration - 1));
-
-      player.currentTime(newTime);
-      this.setProgressTime(newTime);
-
-      console.log(`Seeked by ${seconds}s from ${currentTime} to ${newTime}`);
-    }
-  }
-
-  seekTo(time: number): void {
-    const player = this.player;
-    if (player && this.canSeek()) { // Verwende die oben definierte canSeek()
-      const clampedTime = Math.max(0, Math.min(time, this.videoDuration()));
-      player.currentTime(clampedTime);
-      this.setProgressTime(clampedTime);
-
-      console.log(`Seeked to ${clampedTime}`);
-    }
-  }
-
-  seekToPercentage(percentage: number): void {
-    const time = percentage * this.videoDuration();
-    this.seekTo(time);
-  }
-
-  // Keyboard Shortcuts Support
-  handleKeyboardSeek(direction: 'left' | 'right', seconds: number = 10): void {
-    const seekValue = direction === 'right' ? seconds : -seconds;
-    this.seekBy(seekValue);
-  }
 }

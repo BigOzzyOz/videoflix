@@ -23,6 +23,8 @@ import { CenterControlsComponent } from './center-controls/center-controls.compo
 import { TopBarComponent } from "./top-bar/top-bar.component";
 import { PlayerStateService } from '../../shared/services/player-state.service';
 import { FullscreenService } from '../../shared/services/fullscreen.service';
+import { SeekService } from '../../shared/services/seek.service';
+import { PlayerService } from '../../shared/services/player.service';
 
 @Component({
   selector: 'app-player',
@@ -38,7 +40,9 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   api = inject(ApiService);
   errorService = inject(ErrorService);
   playerState = inject(PlayerStateService);
+  playerService = inject(PlayerService);
   fullScreenService = inject(FullscreenService);
+  seekService = inject(SeekService);
 
   @ViewChild('vjs', { static: true }) vjsRef!: ElementRef<HTMLVideoElement>;
 
@@ -241,15 +245,15 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     switch (event.code) {
       case 'Space':
         event.preventDefault();
-        this.togglePlay();
+        this.playerService.togglePlay();
         break;
       case 'ArrowLeft':
         event.preventDefault();
-        this.timeJump(-10);
+        this.seekService.handleKeyboardSeek('left', 10);
         break;
       case 'ArrowRight':
         event.preventDefault();
-        this.timeJump(10);
+        this.seekService.handleKeyboardSeek('right', 10);
         break;
       case 'KeyM':
         event.preventDefault();
