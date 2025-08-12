@@ -25,7 +25,7 @@ export class PlayerStateService {
   private _isMuted = signal<boolean>(false);
 
   // === UI State ===
-
+  private _isFullscreen = signal<boolean>(false);
   private _showOverlay = signal<boolean>(true);
   private _showSpeedMenu = signal<boolean>(false);
 
@@ -63,7 +63,7 @@ export class PlayerStateService {
   readonly playbackSpeed = this._playbackSpeed.asReadonly();
   readonly volume = this._volume.asReadonly();
   readonly isMuted = this._isMuted.asReadonly();
-
+  readonly isFullscreen = this._isFullscreen.asReadonly();
   readonly showOverlay = this._showOverlay.asReadonly();
   readonly showSpeedMenu = this._showSpeedMenu.asReadonly();
   readonly showVolumeControl = this._showVolumeControl.asReadonly();
@@ -93,6 +93,7 @@ export class PlayerStateService {
   readonly seekTooltipTimeFormatted = computed(() => {
     return this.getFormattedTime(this.seekTooltipTime());
   });
+
 
   // === State Setters ===
   setVideo(video: Video | null): void {
@@ -138,6 +139,10 @@ export class PlayerStateService {
       this._playbackSpeed.set(speed);
       console.log('Playback speed set to:', speed);
     }
+  }
+
+  setIsFullscreen(fullscreen: boolean): void {
+    this._isFullscreen.set(fullscreen);
   }
 
   setVolume(volume: number): void {
@@ -221,6 +226,7 @@ export class PlayerStateService {
 
   // === Reset Methods ===
   resetState(): void {
+    this._isFullscreen.set(false);
     this._isPlaying.set(false);
     this._progressTime.set(0);
     this._videoDuration.set(0);

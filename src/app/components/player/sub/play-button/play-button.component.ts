@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { PlayerService } from '../../../../shared/services/player.service';
 import { PlayerStateService } from '../../../../shared/services/player-state.service';
 
 @Component({
@@ -9,26 +10,15 @@ import { PlayerStateService } from '../../../../shared/services/player-state.ser
   styleUrl: './play-button.component.scss'
 })
 export class PlayButtonComponent {
+  playerService = inject(PlayerService);
   playerState = inject(PlayerStateService);
 
-  togglePlay(): void {
-    const player = this.playerState.player;
-
-    if (player) {
-      if (player.paused()) {
-        player.play().then(() => {
-          this.playerState.setIsPlaying(true);
-          console.log('Video started playing');
-        }).catch((error: any) => {
-          console.error('Play failed:', error);
-        });
-      } else {
-        player.pause();
-        this.playerState.setIsPlaying(false);
-        console.log('Video paused');
-      }
-    } else {
-      console.error('Player not available');
-    }
+  onTogglePlay(): void {
+    this.playerService.togglePlay();
   }
+
+  get isPlaying(): boolean {
+    return this.playerState.isPlaying();
+  }
+
 }

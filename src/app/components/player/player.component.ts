@@ -511,11 +511,4 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     return localResumeTime;
   }
 
-  resetAllStates(): void {
-    this.playerState.resetState();
-    this.fullScreenService.resetState();
-    this.showOverlay = true;
-    this.resetOverlayTimer();
-  }
-
 }

@@ -1,6 +1,6 @@
-<button class="vjs-play-control" (click)="togglePlay()">
+<button class="vjs-play-control" (click)="onTogglePlay()" [attr.aria-label]="isPlaying ? 'Pause' : 'Play'">
 
-    @if(playerState.isPlaying()) {
+    @if(isPlaying) {
 
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
             <path
