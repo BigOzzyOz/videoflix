@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PlayerStateService } from '../../../../shared/services/player-state.service';
+import { FullscreenService } from '../../../../shared/services/fullscreen.service';
 
 @Component({
   selector: 'app-fullscreen-button',
@@ -10,15 +10,13 @@ import { PlayerStateService } from '../../../../shared/services/player-state.ser
   styleUrl: './fullscreen-button.component.scss'
 })
 export class FullscreenButtonComponent {
-  playerState = inject(PlayerStateService);
+  fullScreenService = inject(FullscreenService);
 
   onToggleFullscreen(): void {
-    console.log('Toggle fullscreen');
-    this.playerState.toggleFullscreen();
+    this.fullScreenService.toggleFullscreen();
   }
 
-  // Getter für Template
   get isFullscreen(): boolean {
-    return this.playerState.isFullscreen();
+    return this.fullScreenService.isFullscreen();
   }
 }

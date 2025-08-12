@@ -25,7 +25,7 @@ export class PlayerStateService {
   private _isMuted = signal<boolean>(false);
 
   // === UI State ===
-  private _isFullscreen = signal<boolean>(false);
+
   private _showOverlay = signal<boolean>(true);
   private _showSpeedMenu = signal<boolean>(false);
 
@@ -63,7 +63,7 @@ export class PlayerStateService {
   readonly playbackSpeed = this._playbackSpeed.asReadonly();
   readonly volume = this._volume.asReadonly();
   readonly isMuted = this._isMuted.asReadonly();
-  readonly isFullscreen = this._isFullscreen.asReadonly();
+
   readonly showOverlay = this._showOverlay.asReadonly();
   readonly showSpeedMenu = this._showSpeedMenu.asReadonly();
   readonly showVolumeControl = this._showVolumeControl.asReadonly();
@@ -148,9 +148,7 @@ export class PlayerStateService {
     this._isMuted.set(muted);
   }
 
-  setIsFullscreen(fullscreen: boolean): void {
-    this._isFullscreen.set(fullscreen);
-  }
+
 
   setShowOverlay(show: boolean): void {
     this._showOverlay.set(show);
@@ -209,40 +207,6 @@ export class PlayerStateService {
     this.setIsMuted(!this.isMuted());
   }
 
-  toggleFullscreen(): void {
-    if (this.isFullscreen()) {
-      this.exitFullscreen();
-    } else {
-      this.enterFullscreen();
-    }
-  }
-
-  enterFullscreen(): void {
-    const element = document.documentElement;
-
-    if (element.requestFullscreen) {
-      element.requestFullscreen();
-    } else if ((element as any).webkitRequestFullscreen) {
-      (element as any).webkitRequestFullscreen();
-    } else if ((element as any).msRequestFullscreen) {
-      (element as any).msRequestFullscreen();
-    }
-
-    console.log('Entering fullscreen');
-  }
-
-  exitFullscreen(): void {
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-    } else if ((document as any).webkitExitFullscreen) {
-      (document as any).webkitExitFullscreen();
-    } else if ((document as any).msExitFullscreen) {
-      (document as any).msExitFullscreen();
-    }
-
-    console.log('Exiting fullscreen');
-  }
-
   toggleSpeedMenu(): void {
     this.setShowSpeedMenu(!this.showSpeedMenu());
   }
@@ -264,7 +228,6 @@ export class PlayerStateService {
     this._playbackSpeed.set(1);
     this._volume.set(0.5);
     this._isMuted.set(false);
-    this._isFullscreen.set(false);
     this._showOverlay.set(true);
     this._showSpeedMenu.set(false);
     this._showVolumeControl.set(false);

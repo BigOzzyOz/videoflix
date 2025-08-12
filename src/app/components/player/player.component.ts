@@ -22,6 +22,7 @@ import { BottomBarComponent } from './bottom-bar/bottom-bar.component';
 import { CenterControlsComponent } from './center-controls/center-controls.component';
 import { TopBarComponent } from "./top-bar/top-bar.component";
 import { PlayerStateService } from '../../shared/services/player-state.service';
+import { FullscreenService } from '../../shared/services/fullscreen.service';
 
 @Component({
   selector: 'app-player',
@@ -37,6 +38,7 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   api = inject(ApiService);
   errorService = inject(ErrorService);
   playerState = inject(PlayerStateService);
+  fullScreenService = inject(FullscreenService);
 
   @ViewChild('vjs', { static: true }) vjsRef!: ElementRef<HTMLVideoElement>;
 
@@ -72,7 +74,6 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     console.log('PlayerState Service injected:', this.playerState);
     this.playerState.setVideoId(this.videoId);
 
-    // TEST: Video auch im Service setzen
     if (this.video) {
       this.playerState.setVideo(this.video);
     }
@@ -85,7 +86,6 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
         this.videoUrl = this.video.hls;
         sessionStorage.setItem('videoId', this.video.id);
 
-        // TEST: Video auch im Service setzen
         this.playerState.setVideo(this.video);
 
         if (this.viewInitialized) this.initializePlayer();
@@ -257,7 +257,7 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
         break;
       case 'KeyF':
         event.preventDefault();
-        this.playerState.toggleFullscreen();
+        this.fullScreenService.toggleFullscreen();
         break;
     }
   }
@@ -509,6 +509,13 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     console.log('Local resume time:', localResumeTime);
 
     return localResumeTime;
+  }
+
+  resetAllStates(): void {
+    this.playerState.resetState();
+    this.fullScreenService.resetState();
+    this.showOverlay = true;
+    this.resetOverlayTimer();
   }
 
 }
