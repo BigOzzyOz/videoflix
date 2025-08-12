@@ -11,4 +11,8 @@ import { PlayerStateService } from '../../../../shared/services/player-state.ser
 })
 export class VideoTitleComponent {
   playerState = inject(PlayerStateService);
+
+  get videoTitle(): string {
+    return this.playerState.title();
+  }
 }
