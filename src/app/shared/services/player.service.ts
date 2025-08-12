@@ -9,11 +9,11 @@ export class PlayerService {
   playerState = inject(PlayerStateService);
   errorService = inject(ErrorService);
 
-  constructor() { }
+  constructor() {
+  }
 
   togglePlay(): void {
     const player = this.playerState.player;
-
     if (player) {
       if (player.paused()) {
         player.play().then(() => {
@@ -31,4 +31,11 @@ export class PlayerService {
       console.error('Player not available');
     }
   }
+
+  pause(): void {
+    const player = this.playerState.player;
+    player.pause();
+  }
+
+
 }

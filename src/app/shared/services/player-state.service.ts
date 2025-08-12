@@ -153,8 +153,6 @@ export class PlayerStateService {
     this._isMuted.set(muted);
   }
 
-
-
   setShowOverlay(show: boolean): void {
     this._showOverlay.set(show);
   }

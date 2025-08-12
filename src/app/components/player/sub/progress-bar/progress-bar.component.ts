@@ -2,6 +2,8 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { VideoTimePipe } from '../../../../shared/pipes/video-time.pipe';
 import { PlayerStateService } from '../../../../shared/services/player-state.service';
+import { PlayerService } from '../../../../shared/services/player.service';
+import { SeekService } from '../../../../shared/services/seek.service';
 
 @Component({
   selector: 'app-progress-bar',
@@ -11,48 +13,22 @@ import { PlayerStateService } from '../../../../shared/services/player-state.ser
 })
 export class ProgressBarComponent {
   playerState = inject(PlayerStateService);
+  playerService = inject(PlayerService);
+  seekService = inject(SeekService);
 
   // Seeking Methods
   onSeekStart(): void {
-    console.log('Seek start');
-    this.playerState.setIsScrubbing(true);
-
-    const player = this.playerState.player;
-    if (player) {
-      player.pause();
-    }
+    this.seekService.scrubStart();
   }
 
   onScrubbing(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    const time = parseFloat(target.value);
-
-    console.log('Scrubbing to:', time);
-    this.playerState.setProgressTime(time);
-
-    const player = this.playerState.player;
-    if (player) {
-      player.currentTime(time);
-    }
+    this.seekService.scrubbing(event);
   }
 
   onSeekEnd(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    const time = parseFloat(target.value);
-
-    console.log('Seek end at:', time);
-    this.playerState.setIsScrubbing(false);
-
-    const player = this.playerState.player;
-    if (player) {
-      player.currentTime(time);
-      player.play().catch((err: any) => {
-        console.error('Error playing after seek:', err);
-      });
-    }
+    this.seekService.scrubEnd(event);
   }
 
-  // Tooltip Methods - MIT EVENT PARAMETER
   updateTooltip(event: MouseEvent): void {
     const target = event.currentTarget as HTMLElement;
     const rect = target.getBoundingClientRect();
@@ -70,67 +46,54 @@ export class ProgressBarComponent {
     this.playerState.setShowSeekTooltip(false);
   }
 
-  // Touch Support
   onTouchStart(event: TouchEvent): void {
-    console.log('Touch seek start');
     event.preventDefault();
-    this.onSeekStart();
+    this.seekService.scrubStart();
   }
 
   onTouchMove(event: TouchEvent): void {
     event.preventDefault();
-    const touch = event.touches[0];
-    const target = event.currentTarget as HTMLElement;
-    const rect = target.getBoundingClientRect();
-    const x = touch.clientX - rect.left;
-    const percentage = Math.max(0, Math.min(1, x / rect.width));
-    const time = percentage * this.playerState.videoDuration();
-
-    console.log('Touch move to:', time);
-    this.playerState.setProgressTime(time);
-
-    const player = this.playerState.player;
-    if (player) {
-      player.currentTime(time);
-    }
+    this.seekService.scrubbingTouch(event);
   }
 
   onTouchEnd(event: TouchEvent): void {
-    console.log('Touch seek end');
     event.preventDefault();
-    this.playerState.setIsScrubbing(false);
-
-    const player = this.playerState.player;
-    if (player) {
-      player.play().catch((err: any) => {
-        console.error('Error playing after touch seek:', err);
-      });
-    }
+    this.seekService.scrubEndTouch(event);
   }
 
-  // Progress Bar Click
   onProgressClick(event: MouseEvent): void {
-    const target = event.currentTarget as HTMLElement;
-    const rect = target.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const percentage = x / rect.width;
-    const time = percentage * this.playerState.videoDuration();
-
-    console.log('Progress clicked at:', time);
-
-    const player = this.playerState.player;
-    if (player) {
-      player.currentTime(time);
-      this.playerState.setProgressTime(time);
-    }
+    this.seekService.progressClick(event);
   }
 
-  // Computed Properties für Template
   get progressPercentage(): number {
     return this.playerState.progress();
   }
 
   get bufferedPercentage(): number {
     return this.playerState.bufferedPercentage();
+  }
+
+  get progressTime(): number {
+    return this.playerState.progressTime();
+  }
+
+  get isScrubbing(): boolean {
+    return this.playerState.isScrubbing();
+  }
+
+  get videoDuration(): number {
+    return this.playerState.videoDuration();
+  }
+
+  get showSeekTooltip(): boolean {
+    return this.playerState.showSeekTooltip();
+  }
+
+  get seekTooltipTime(): number {
+    return this.playerState.seekTooltipTime();
+  }
+
+  get seekTooltipPosition(): number {
+    return this.playerState.seekTooltipPosition();
   }
 }
