@@ -267,9 +267,4 @@ export class PlayerStateService {
     return this.getFormattedTime(this.videoDuration());
   }
 
-  // Speed-Formatierung für UI
-  getSpeedLabel(speed: number): string {
-    return speed === 1 ? 'Normal' : `${speed}x`;
-  }
-
 }

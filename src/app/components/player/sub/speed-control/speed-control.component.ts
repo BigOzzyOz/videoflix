@@ -27,7 +27,7 @@ export class SpeedControlComponent {
   }
 
   getSpeedLabel(speed: number): string {
-    return this.playerState.getSpeedLabel(speed);
+    return this.getSpeedLabelName(speed);
   }
 
   get currentSpeed(): number {
@@ -44,5 +44,9 @@ export class SpeedControlComponent {
 
   onDocumentClick(): void {
     this.playerState.setShowSpeedMenu(false);
+  }
+
+  getSpeedLabelName(speed: number): string {
+    return speed === 1 ? 'Normal' : `${speed}x`;
   }
 }
