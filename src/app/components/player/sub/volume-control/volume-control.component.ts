@@ -1,6 +1,7 @@
 import { Component, inject, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PlayerStateService } from '../../../../shared/services/player-state.service';
+import { VolumeService } from '../../../../shared/services/volume.service';
 
 @Component({
   selector: 'app-volume-control',
@@ -11,6 +12,7 @@ import { PlayerStateService } from '../../../../shared/services/player-state.ser
 })
 export class VolumeControlComponent implements AfterViewInit {
   playerState = inject(PlayerStateService);
+  volumeService = inject(VolumeService);
 
   private isDragging = false;
   private volumeHideTimeout: any = null;
@@ -21,40 +23,23 @@ export class VolumeControlComponent implements AfterViewInit {
     }, 100);
   }
 
-  get volumePercentage(): number {
-    return Math.round(this.playerState.volume() * 100);
-  }
 
   onTouchStart(): void {
-    console.log('Volume touch start - opening control');
     this.playerState.setShowVolumeControl(true);
   }
 
   onToggleSound(): void {
-    const player = this.playerState.player;
-    if (player) {
-      if (player.muted() || this.playerState.volume() === 0) {
-        player.muted(false);
-        this.playerState.setIsMuted(false);
-        this.playerState.setVolume(this.playerState.volume() > 0 ? this.playerState.volume() : 0.5);
-      } else {
-        player.muted(true);
-        this.playerState.setIsMuted(true);
-      }
-    }
-    // Bei Touch auch Volume Control anzeigen
+    this.volumeService.toggleSound();
+
     this.playerState.setShowVolumeControl(true);
 
-    // Volume Handle Position updaten
     setTimeout(() => this.updateVolumeHandlePosition(), 50);
   }
 
   hideVolumeControlDelayed(): void {
-    // Nur verstecken wenn nicht gedraggt wird
     if (!this.isDragging) {
       this.clearVolumeHideTimeout();
       this.volumeHideTimeout = setTimeout(() => {
-        console.log('⏰ HIDING VOLUME CONTROL');
         this.playerState.setShowVolumeControl(false);
         this.playerState.setShowVolumeTooltip(false);
       }, 1500);
@@ -65,7 +50,6 @@ export class VolumeControlComponent implements AfterViewInit {
     if (this.volumeHideTimeout) {
       clearTimeout(this.volumeHideTimeout);
       this.volumeHideTimeout = null;
-      console.log('❌ CLEAR TIMEOUT');
     }
   }
 
@@ -76,16 +60,9 @@ export class VolumeControlComponent implements AfterViewInit {
 
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
     const y = event.clientY - rect.top;
-    const percentage = Math.max(0, Math.min(1, 1 - (y / rect.height))); // 1 - y weil Volume von unten nach oben geht
+    const percentage = Math.max(0, Math.min(1, 1 - (y / rect.height)));
 
-    const player = this.playerState.player;
-    if (player) {
-      player.volume(percentage);
-      this.playerState.setVolume(percentage);
-    }
-
-    // Volume Handle Position updaten
-    this.updateVolumeHandlePosition();
+    this.setVolumeAndUpdate(percentage);
 
     this.playerState.setShowVolumeTooltip(true);
     setTimeout(() => {
@@ -94,20 +71,12 @@ export class VolumeControlComponent implements AfterViewInit {
   }
 
   setVolumeFromTouch(event: TouchEvent): void {
-    console.log('Volume touch click');
     const touch = event.touches[0];
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
     const y = touch.clientY - rect.top;
-    const percentage = Math.max(0, Math.min(1, 1 - (y / rect.height))); // 1 - y weil Volume von unten nach oben geht
+    const percentage = this.calcVolumePercentage(y, rect);
 
-    const player = this.playerState.player;
-    if (player) {
-      player.volume(percentage);
-      this.playerState.setVolume(percentage);
-    }
-
-    // Volume Handle Position updaten
-    this.updateVolumeHandlePosition();
+    this.setVolumeAndUpdate(percentage);
 
     this.playerState.setShowVolumeTooltip(true);
     setTimeout(() => {
@@ -119,40 +88,30 @@ export class VolumeControlComponent implements AfterViewInit {
     event.preventDefault();
     event.stopPropagation();
 
-    // WICHTIG: Dragging-State setzen
     this.isDragging = true;
 
     this.playerState.setShowVolumeTooltip(true);
     this.playerState.setShowVolumeControl(true);
 
-    // Alle Hide-Timer löschen während Drag
     this.clearVolumeHideTimeout();
-
-    console.log('Volume drag started', event.type);
 
     const isTouch = event.type === 'touchstart';
     const handle = event.target as HTMLElement;
     const track = handle.closest('.volume-track') as HTMLElement;
 
-    if (!track) {
-      console.log('No volume track found');
-      return;
-    }
+    if (!track) return;
 
     const rect = track.getBoundingClientRect();
     handle.classList.add('dragging');
 
-    if (isTouch) {
-      this.handleTouchDrag(event as TouchEvent, rect, handle);
-    } else {
-      this.handleMouseDrag(event as MouseEvent, rect, handle);
-    }
+    if (isTouch) this.handleTouchDrag(event as TouchEvent, rect, handle);
+    else this.handleMouseDrag(event as MouseEvent, rect, handle);
   }
 
   private handleMouseDrag(event: MouseEvent, rect: DOMRect, handle: HTMLElement): void {
     const onMouseMove = (e: MouseEvent) => {
       const y = e.clientY - rect.top;
-      const percentage = Math.max(0, Math.min(1, 1 - (y / rect.height)));
+      const percentage = this.calcVolumePercentage(y, rect);
       this.setVolumeAndUpdate(percentage);
     };
 
@@ -170,7 +129,7 @@ export class VolumeControlComponent implements AfterViewInit {
     const onTouchMove = (e: TouchEvent) => {
       const touch = e.touches[0];
       const y = touch.clientY - rect.top;
-      const percentage = Math.max(0, Math.min(1, 1 - (y / rect.height)));
+      const percentage = this.calcVolumePercentage(y, rect);
       this.setVolumeAndUpdate(percentage);
     };
 
@@ -184,61 +143,56 @@ export class VolumeControlComponent implements AfterViewInit {
     document.addEventListener('touchend', onTouchEnd);
   }
 
+  private calcVolumePercentage(y: number, rect: DOMRect): number {
+    return Math.max(0, Math.min(1, 1 - (y / rect.height)));
+  }
+
   private setVolumeAndUpdate(percentage: number): void {
-    console.log('Setting volume to:', percentage);
-    const player = this.playerState.player;
-    if (player) {
-      player.volume(percentage);
-      this.playerState.setVolume(percentage);
-    }
+    this.volumeService.setVolume(percentage);
     this.updateVolumeHandlePosition();
   }
 
   private endDrag(handle: HTMLElement): void {
-    console.log('Volume drag ended');
-
-    // WICHTIG: Dragging-State zurücksetzen
     this.isDragging = false;
 
     handle.classList.remove('dragging');
 
-    // Tooltip nach kurzer Zeit verstecken
     setTimeout(() => {
       this.playerState.setShowVolumeTooltip(false);
     }, 1000);
 
-    // Volume Control nach längerer Zeit verstecken (nur wenn nicht gehovered)
     this.hideVolumeControlDelayed();
   }
 
-  // Die ursprüngliche updateVolumeHandlePosition Methode hierher verschieben
   private updateVolumeHandlePosition(): void {
-    const trackHeight = 14; // rem
-    const handleHeight = 1.6; // rem  
-    const padding = 1; // rem
-    const availableHeight = trackHeight - handleHeight; // 12.4rem
+    const trackHeight = 14;
+    const handleHeight = 1.6;
+    const padding = 1;
+    const availableHeight = trackHeight - handleHeight;
 
     const volume = this.playerState.volume();
-    const position = padding + (availableHeight * volume); // Handle Position von unten
-    const progressHeight = trackHeight * volume; // Progress Höhe von unten
+    const position = padding + (availableHeight * volume);
+    const progressHeight = trackHeight * volume;
 
-    // Volume Progress updaten (von unten nach oben)
+    this.setVolumeProgress(progressHeight, padding);
+    this.setVolumeHandlePosition(position);
+  }
+
+  setVolumeProgress(progressHeight: number, padding: number): void {
     const volumeProgress = document.querySelector('.volume-progress') as HTMLElement;
     if (volumeProgress) {
       volumeProgress.style.height = `${progressHeight}rem`;
-      volumeProgress.style.bottom = `${padding}rem`; // bottom statt top!
-      console.log('Volume progress height set to:', progressHeight);
-    }
-
-    // Volume Handle updaten (von unten nach oben)
-    const volumeHandle = document.querySelector('.volume-handle') as HTMLElement;
-    if (volumeHandle) {
-      volumeHandle.style.bottom = `${position}rem`; // bottom statt top!
-      console.log('Volume handle position set to:', position);
+      volumeProgress.style.bottom = `${padding}rem`;
     }
   }
 
-  // HINZUFÜGEN: Volume Tooltip Methoden
+  setVolumeHandlePosition(position: number): void {
+    const volumeHandle = document.querySelector('.volume-handle') as HTMLElement;
+    if (volumeHandle) {
+      volumeHandle.style.bottom = `${position}rem`;
+    }
+  }
+
   updateVolumeTooltip(event: MouseEvent): void {
     const target = event.currentTarget as HTMLElement;
     const rect = target.getBoundingClientRect();
@@ -252,16 +206,34 @@ export class VolumeControlComponent implements AfterViewInit {
     this.playerState.setShowVolumeTooltip(false);
   }
 
-  // Mouse Enter auf Volume Container
   onVolumeContainerEnter(): void {
     this.playerState.setShowVolumeControl(true);
     this.clearVolumeHideTimeout();
   }
 
-  // Mouse Leave auf Volume Container
   onVolumeContainerLeave(): void {
     if (!this.isDragging) {
       this.hideVolumeControlDelayed();
     }
+  }
+
+  onTouchStartSlider(): void {
+    this.playerState.setShowVolumeControl(true);
+  }
+
+  get volume(): number {
+    return this.playerState.volume();
+  }
+
+  get isMuted(): boolean {
+    return this.playerState.isMuted();
+  }
+
+  get showVolumeControl(): boolean {
+    return this.playerState.showVolumeControl();
+  }
+
+  get volumePercentage(): number {
+    return Math.round(this.playerState.volume() * 100);
   }
 }
