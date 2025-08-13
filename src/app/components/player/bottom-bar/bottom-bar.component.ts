@@ -25,5 +25,4 @@ import { ProgressBarComponent } from '../sub/progress-bar/progress-bar.component
   styleUrl: './bottom-bar.component.scss'
 })
 export class BottomBarComponent {
-  @Input() title: string = '';
 }

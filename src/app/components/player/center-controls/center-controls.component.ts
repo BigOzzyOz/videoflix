@@ -16,5 +16,4 @@ import { PlayerStateService } from '../../../shared/services/player-state.servic
   styleUrl: './center-controls.component.scss'
 })
 export class CenterControlsComponent {
-  playerState = inject(PlayerStateService);
 }

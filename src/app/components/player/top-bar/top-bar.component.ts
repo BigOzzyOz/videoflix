@@ -1,8 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
 import { VideoTitleComponent } from '../sub/video-title/video-title.component';
 import { PlayerStateService } from '../../../shared/services/player-state.service';
+import { NavigationService } from '../../../shared/services/navigation.service';
 
 @Component({
   selector: 'app-top-bar',
@@ -15,10 +15,14 @@ import { PlayerStateService } from '../../../shared/services/player-state.servic
   styleUrl: './top-bar.component.scss'
 })
 export class TopBarComponent {
-  private router = inject(Router);
+  navigate = inject(NavigationService)
   playerState = inject(PlayerStateService);
 
   goBack(): void {
-    this.router.navigate(['/main']);
+    this.navigate.goBack();
+  }
+
+  get isOptimizing(): boolean {
+    return this.playerState.isOptimizing();
   }
 }
