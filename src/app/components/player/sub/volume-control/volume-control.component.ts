@@ -1,4 +1,4 @@
-import { Component, inject, AfterViewInit } from '@angular/core';
+import { Component, inject, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PlayerStateService } from '../../../../shared/services/player-state.service';
 import { VolumeService } from '../../../../shared/services/volume.service';
@@ -10,7 +10,7 @@ import { VolumeService } from '../../../../shared/services/volume.service';
   templateUrl: './volume-control.component.html',
   styleUrl: './volume-control.component.scss'
 })
-export class VolumeControlComponent implements AfterViewInit {
+export class VolumeControlComponent implements AfterViewInit, OnDestroy {
   playerState = inject(PlayerStateService);
   volumeService = inject(VolumeService);
 
@@ -23,9 +23,14 @@ export class VolumeControlComponent implements AfterViewInit {
     }, 100);
   }
 
+  ngOnDestroy(): void {
+    this.clearVolumeHideTimeout();
+  }
+
 
   onTouchStart(): void {
     this.playerState.setShowVolumeControl(true);
+    this.hideVolumeControlDelayed();
   }
 
   onToggleSound(): void {

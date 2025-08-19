@@ -1,21 +1,23 @@
 import { inject, Injectable } from '@angular/core';
 import { PlayerStateService } from './player-state.service';
-import { PlayerService } from './player.service';
 import { ErrorService } from './error.service';
+import { ProgressService } from './progress.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SeekService {
   playerState = inject(PlayerStateService);
-  playerService = inject(PlayerService);
+  progressService = inject(ProgressService);
   errorService = inject(ErrorService);
+
+  private lastSeekTime = 0;
 
   constructor() { }
 
   scrubStart(): void {
     this.playerState.setIsScrubbing(true);
-    this.playerService.pause();
+    this.playerState.player.pause();
   }
 
   scrubbing(event: Event): void {
@@ -107,4 +109,27 @@ export class SeekService {
       });
     }
   }
+
+  jumpTime(seconds: number, isInit: boolean = false): void {
+    const now = Date.now();
+    if (!isInit && now - this.lastSeekTime < 500) return;
+    this.lastSeekTime = now;
+
+    const resume = this.playerState.videoId() ? this.progressService.getResumeTime() : 0;
+    const duration = this.playerState.videoDuration();
+
+    if (!this.playerState.viewInitialized() || !this.playerState.player ||
+      duration === undefined || duration <= 0) {
+      this.errorService.show('Player is not ready for seeking');
+      return;
+    }
+
+    if (resume > 0 && isInit) {
+      this.seekTo(Math.min(resume, duration - 1));
+    } else {
+      const currentTime = this.playerState.progressTime();
+      this.seekTo(Math.max(0, Math.min(currentTime + seconds, duration - 1)));
+    }
+  }
+
 }

@@ -9,11 +9,20 @@ export class VolumeService {
 
 
   constructor() { }
-  setVolume(percentage: number): void {
+  setVolume(volume: number): void {
     const player = this.playerState.player;
     if (player) {
-      player.volume(percentage);
-      this.playerState.setVolume(percentage);
+      const clampedVolume = Math.max(0, Math.min(1, volume));
+      this.playerState.setVolume(clampedVolume);
+      player.volume(clampedVolume);
+
+      if (clampedVolume > 0 && player.muted()) {
+        player.muted(false);
+        this.playerState.setIsMuted(false);
+      } else if (clampedVolume === 0 && !player.muted()) {
+        player.muted(true);
+        this.playerState.setIsMuted(true);
+      }
     }
   }
 

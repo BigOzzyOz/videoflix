@@ -1,7 +1,7 @@
 <app-orientation-warning message="Please rotate your device to landscape mode for the best video experience"
     [requiredOrientation]="'landscape'" [showOnlyOnMobile]="true" />
 
-<section class="vjs-video-container" [class.hide-cursor]="!showOverlay && playerState.isPlaying()">
+<section class="vjs-video-container" [class.hide-cursor]="!showOverlay && isPlaying">
 
     <video #vjs id="my-player" class="video-js vjs-theme-netflix" playsinline preload="metadata"></video>
 

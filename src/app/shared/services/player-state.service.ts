@@ -36,6 +36,7 @@ export class PlayerStateService {
 
   // === Private State ===
   private _viewInitialized = signal<boolean>(false);
+  private _lastSaveTime = signal<number>(0);
   private _lastSeekTime = signal<number>(0);
 
   // === Progress Bar Tooltip State ===
@@ -70,6 +71,7 @@ export class PlayerStateService {
   readonly showVolumeTooltip = this._showVolumeTooltip.asReadonly();
   readonly volumeTooltipPosition = this._volumeTooltipPosition.asReadonly();
   readonly viewInitialized = this._viewInitialized.asReadonly();
+  readonly lastSaveTime = this._lastSaveTime.asReadonly();
   readonly lastSeekTime = this._lastSeekTime.asReadonly();
   readonly showSeekTooltip = this._showSeekTooltip.asReadonly();
   readonly seekTooltipTime = this._seekTooltipTime.asReadonly();
@@ -175,6 +177,10 @@ export class PlayerStateService {
 
   setViewInitialized(initialized: boolean): void {
     this._viewInitialized.set(initialized);
+  }
+
+  setLastSaveTime(time: number): void {
+    this._lastSaveTime.set(time);
   }
 
   setLastSeekTime(time: number): void {
