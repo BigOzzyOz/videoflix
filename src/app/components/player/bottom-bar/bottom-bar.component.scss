@@ -54,7 +54,7 @@
             }
         }
 
-        .vjs-title {
+        app-video-title {
             display: none;
 
             @include respond-to(medium) {
