@@ -139,7 +139,6 @@ export class PlayerStateService {
     if (player) {
       player.playbackRate(speed);
       this._playbackSpeed.set(speed);
-      console.log('Playback speed set to:', speed);
     }
   }
 

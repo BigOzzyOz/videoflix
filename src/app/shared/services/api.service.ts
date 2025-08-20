@@ -48,7 +48,6 @@ export class ApiService {
     if (storedProfile) {
       this.currentProfile = new Profile(JSON.parse(storedProfile));
     }
-    console.log('ApiService initialized');
   }
 
   createHeaders(method: string): RequestInit {
@@ -209,7 +208,6 @@ export class ApiService {
   async refreshToken(): Promise<ApiResponse> {
     this.AccessToken = null;
     const body = { refresh: this.RefreshToken };
-    console.log('Refreshing token with body:', body);
     return await this.directFetch(this.REFRESH_URL, 'POST', body);
   }
 

@@ -28,7 +28,6 @@ export class MainComponent implements OnInit, OnDestroy {
   constructor() { }
 
   async ngOnInit() {
-    console.log('MainComponent initializing...');
     this.renderer.addClass(document.body, 'main-bg');
 
     try {
@@ -44,8 +43,6 @@ export class MainComponent implements OnInit, OnDestroy {
       const errorMsg = (error instanceof Error) ? error.message : String(error);
       this.errorService.show('Failed to initialize component: ' + errorMsg);
     }
-
-    console.log('MainComponent initialized');
   }
 
   ngOnDestroy() {

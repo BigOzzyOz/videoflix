@@ -19,12 +19,7 @@ export class MovieComponent {
   }
 
   onVideoClick() {
-    if (this.video) {
-      this.videoSelected.emit(this.video);
-      console.log('Video clicked:', this.video);
-    } else {
-      console.warn('No video data available');
-    }
+    if (this.video) this.videoSelected.emit(this.video);
+    else console.warn('No video data available');
   }
-
 }
