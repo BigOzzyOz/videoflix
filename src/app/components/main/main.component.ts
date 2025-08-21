@@ -8,6 +8,8 @@ import { ErrorService } from '../../shared/services/error.service';
 import { Video } from '../../shared/models/video';
 import { VideoCollections } from '../../shared/models/video-collection';
 import { GenreCountData } from '../../shared/interfaces/genre-count-data';
+import { VideoCollectionData } from '../../shared/interfaces/video-collection-data';
+
 
 @Component({
   selector: 'app-main',
@@ -17,7 +19,7 @@ import { GenreCountData } from '../../shared/interfaces/genre-count-data';
 })
 export class MainComponent implements OnInit, OnDestroy {
   private renderer = inject(Renderer2);
-  private api = inject(ApiService);
+  api = inject(ApiService);
   private errorService = inject(ErrorService);
 
   videoGenres: string[] = [];
@@ -31,9 +33,10 @@ export class MainComponent implements OnInit, OnDestroy {
     this.renderer.addClass(document.body, 'main-bg');
 
     try {
+      if (this.api.currentProfile!.videoProgress.length > 0 && this.api.currentProfile!.videoProgress.some(v => v.currentTime > 0)) await this.addContinueWatching();
       await this.getGenreCount();
       await this.getVideoCollection();
-
+      console.log('Collection:', this.videoCollection);
       if (this.videoCollection.length > 0) {
         const firstGenreKey = Object.keys(this.videoCollection[0])[0];
         const videos = this.videoCollection[0][firstGenreKey].videos;
@@ -80,6 +83,7 @@ export class MainComponent implements OnInit, OnDestroy {
       const errorMsg = (error instanceof Error) ? error.message : String(error);
       this.errorService.show('Failed to load genres count: ' + errorMsg);
     }
+    console.log('Profile', this.api.currentProfile);
   }
 
   async getVideoCollection(): Promise<void> {
@@ -107,4 +111,33 @@ export class MainComponent implements OnInit, OnDestroy {
       }
     }
   }
-}
+
+  async addContinueWatching(): Promise<void> {
+    if (!this.api.currentProfile) {
+      this.errorService.show('No profile selected');
+      return;
+    }
+    const continueWatching: Video[] = [];
+    for (const video of this.api.currentProfile.videoProgress.filter(v => v.isStarted && !v.isCompleted)) {
+      const newVideo = await this.api.getVideoById(video?.id);
+      if (newVideo.isSuccess()) {
+        continueWatching.push(new Video(newVideo.data));
+      } else {
+        this.errorService.show(newVideo.data);
+      }
+    }
+    if (continueWatching.length === 0) return;
+
+    const continueWatchingData: VideoCollectionData = {
+      videos: continueWatching,
+      lastUpdated: new Date().toISOString(),
+      next: null,
+      previous: null,
+      params: 'continue_watching=true'
+    };
+    const continueWatchingCollection = new VideoCollections('continue_watching', continueWatchingData, 'continue_watching=true');
+    this.videoCollection.unshift(continueWatchingCollection);
+  }
+};
+
+

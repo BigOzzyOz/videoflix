@@ -48,6 +48,7 @@ export class SliderComponent implements AfterViewInit, OnDestroy {
 
 
   ngAfterViewInit(): void {
+    console.log('SliderComponent initialized with collection:', this.collection);
     // Mehrere Frames warten für DOM-Stabilität
     setTimeout(() => {
       this.checkOverflow();
@@ -144,7 +145,6 @@ export class SliderComponent implements AfterViewInit, OnDestroy {
 
     intersectionObserver.observe(this.sliderContainer.nativeElement);
 
-    // Resize Observer
     this.resizeObserver = new ResizeObserver(() => {
       this.clearResizeTimeout();
       this.resizeTimeout = setTimeout(() => {

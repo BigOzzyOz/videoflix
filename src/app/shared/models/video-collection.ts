@@ -3,16 +3,20 @@ import { VideoCollectionData } from "../interfaces/video-collection-data";
 import { VideoCollectionApiData } from "../interfaces/video-collection-api-data";
 
 export class VideoCollections {
-    [key: string]: VideoCollectionData | any; // Index Signature hinzufügen
+    [key: string]: VideoCollectionData | any;
 
-    constructor(key: string, data: VideoCollectionApiData, params: string = '') {
-        this[key] = {
-            lastUpdated: new Date().toISOString(),
-            videos: data.results.map((videoData: any) => new Video(videoData)),
-            next: data.next || null,
-            previous: data.previous || null,
-            params: params
-        };
+    constructor(key: string, data: VideoCollectionApiData | VideoCollectionData, params: string = '') {
+        if ('results' in data) {
+            this[key] = {
+                lastUpdated: new Date().toISOString(),
+                videos: data.results.map((videoData: any) => new Video(videoData)),
+                next: data.next || null,
+                previous: data.previous || null,
+                params: params
+            };
+        } else {
+            this[key] = data;
+        }
     }
 
     getName(): string {

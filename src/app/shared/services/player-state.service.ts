@@ -229,6 +229,8 @@ export class PlayerStateService {
 
   // === Reset Methods ===
   resetState(): void {
+    this.setVideo(null);
+    this.setVideoUrl('');
     this._isFullscreen.set(false);
     this._isPlaying.set(false);
     this._progressTime.set(0);

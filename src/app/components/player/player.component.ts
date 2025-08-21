@@ -136,12 +136,10 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  ngOnDestroy(): void {
+  async ngOnDestroy(): Promise<void> {
     if (this.playerState.player) {
-      const currentTime = this.playerState.player.currentTime();
-      if (this.playerState.videoId() && currentTime && currentTime > 0) {
-        sessionStorage.setItem(this.progressService.key(), currentTime.toString());
-      }
+      await this.playerService.playerEndHandler();
+      this.playerState.resetState();
       this.playerState.player.dispose();
     }
     this.overlayService.clearOverlayTimer();

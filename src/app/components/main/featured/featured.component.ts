@@ -121,6 +121,7 @@ export class FeaturedComponent implements OnInit, OnDestroy, OnChanges {
     if (!videoId) return;
     this.endPreview();
     this.isPreviewPlaying = false;
+    sessionStorage.setItem('videoId', videoId);
     this.router.navigate(['/video'], {
       queryParams: { videoId: videoId },
     });

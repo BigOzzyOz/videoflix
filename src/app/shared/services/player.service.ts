@@ -57,8 +57,8 @@ export class PlayerService {
     player.ready(() => this.playerState.setViewInitialized(true));
     player.one('loadedmetadata', () => this.loadMetaHandler());
     player.on('timeupdate', async () => await this.timeUpdateHandler());
-    player.on(['pause', 'ended'], async () => await this.playerEndPauseHandler());
-    player.on('ended', () => sessionStorage.removeItem(this.progressService.key()));
+    player.on(['pause'], async () => await this.playerPauseHandler());
+    player.on('ended', async () => await this.playerEndHandler());
     player.on('error', (error: any) => {
       const playerError = player.error();
       this.playerErrorHandler(playerError);
@@ -111,7 +111,7 @@ export class PlayerService {
     this.playerState.setLastSaveTime(lastSaveTime);
   }
 
-  async playerEndPauseHandler(): Promise<void> {
+  async playerPauseHandler(): Promise<void> {
     if (!this.playerState.videoId() && !this.playerState.player()) return;
     const currentTime = this.playerState.player.currentTime();
 
@@ -127,6 +127,26 @@ export class PlayerService {
       0
     );
     this.playerState.setLastSaveTime(lastSaveTime);
+  }
+
+  async playerEndHandler(): Promise<void> {
+    if (!this.playerState.videoId() && !this.playerState.player()) return;
+    const currentTime = this.playerState.player.currentTime();
+
+    this.playerState.setIsPlaying(false);
+    this.overlayService.resetOverlayTimer(true);
+    this.overlayService.clearOverlayTimer();
+
+    if (!currentTime) return;
+
+    const lastSaveTime = await this.progressService.updateProgress(
+      this.api.CurrentProfile.id || '',
+      this.playerState.videoId() || '',
+      0
+    );
+    this.playerState.setLastSaveTime(lastSaveTime);
+    sessionStorage.removeItem(this.progressService.key());
+    this.playerState.resetState();
   }
 
   playerErrorHandler(error: any): void {
