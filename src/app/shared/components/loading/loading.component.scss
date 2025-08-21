@@ -1,0 +1,51 @@
+@use 'index' as *;
+
+.loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100dvh;
+    width: 100dvw;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba($bg-color, 0.9);
+    backdrop-filter: blur(5px);
+    z-index: 1000;
+
+    &.hidden {
+        display: none;
+    }
+
+    svg {
+        width: 30%;
+        height: 30%;
+
+        path {
+            stroke: rgba($primary-color, 0.4);
+            stroke-width: 0.1;
+            fill: url(#paint0_linear_79_177);
+            fill-opacity: 0;
+            stroke-dasharray: 200;
+            stroke-dashoffset: 200;
+            animation:
+                drawPath 3s ease infinite alternate-reverse,
+                fillFade 3s ease infinite alternate;
+        }
+    }
+
+    @keyframes drawPath {
+        to {
+            stroke-dashoffset: 0;
+        }
+    }
+
+    @keyframes fillFade {
+        to {
+            fill-opacity: 1;
+        }
+    }
+}

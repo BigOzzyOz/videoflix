@@ -25,6 +25,7 @@ import { PlayerService } from '../../shared/services/player.service';
 import { VolumeService } from '../../shared/services/volume.service';
 import { OverlayService } from '../../shared/services/overlay.service';
 import { ProgressService } from '../../shared/services/progress.service';
+import { LoadingService } from '../../shared/services/loading.service';
 
 @Component({
   selector: 'app-player',
@@ -46,12 +47,15 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   volumeService = inject(VolumeService);
   overlayService = inject(OverlayService);
   progressService = inject(ProgressService);
+  loadingService = inject(LoadingService);
+
 
   @ViewChild('vjs', { static: true }) vjsRef!: ElementRef<HTMLVideoElement>;
 
   readonly OVERLAY_HIDE_DELAY = 3000;
 
   constructor() {
+    this.loadingService.setLoading(true);
     this.activeRoute.queryParams.subscribe(params => {
       this.playerState.setVideoId(params['videoId'] || '');
     });

@@ -7,6 +7,7 @@ import { OverlayService } from './overlay.service';
 import { ApiService } from './api.service';
 import { SeekService } from './seek.service';
 import { ProgressService } from './progress.service';
+import { LoadingService } from './loading.service';
 
 @Injectable({
   providedIn: 'root'
@@ -18,6 +19,7 @@ export class PlayerService {
   overlayService = inject(OverlayService);
   seekService = inject(SeekService);
   progressService = inject(ProgressService);
+  loadingService = inject(LoadingService);
 
   constructor() {
   }
@@ -57,7 +59,8 @@ export class PlayerService {
     player.ready(() => this.playerState.setViewInitialized(true));
     player.one('loadedmetadata', () => this.loadMetaHandler());
     player.on('timeupdate', async () => await this.timeUpdateHandler());
-    player.on(['pause'], async () => await this.playerPauseHandler());
+    player.on('canplay', () => this.loadingService.setLoading(false));
+    player.on('pause', async () => await this.playerPauseHandler());
     player.on('ended', async () => await this.playerEndHandler());
     player.on('error', (error: any) => {
       const playerError = player.error();

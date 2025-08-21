@@ -9,6 +9,7 @@ import { Video } from '../../shared/models/video';
 import { VideoCollections } from '../../shared/models/video-collection';
 import { GenreCountData } from '../../shared/interfaces/genre-count-data';
 import { VideoCollectionData } from '../../shared/interfaces/video-collection-data';
+import { LoadingService } from '../../shared/services/loading.service';
 
 
 @Component({
@@ -19,15 +20,18 @@ import { VideoCollectionData } from '../../shared/interfaces/video-collection-da
 })
 export class MainComponent implements OnInit, OnDestroy {
   private renderer = inject(Renderer2);
-  api = inject(ApiService);
   private errorService = inject(ErrorService);
+  api = inject(ApiService);
+  loadingService = inject(LoadingService);
 
   videoGenres: string[] = [];
   featuredVideo: Video | null = null;
   videoCollection: VideoCollections[] = [];
   showFeaturedVideo: boolean = false;
 
-  constructor() { }
+  constructor() {
+    this.loadingService.setLoading(true);
+  }
 
   async ngOnInit() {
     this.renderer.addClass(document.body, 'main-bg');
@@ -36,12 +40,12 @@ export class MainComponent implements OnInit, OnDestroy {
       if (this.api.currentProfile!.videoProgress.length > 0 && this.api.currentProfile!.videoProgress.some(v => v.currentTime > 0)) await this.addContinueWatching();
       await this.getGenreCount();
       await this.getVideoCollection();
-      console.log('Collection:', this.videoCollection);
       if (this.videoCollection.length > 0) {
         const firstGenreKey = Object.keys(this.videoCollection[0])[0];
         const videos = this.videoCollection[0][firstGenreKey].videos;
         this.featuredVideo = Array.isArray(videos) && videos.length > 0 ? videos[0] : null;
       }
+      this.loadingService.setLoading(false);
     } catch (error) {
       const errorMsg = (error instanceof Error) ? error.message : String(error);
       this.errorService.show('Failed to initialize component: ' + errorMsg);
