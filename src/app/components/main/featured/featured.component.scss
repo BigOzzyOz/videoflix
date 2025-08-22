@@ -12,6 +12,11 @@
     @include respond-to(medium) {
         grid-template-rows: 1fr;
         grid-template-columns: 1fr;
+
+        &:hover .featuredVideo__media__controls {
+            opacity: 1;
+            visibility: visible;
+        }
     }
 
     &__media {
@@ -106,15 +111,6 @@
             align-items: center;
             justify-content: center;
 
-        }
-
-        @include respond-to(medium) {
-            &:hover {
-                .featuredVideo__media__controls {
-                    opacity: 1;
-                    visibility: visible;
-                }
-            }
         }
     }
 
