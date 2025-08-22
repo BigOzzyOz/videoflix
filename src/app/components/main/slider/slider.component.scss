@@ -1,0 +1,119 @@
+@use 'index' as *;
+
+.slider {
+    @include flex-column-start;
+    position: relative;
+    width: 100%;
+    gap: 2rem;
+
+    &__container-wrapper {
+        position: relative;
+        width: 100%;
+        overflow: hidden;
+
+        @include container-hover-arrows;
+    }
+
+    &__container {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        gap: 2rem;
+        scroll-behavior: smooth;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+        scrollbar-width: none;
+    }
+
+    &__arrow {
+        position: absolute;
+        top: 0;
+        width: 5rem;
+        height: 100%;
+        background: rgba($card-background, 0.8);
+        cursor: pointer;
+        z-index: 4;
+        transition: all 125ms ease;
+        padding: 0;
+
+        @include arrow-visibility-desktop;
+        @include arrow-visibility-mobile;
+
+        svg {
+            width: 3rem;
+            height: 3rem;
+            fill: white;
+            transition: all 125ms ease;
+        }
+
+        &:hover:not(.disabled) {
+            border: 1px solid $primary-color;
+            box-shadow: none;
+
+            svg {
+                fill: $primary-color;
+            }
+        }
+
+        &:active:not(.disabled) {
+            border: 1px solid $primary-color;
+        }
+
+        &.disabled {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        &--left {
+            left: 0;
+            border-radius: 0 1rem 1rem 0;
+        }
+
+        &--right {
+            right: 0;
+            border-radius: 1rem 0 0 1rem;
+        }
+
+
+    }
+
+    &__gradient {
+        position: absolute;
+        top: 0;
+        height: 100%;
+        width: 4rem;
+        z-index: 2;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+
+        &.show {
+            opacity: 1;
+        }
+
+        &--left {
+            left: 0;
+            background: linear-gradient(to right,
+                    rgba(0, 0, 0, 1) 0%,
+                    rgba(0, 0, 0, 0.9) 20%,
+                    rgba(0, 0, 0, 0.6) 70%,
+                    transparent 100%);
+        }
+
+        &--right {
+            right: 0;
+            background: linear-gradient(to left,
+                    rgba(0, 0, 0, 1) 0%,
+                    rgba(0, 0, 0, 0.9) 20%,
+                    rgba(0, 0, 0, 0.6) 70%,
+                    transparent 100%);
+        }
+
+    }
+
+}

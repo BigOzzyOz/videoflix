@@ -1,7 +1,9 @@
 import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { ErrorService } from './error.service';
-import { ApiResponse } from '../model/api-response';
+import { ApiResponse } from '../models/api-response';
+import { User } from '../models/user';
+import { Profile } from '../models/profile';
 
 @Injectable({
   providedIn: 'root'
@@ -14,14 +16,39 @@ export class ApiService {
   LOGOUT_URL: string = `${this.BASE_URL}/users/logout/`;
   REGISTER_URL: string = `${this.BASE_URL}/users/register/`;
   VERIFY_URL: string = `${this.BASE_URL}/users/verify-email/`;
+  REFRESH_URL: string = `${this.BASE_URL}/token/refresh/`;
   RESET_URL: string = `${this.BASE_URL}/users/password-reset/`;
   RESET_CONFIRM_URL: string = `${this.BASE_URL}/users/password-reset/confirm/`;
+  GENRES_COUNT_URL: string = `${this.BASE_URL}/videos/genre-count/`;
+  VIDEOS_URL: string = `${this.BASE_URL}/videos/`;
+  PROGRESS_UPDATE_URL(profileId: string, videoFileId: string) {
+    return `${this.BASE_URL}/users/me/profiles/${profileId}/progress/${videoFileId}/update/`;
+  }
+
 
   access_token: string | null = null;
   refresh_token: string | null = null;
-  currentUser: any = null;
+  currentUser: User | null = null;
+  currentProfile: Profile | null = null;
 
-  constructor() { }
+  constructor() {
+    const storedToken = sessionStorage.getItem('token');
+    if (storedToken) {
+      this.access_token = storedToken;
+    }
+    const storedRefreshToken = sessionStorage.getItem('refresh_token');
+    if (storedRefreshToken) {
+      this.refresh_token = storedRefreshToken;
+    }
+    const storedUser = sessionStorage.getItem('currentUser');
+    if (storedUser) {
+      this.currentUser = new User(JSON.parse(storedUser));
+    }
+    const storedProfile = sessionStorage.getItem('currentProfile');
+    if (storedProfile) {
+      this.currentProfile = new Profile(JSON.parse(storedProfile));
+    }
+  }
 
   createHeaders(method: string): RequestInit {
     const headers = new Headers();
@@ -44,6 +71,7 @@ export class ApiService {
     try {
       let response = await fetch(url, options);
       if (response.status === 401 && this.RefreshToken !== null) {
+        this.AccessToken = null;
         const tokenResponse: ApiResponse = await this.refreshToken();
         if (!tokenResponse.ok || tokenResponse.data === null) {
           this.errorService.show('Session expired. Please log in again.');
@@ -53,10 +81,26 @@ export class ApiService {
         options = this.createPayload(method, body);
         response = await fetch(url, options);
       }
+
+      if (response.status === 204 || response.status === 205 || !response.headers.get('content-length') || response.headers.get('content-length') === '0') {
+        return new ApiResponse(response.ok, response.status, null);
+      }
+
       const responseData = await ApiResponse.create(response);
       return responseData;
     } catch (error) {
       console.error('Error fetching data:', error);
+      throw error;
+    }
+  }
+
+  private async directFetch(url: string, method: string, body?: Object): Promise<ApiResponse> {
+    const options = this.createPayload(method, body);
+    try {
+      const response = await fetch(url, options);
+      return await ApiResponse.create(response);
+    } catch (error) {
+      console.error('Error in directFetch:', error);
       throw error;
     }
   }
@@ -69,13 +113,22 @@ export class ApiService {
     return options;
   }
 
-  get CurrentUser(): any {
-    return this.currentUser || JSON.parse(sessionStorage.getItem('currentUser') || 'null');
+  get CurrentUser(): User {
+    return this.currentUser || new User(JSON.parse(sessionStorage.getItem('currentUser') || 'null'));
   }
 
-  set CurrentUser(user: any) {
-    this.currentUser = user;
+  set CurrentUser(user: User | null) {
+    this.currentUser = user ? new User(user) : null;
     sessionStorage.setItem('currentUser', JSON.stringify(user));
+  }
+
+  get CurrentProfile(): Profile {
+    return this.currentProfile || new Profile(JSON.parse(sessionStorage.getItem('currentProfile') || 'null'));
+  }
+
+  set CurrentProfile(profile: Profile | null) {
+    this.currentProfile = profile ? new Profile(profile) : null;
+    sessionStorage.setItem('currentProfile', JSON.stringify(profile));
   }
 
   set AccessToken(token: string | null) {
@@ -132,19 +185,53 @@ export class ApiService {
   }
 
   async logout(): Promise<ApiResponse> {
-    this.AccessToken = null;
-    this.RefreshToken = null;
-    this.CurrentUser = null;
-    sessionStorage.clear();
-    this.router.navigate(['/']);
-    const apiResponse = await this.fetchData(this.LOGOUT_URL, 'POST');
-    return apiResponse;
+    const body = { refresh_token: this.RefreshToken };
+    try {
+      const response = await this.directFetch(this.LOGOUT_URL, 'POST', body);
+      if (!response.ok) {
+        this.errorService.show('Logout failed. Please try again.');
+        return response;
+      }
+      this.AccessToken = null;
+      this.RefreshToken = null;
+      this.CurrentUser = null;
+      this.CurrentProfile = null;
+      sessionStorage.clear();
+      this.router.navigate(['/']);
+      return response;
+    } catch (error) {
+      this.errorService.show('An error occurred while logging out. Please try again.');
+      return new ApiResponse(false, 500, 'Logout failed due to an error.');
+    }
   }
 
   async refreshToken(): Promise<ApiResponse> {
     this.AccessToken = null;
-    const body = { refresh_token: this.refreshToken };
-    return await this.fetchData(this.LOGIN_URL, 'POST', body);
+    const body = { refresh: this.RefreshToken };
+    return await this.directFetch(this.REFRESH_URL, 'POST', body);
   }
+
+  async getGenresCount(): Promise<ApiResponse> {
+    const url = this.GENRES_COUNT_URL;
+    return await this.fetchData(url, 'GET');
+  }
+
+  async getVideos(params: string): Promise<ApiResponse> {
+    const url = params ? `${this.VIDEOS_URL}?${params}` : this.VIDEOS_URL;
+    return await this.fetchData(url, 'GET');
+  }
+
+  async getVideoById(videoId: string): Promise<ApiResponse> {
+    const url = `${this.VIDEOS_URL}${videoId}/`;
+    return await this.fetchData(url, 'GET');
+  }
+
+  async updateVideoProgress(profileId: string, videoFileId: string, progress: number): Promise<ApiResponse> {
+    const url = this.PROGRESS_UPDATE_URL(profileId, videoFileId);
+    const body = { current_time: progress };
+    return await this.fetchData(url, 'POST', body);
+  }
+
+
 
 }

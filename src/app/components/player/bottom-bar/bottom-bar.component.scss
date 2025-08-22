@@ -1,0 +1,72 @@
+@use 'index' as *;
+
+.vjs-bottom {
+    pointer-events: auto;
+    width: 100%;
+    height: 10rem;
+    @include flex-center;
+    justify-content: space-between;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0 2rem 2rem;
+
+    @include respond-to(medium) {
+        padding: 0 4rem 2rem;
+    }
+
+    @include respond-to(large) {
+        padding: 0 6rem 2rem;
+    }
+
+    @include respond-to(xlarge) {
+        padding: 0 8rem 2rem;
+    }
+
+    .vjs-bottom-wrapper {
+        @include flex-center;
+        align-items: end;
+        gap: 1rem;
+        position: relative;
+        width: 100%;
+        height: 100%;
+
+        @include respond-to(medium) {
+            justify-content: space-between;
+        }
+
+        .vjs-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+
+            @include respond-to(medium) {
+                gap: 2rem;
+            }
+
+            &.left {
+                display: none;
+
+                @include respond-to(medium) {
+                    display: flex;
+                }
+            }
+        }
+
+        app-video-title {
+            display: none;
+
+            @include respond-to(medium) {
+                display: block;
+            }
+        }
+
+        app-progress-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+        }
+    }
+}

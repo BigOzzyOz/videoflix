@@ -1,0 +1,48 @@
+@use '../../../../styles/index' as *;
+
+.orientation-warning {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba($bg-color, 0.95);
+    color: $secondary-color;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+
+    &__content {
+        @include flex-column-center;
+        gap: 2rem;
+        padding: 3rem;
+        text-align: center;
+        max-width: 40rem;
+    }
+
+    &__icon {
+        width: 6rem;
+        height: 6rem;
+        color: $primary-color;
+        animation: rotateDevice 3s ease infinite;
+    }
+
+    &__message {
+        font-size: 2rem;
+    }
+}
+
+@keyframes rotateDevice {
+
+    0%,
+    100% {
+        transform: rotate(0deg);
+    }
+
+    50% {
+        transform: rotate(90deg);
+    }
+}

@@ -1,0 +1,30 @@
+<div class="vjs-bottom">
+
+    <div class="vjs-bottom-wrapper">
+        <div class="vjs-controls left">
+
+            <app-play-button />
+
+            <app-seek-button direction="back" [seconds]="10" />
+
+            <app-seek-button direction="forward" [seconds]="10" />
+
+            <app-volume-control />
+
+
+        </div>
+
+        <app-video-title />
+
+        <div class="vjs-controls right">
+
+            <app-speed-control />
+
+            <app-fullscreen-button />
+
+        </div>
+
+        <app-progress-bar />
+
+    </div>
+</div>

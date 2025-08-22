@@ -1,0 +1,67 @@
+@use 'index' as *;
+
+.vjs-topbar {
+    pointer-events: auto;
+    width: 100%;
+    height: 10rem;
+    @include flex-center;
+    justify-content: space-between;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    padding: 2rem 2rem 0;
+
+    @include respond-to(medium) {
+        padding: 2rem 4rem 0;
+    }
+
+    @include respond-to(large) {
+        padding: 2rem 6rem 0;
+    }
+
+    @include respond-to(xlarge) {
+        padding: 2rem 8rem 0;
+    }
+
+    .logo-container {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+
+        app-video-title {
+            font-size: 3rem;
+            color: $secondary-color;
+            font-weight: bold;
+
+            @include respond-to(medium) {
+                display: none;
+            }
+        }
+    }
+
+    .vjs-back {
+
+        .player__back_arrow {
+            display: none;
+
+            @include respond-to(medium) {
+                display: block;
+            }
+
+            @include respond-to(large) {
+                width: 4rem;
+                height: 4rem;
+            }
+        }
+
+        .player__back_x {
+            display: block;
+
+            @include respond-to(medium) {
+                display: none;
+            }
+        }
+
+    }
+}

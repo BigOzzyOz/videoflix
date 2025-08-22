@@ -1,0 +1,28 @@
+@if (shouldShow) {
+    <div class="orientation-warning">
+        <div class="orientation-warning__content">
+            <!-- Landscape Icon (Handy horizontal drehen) -->
+            @if (orientationIcon === 'landscape') {
+                <svg class="orientation-warning__icon" width="64" height="64" viewBox="0 0 24 24" fill="none">
+                    <path
+                        d="M20 5H4C2.9 5 2 5.9 2 7V17C2 18.1 2.9 19 4 19H20C21.1 19 22 18.1 22 17V7C22 5.9 21.1 5 20 5ZM20 17H4V7H20V17Z"
+                        fill="currentColor" />
+                    <path d="M9 9H11V11H9V9ZM13 9H15V11H13V9ZM9 13H11V15H9V13ZM13 13H15V15H13V13Z"
+                        fill="currentColor" />
+                </svg>
+            }
+
+            <!-- Portrait Icon (Handy vertikal drehen) -->
+            @if (orientationIcon === 'portrait') {
+                <svg class="orientation-warning__icon" width="64" height="64" viewBox="0 0 24 24" fill="none">
+                    <path
+                        d="M16 4H8C6.9 4 6 4.9 6 6V18C6 19.1 6.9 20 8 20H16C17.1 20 18 19.1 18 18V6C18 4.9 17.1 4 16 4ZM16 18H8V6H16V18Z"
+                        fill="currentColor" />
+                    <path d="M10 8H14V10H10V8ZM10 12H14V14H10V12ZM10 16H14V18H10V16Z" fill="currentColor" />
+                </svg>
+            }
+
+            <p class="orientation-warning__message">{{ message }}</p>
+        </div>
+    </div>
+}

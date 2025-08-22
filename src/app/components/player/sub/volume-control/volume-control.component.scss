@@ -1,0 +1,135 @@
+@use 'index' as *;
+
+.vjs-sound-control {
+    position: relative;
+    @include flex-center;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 4rem;
+    height: 4rem;
+
+    .sound-icon {
+        @include flex-center;
+        transition: transform 0.2s ease;
+        cursor: pointer;
+    }
+
+    .volume-slider-container {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        margin-bottom: 2rem;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 125ms ease;
+        z-index: 50;
+
+        &.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        &:hover {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .volume-track {
+            position: relative;
+            width: 3rem;
+            height: 16rem;
+            background: rgba($card-background, 0.9);
+            border-radius: 1.5rem;
+            cursor: pointer;
+            padding: 1rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba($bg-color, 0.1);
+
+            &::before {
+                content: '';
+                position: absolute;
+                top: 1rem;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 0.6rem;
+                height: 14rem;
+                background: rgba($utility-color, 0.4);
+                border-radius: 0.3rem;
+            }
+
+            &:hover {
+                .volume-handle {
+                    opacity: 1;
+                    transform: translateX(-50%) scale(1);
+                }
+            }
+
+            .volume-progress {
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 0.6rem;
+                background: $secondary-color;
+                border-radius: 0.3rem;
+                z-index: 2;
+            }
+
+            .volume-handle {
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%) scale(0.7);
+                width: 1.6rem;
+                height: 1.6rem;
+                background: $secondary-color;
+                border: 0.5rem solid $secondary-color;
+                border-radius: 50%;
+                cursor: grab;
+                opacity: 0;
+                transition: opacity 125ms ease, transform 125ms ease;
+                z-index: 3;
+
+                &:hover {
+                    transform: translateX(-50%) scale(1.1);
+                    opacity: 1;
+                }
+
+                &.dragging {
+                    transform: translateX(-50%) scale(1.1);
+                    cursor: grabbing;
+                    opacity: 1;
+                }
+            }
+        }
+
+        .volume-tooltip {
+            position: absolute;
+            left: -8rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba($card-background, 0.95);
+            color: $secondary-color;
+            padding: 1rem;
+            border-radius: 1rem;
+            font-size: 2rem;
+            font-weight: 600;
+            white-space: nowrap;
+            pointer-events: none;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba($bg-color, 0.2);
+            z-index: 10;
+
+            &::after {
+                content: '';
+                position: absolute;
+                left: 100%;
+                top: 50%;
+                transform: translateY(-50%);
+                border: 1rem solid transparent;
+                border-left-color: rgba($card-background, 0.95);
+            }
+        }
+    }
+}

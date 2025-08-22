@@ -1,5 +1,8 @@
 import { Component, inject, Input } from '@angular/core';
 import { Router } from '@angular/router';
+import { ApiService } from '../../services/api.service';
+import { DialogService } from '../../services/dialog.service';
+import { ErrorService } from '../../services/error.service';
 
 @Component({
   selector: 'app-header',
@@ -15,6 +18,9 @@ export class HeaderComponent {
   @Input() shortLogo: Boolean = false;
   @Input() longLogo: Boolean = false;
   private router = inject(Router);
+  public api = inject(ApiService);
+  private errorService = inject(ErrorService);
+  private dialogService = inject(DialogService);
 
   constructor() { }
 
@@ -24,6 +30,33 @@ export class HeaderComponent {
 
   goBack() {
     this.router.navigate(['/']);
+  }
+
+  logOut() {
+    this.api.logout()
+  }
+
+  async toProfile(): Promise<void> {
+    const user = this.api.CurrentUser;
+
+    if (user.profiles.length > 1) {
+      try {
+        const selectedProfile = await this.dialogService.openProfileSelection(user.profiles);
+        this.api.CurrentProfile = selectedProfile;
+        this.navigateToMain();
+      } catch (error) {
+        this.errorService.show('Profile selection was cancelled or timed out.');
+      }
+    } else if (user.profiles.length === 1) {
+      this.api.CurrentProfile = user.profiles[0];
+      this.navigateToMain();
+    } else {
+      this.errorService.show('No profiles available for this account.');
+    }
+  }
+
+  navigateToMain(): void {
+    this.router.navigate(['/main']);
   }
 
 }

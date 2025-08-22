@@ -4,11 +4,65 @@ header {
     @include absolute-top-left;
     @include flex-center;
     width: 100%;
-    max-width: 1920px;
     height: 104px;
     background-color: transparent;
     justify-content: space-between;
     padding: 1rem 2rem;
+    z-index: 1000;
+
+    .header__profile {
+        display: flex;
+        align-items: center;
+        gap: 3rem;
+
+        .profile-picture {
+            cursor: pointer;
+            width: 6rem;
+            height: 6rem;
+            border-radius: 50%;
+            object-fit: cover;
+            transition: all 125ms ease;
+
+            &:hover {
+                transform: scale(0.9);
+            }
+        }
+
+        .profile-placeholder {
+            cursor: pointer;
+            width: 6rem;
+            height: 6rem;
+            border-radius: 50%;
+            background-color: $primary-color;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: $secondary-color;
+            font-size: 3rem;
+            font-weight: 700;
+            transition: all 125ms ease;
+
+            &:hover {
+                background-color: $secondary-color;
+                color: $primary-color;
+                transform: scale(0.9);
+            }
+        }
+    }
+
+    .logout-button {
+        &:hover {
+            p {
+                color: $primary-color;
+            }
+
+            svg {
+                path {
+                    fill: $primary-color;
+                }
+            }
+        }
+    }
 
     .header__back_arrow {
         cursor: pointer;

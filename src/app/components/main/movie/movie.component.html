@@ -1,0 +1,9 @@
+<section class="video" (click)="onVideoClick()">
+    <img class="video__thumbnail" [src]="video?.thumbnail" alt="{{video?.title}}" />
+    <p class="video__title">{{video?.title}}</p>
+    @if(continueWatching) {
+        <div class="video__progress-container">
+            <div class="video__progress-bar" [style.width.%]="progressPercentage"></div>
+        </div>
+    }
+</section>

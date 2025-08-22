@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, Renderer2 } from '@angular/core';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ErrorService } from '../../shared/services/error.service';
@@ -7,14 +7,16 @@ import { HeaderComponent } from '../../shared/components/header/header.component
 import { FooterComponent } from '../../shared/components/footer/footer.component';
 import { EmailInputComponent } from '../../shared/components/input-elements/email-input/email-input.component';
 import { PasswordInputComponent } from '../../shared/components/input-elements/password-input/password-input.component';
+import { OrientationWarningComponent } from '../../shared/components/orientation-warning/orientation-warning.component';
 
 @Component({
     selector: 'app-register',
-    imports: [FormsModule, HeaderComponent, FooterComponent, EmailInputComponent, PasswordInputComponent, ReactiveFormsModule],
+    imports: [FormsModule, HeaderComponent, FooterComponent, EmailInputComponent, PasswordInputComponent, ReactiveFormsModule, OrientationWarningComponent],
     templateUrl: './register.component.html',
     styleUrl: './register.component.scss'
 })
 export class RegisterComponent {
+    private renderer = inject(Renderer2);
     private fb = inject(FormBuilder);
     private activeRoute = inject(ActivatedRoute);
     private router = inject(Router)
@@ -49,6 +51,14 @@ export class RegisterComponent {
         },
             { validators: this.passwordsMatch }
         );
+    }
+
+    ngOnInit() {
+        this.renderer.addClass(document.body, 'signup-bg');
+    }
+
+    ngOnDestroy() {
+        this.renderer.removeClass(document.body, 'signup-bg');
     }
 
     async submitRegisterForm() {
