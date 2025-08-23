@@ -4,6 +4,7 @@ import { HeaderComponent } from "../../shared/components/header/header.component
 import { FooterComponent } from "../../shared/components/footer/footer.component";
 import { Router } from '@angular/router';
 import { OrientationWarningComponent } from '../../shared/components/orientation-warning/orientation-warning.component';
+import { LoadingService } from '../../shared/services/loading.service';
 
 @Component({
   selector: 'app-landing',
@@ -14,10 +15,13 @@ import { OrientationWarningComponent } from '../../shared/components/orientation
 export class LandingComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private renderer = inject(Renderer2);
+  private loadingService = inject(LoadingService);
 
   mailInput: string = '';
 
-  constructor() { }
+  constructor() {
+    this.loadingService.setLoading(false);
+  }
 
   ngOnInit() {
     this.renderer.addClass(document.body, 'landing-bg');

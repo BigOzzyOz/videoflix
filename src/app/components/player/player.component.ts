@@ -74,7 +74,7 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
       if (videoData.isSuccess()) {
         this.playerState.setVideo(new Video(videoData.data));
         this.playerState.setVideoUrl(this.playerState.video()!.hls);
-        sessionStorage.setItem('videoId', this.playerState.videoId());
+        this.manageSessionStorage(true);
 
         if (this.playerState.viewInitialized()) this.playerService.initializePlayer(this.vjsRef.nativeElement);
       }
@@ -144,10 +144,23 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.playerState.player) {
       await this.playerService.playerEndHandler();
       this.playerState.resetState();
+      this.manageSessionStorage(false);
       this.playerState.player.dispose();
     }
     this.overlayService.clearOverlayTimer();
   }
+
+  manageSessionStorage(add: boolean): void {
+    if (add) {
+      sessionStorage.setItem('videoId', this.playerState.videoId());
+      sessionStorage.setItem(this.playerState.videoId(), JSON.stringify(this.playerState.video()));
+    } else {
+      sessionStorage.removeItem('videoId');
+      sessionStorage.removeItem(this.playerState.videoId());
+    }
+  }
+
+
 
   get showOverlay(): boolean {
     return this.overlayService.showOverlay();

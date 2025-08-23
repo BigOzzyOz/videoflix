@@ -1,7 +1,6 @@
 import { ProfileData } from "../interfaces/profile-data";
 import { ProfileApiData } from "../interfaces/profile-api-data";
 import { VideoProgress } from "./video-progress";
-import { VideoProgressData } from "../interfaces/video-progress-data";
 
 export class Profile implements ProfileData {
     id: string;
