@@ -1,10 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Profile } from '../models/profile';
+import { DialogData } from '../interfaces/dialog-data';
 
-export interface DialogData {
-  profiles?: Profile[];
-}
 
 @Injectable({
   providedIn: 'root'
@@ -29,8 +27,20 @@ export class DialogService {
   }
 
   openProfileSelection(profiles: Profile[]): Promise<Profile> {
-    return new Promise((resolve, reject) => {
-      this.profileSelectionData$.next({ profiles });
+    return this.openProfileDialog({ profiles, mode: 'select' });
+  }
+
+  openProfileCreate(): Promise<Profile> {
+    return this.openProfileDialog({ mode: 'create' });
+  }
+
+  openProfileEdit(profile: Profile): Promise<Profile> {
+    return this.openProfileDialog({ mode: 'edit', profileToEdit: profile });
+  }
+
+  private openProfileDialog(data: DialogData): Promise<Profile> {
+    return new Promise((resolve) => {
+      this.profileSelectionData$.next(data);
       this.profileSelectionVisible$.next(true);
 
       const subscription = this.profileSelectionResult$.subscribe(profile => {

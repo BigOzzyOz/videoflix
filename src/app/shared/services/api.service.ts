@@ -21,6 +21,7 @@ export class ApiService {
   RESET_CONFIRM_URL: string = `${this.BASE_URL}/users/password-reset/confirm/`;
   GENRES_COUNT_URL: string = `${this.BASE_URL}/videos/genre-count/`;
   VIDEOS_URL: string = `${this.BASE_URL}/videos/`;
+  USER_PROFILES_URL: string = `${this.BASE_URL}/users/me/profiles/`;
   PROGRESS_UPDATE_URL(profileId: string, videoFileId: string) {
     return `${this.BASE_URL}/users/me/profiles/${profileId}/progress/${videoFileId}/update/`;
   }
@@ -53,8 +54,7 @@ export class ApiService {
   createHeaders(method: string): RequestInit {
     const headers = new Headers();
     const apiMethod = method.toUpperCase();
-    headers.append('Content-Type', 'application/json');
-    headers.append('Accept', 'application/json');
+
     if (this.AccessToken) {
       headers.append('Authorization', `Bearer ${this.AccessToken}`);
     }
@@ -107,8 +107,17 @@ export class ApiService {
 
   createPayload(method: string, body?: any) {
     const options = this.createHeaders(method);
-    if (body) {
-      options.body = JSON.stringify(body);
+
+    if (body && body instanceof FormData) {
+      options.body = body;
+    } else {
+      if (options.headers instanceof Headers) {
+        options.headers.append('Content-Type', 'application/json');
+        options.headers.append('Accept', 'application/json');
+      }
+      if (body) {
+        options.body = JSON.stringify(body);
+      }
     }
     return options;
   }
@@ -232,6 +241,37 @@ export class ApiService {
     return await this.fetchData(url, 'POST', body);
   }
 
+  async createUserProfile(name: string, isKid: boolean, pictureFile?: File): Promise<ApiResponse> {
+    const url = this.USER_PROFILES_URL;
+    const language = '';
 
+    const formData = new FormData();
+    formData.append('profile_name', name);
+    formData.append('is_kid', isKid.toString());
+    formData.append('preferred_language', language);
+    if (pictureFile) {
+      formData.append('profile_picture', pictureFile);
+    }
+    console.log(formData);
+    return await this.fetchData(url, 'POST', formData);
+  }
+
+  async editUserProfile(profileId: string, name: string, isKid: boolean, pictureFile?: File): Promise<ApiResponse> {
+    const url = `${this.USER_PROFILES_URL}${profileId}/`;
+    const formData = new FormData();
+    const selectedProfile = this.CurrentUser.profiles.find(p => p.id === profileId);
+    formData.append('profile_id', profileId);
+    if (name !== selectedProfile?.name) formData.append('profile_name', name);
+    if (isKid !== selectedProfile?.kid) formData.append('is_kid', JSON.stringify(isKid));
+    if (pictureFile) {
+      formData.append('profile_picture', pictureFile);
+    }
+    return await this.fetchData(url, 'PATCH', formData);
+  }
+
+  async deleteUserProfile(profileId: string): Promise<ApiResponse> {
+    const url = `${this.USER_PROFILES_URL}${profileId}/`;
+    return await this.fetchData(url, 'DELETE');
+  }
 
 }

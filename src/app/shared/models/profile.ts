@@ -24,7 +24,7 @@ export class Profile implements ProfileData {
 
         if ('profile_name' in data) {
             this.name = data.profile_name || '';
-            this.profilePic = data.profile_picture || null;
+            this.profilePic = data.profile_picture_url || null;
             this.kid = data.is_kid || false;
             this.language = data.preferred_language || 'en';
             this.videoProgress = (data.video_progress || []).map(video => new VideoProgress(video));
@@ -70,6 +70,7 @@ export class Profile implements ProfileData {
             id: this.id,
             profile_name: this.name,
             profile_picture: this.profilePic,
+            profile_picture_url: this.profilePic,
             is_kid: this.kid,
             preferred_language: this.language,
             video_progress: this.videoProgress.map(video => (video.toApiFormat())),

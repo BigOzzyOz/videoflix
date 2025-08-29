@@ -1,4 +1,4 @@
-import { Component, inject, Input } from '@angular/core';
+import { Component, inject, Input, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { DialogService } from '../../services/dialog.service';
@@ -21,6 +21,8 @@ export class HeaderComponent {
   public api = inject(ApiService);
   private errorService = inject(ErrorService);
   private dialogService = inject(DialogService);
+  private cdRef = inject(ChangeDetectorRef);
+
 
   constructor() { }
 
@@ -39,20 +41,14 @@ export class HeaderComponent {
   async toProfile(): Promise<void> {
     const user = this.api.CurrentUser;
 
-    if (user.profiles.length > 1) {
-      try {
-        const selectedProfile = await this.dialogService.openProfileSelection(user.profiles);
-        this.api.CurrentProfile = selectedProfile;
-        this.navigateToMain();
-      } catch (error) {
-        this.errorService.show('Profile selection was cancelled or timed out.');
-      }
-    } else if (user.profiles.length === 1) {
-      this.api.CurrentProfile = user.profiles[0];
-      this.navigateToMain();
-    } else {
-      this.errorService.show('No profiles available for this account.');
+    try {
+      const selectedProfile = await this.dialogService.openProfileSelection(user.profiles);
+      this.api.CurrentProfile = selectedProfile;
+      window.location.reload();
+    } catch (error) {
+      this.errorService.show('Profile selection was cancelled or timed out.');
     }
+
   }
 
   navigateToMain(): void {
