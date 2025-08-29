@@ -105,7 +105,6 @@ export class SeekService {
     if (run) {
       player.play().catch((err: any) => {
         this.errorService.show('Error resuming playback after seek. Please try again.');
-        console.error('Error resuming playback:', err);
       });
     }
   }

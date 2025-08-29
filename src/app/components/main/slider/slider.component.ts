@@ -48,8 +48,6 @@ export class SliderComponent implements AfterViewInit, OnDestroy {
 
 
   ngAfterViewInit(): void {
-    console.log('SliderComponent initialized with collection:', this.collection);
-    // Mehrere Frames warten für DOM-Stabilität
     setTimeout(() => {
       this.checkOverflow();
       this.setupObservers();

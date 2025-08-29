@@ -89,7 +89,7 @@ export class ApiService {
       const responseData = await ApiResponse.create(response);
       return responseData;
     } catch (error) {
-      console.error('Error fetching data:', error);
+      this.errorService.show('Network error. Please try again later.');
       throw error;
     }
   }
@@ -100,7 +100,7 @@ export class ApiService {
       const response = await fetch(url, options);
       return await ApiResponse.create(response);
     } catch (error) {
-      console.error('Error in directFetch:', error);
+      this.errorService.show('Network error. Please try again later.');
       throw error;
     }
   }
@@ -252,7 +252,6 @@ export class ApiService {
     if (pictureFile) {
       formData.append('profile_picture', pictureFile);
     }
-    console.log(formData);
     return await this.fetchData(url, 'POST', formData);
   }
 

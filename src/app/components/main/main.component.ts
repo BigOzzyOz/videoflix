@@ -87,7 +87,6 @@ export class MainComponent implements OnInit, OnDestroy {
       const errorMsg = (error instanceof Error) ? error.message : String(error);
       this.errorService.show('Failed to load genres count: ' + errorMsg);
     }
-    console.log('Profile', this.api.currentProfile);
   }
 
   async getVideoCollection(): Promise<void> {

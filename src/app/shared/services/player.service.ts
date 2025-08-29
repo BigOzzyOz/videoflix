@@ -33,15 +33,13 @@ export class PlayerService {
           this.overlayService.resetOverlayTimer(true);
         }).catch(() => {
           this.errorService.show('Error playing video. Please try again.');
-          console.error('Error playing video:', player.error);
         });
       } else {
         player.pause();
         this.playerState.setIsPlaying(false);
       }
     } else {
-      this.errorService.show('Player not available. Please check if the video is loaded.');
-      console.error('Player not available');
+      this.errorService.show('Player not available.');
     }
   }
 
