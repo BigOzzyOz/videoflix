@@ -153,7 +153,7 @@ export class ProfileSelectionComponent implements OnInit, OnDestroy {
     if (profile) {
       this.createProfileForm.get('name')?.setValue(profile.name);
       this.createProfileForm.get('kid')?.setValue(profile.kid);
-      this.profilePicPreview = profile.getProfileImage() || null;
+      this.profilePicPreview = profile.profilePic || null;
       this.dialogService.openProfileEdit(profile);
     }
   }
