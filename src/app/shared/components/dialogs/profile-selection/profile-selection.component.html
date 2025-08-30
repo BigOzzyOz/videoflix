@@ -71,7 +71,7 @@
                                 class="form-control" />
                             @if(profilePicPreview) {
                                 <img [src]="profilePicPreview" alt="Preview" class="profile-image-preview" />
-                            } @else if(createProfileForm.get('name')?.value != '') {
+                            } @else if(createProfileForm.get('name')?.value) {
                                 <div class="profile-placeholder profile-image-preview">
                                     {{ createProfileForm.get('name')?.value.charAt(0).toUpperCase() }}
                                 </div>
@@ -127,7 +127,7 @@
                                 class="form-control" />
                             @if(profilePicPreview) {
                                 <img [src]="profilePicPreview" alt="Preview" class="profile-image-preview" />
-                            } @else if(createProfileForm.get('name')?.value != '') {
+                            } @else if(createProfileForm.get('name')?.value) {
                                 <div class="profile-placeholder profile-image-preview">
                                     {{ createProfileForm.get('name')?.value.charAt(0).toUpperCase() }}
                                 </div>
