@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
+import { LoadingService } from '../../shared/services/loading.service';
 
 import { LandingComponent } from './landing.component';
 import { HeaderComponent } from '../../shared/components/header/header.component';
@@ -11,13 +12,18 @@ describe('LandingComponent', () => {
   let component: LandingComponent;
   let fixture: ComponentFixture<LandingComponent>;
   let router: jasmine.SpyObj<Router>;
+  let loadingServiceSpy: jasmine.SpyObj<LoadingService>;
 
   beforeEach(async () => {
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+    loadingServiceSpy = jasmine.createSpyObj('LoadingService', ['setLoading']);
 
     await TestBed.configureTestingModule({
       imports: [LandingComponent, HeaderComponent, FooterComponent, FormsModule],
-      providers: [{ provide: Router, useValue: routerSpy }]
+      providers: [
+        { provide: Router, useValue: routerSpy },
+        { provide: LoadingService, useValue: loadingServiceSpy }
+      ]
     })
       .compileComponents();
 
@@ -98,5 +104,21 @@ describe('LandingComponent', () => {
     expect(description?.textContent).toBe('Enter your email to create or restart your subscription.');
     expect(emailInput?.placeholder).toBe('Enter your email');
     expect(signUpButton?.textContent?.trim()).toContain('Sign Up');
+  });
+
+  it('should add landing-bg class to body on init and remove on destroy', () => {
+    const renderer = (component as any).renderer;
+    spyOn(renderer, 'addClass').and.callThrough();
+    spyOn(renderer, 'removeClass').and.callThrough();
+
+    component.ngOnInit();
+    expect(renderer.addClass).toHaveBeenCalledWith(document.body, 'landing-bg');
+
+    component.ngOnDestroy();
+    expect(renderer.removeClass).toHaveBeenCalledWith(document.body, 'landing-bg');
+  });
+
+  it('should call loadingService.setLoading(false) in constructor', () => {
+    expect(loadingServiceSpy.setLoading).toHaveBeenCalledWith(false);
   });
 });

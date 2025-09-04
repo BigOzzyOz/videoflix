@@ -12,25 +12,46 @@ import { LoadingService } from '../../shared/services/loading.service';
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.scss'
 })
+/**
+ * LandingComponent
+ *
+ * Displays the landing page where users can enter their email and sign up.
+ * Handles background styling, navigation, and loading state.
+ */
 export class LandingComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private renderer = inject(Renderer2);
-  private loadingService = inject(LoadingService);
+  loadingService = inject(LoadingService);
 
+  /**
+   * The email address entered by the user.
+   */
   mailInput: string = '';
 
+  /**
+   * Constructor: Disables loading since the landing page should be shown immediately.
+   */
   constructor() {
     this.loadingService.setLoading(false);
   }
 
+  /**
+   * Lifecycle hook: Adds the CSS class for the landing page background when initialized.
+   */
   ngOnInit() {
     this.renderer.addClass(document.body, 'landing-bg');
   }
 
+  /**
+   * Lifecycle hook: Removes the CSS class for the landing page background when destroyed.
+   */
   ngOnDestroy() {
     this.renderer.removeClass(document.body, 'landing-bg');
   }
 
+  /**
+   * Navigates to the registration page and passes the entered email as a query parameter.
+   */
   toSignup() {
     this.router.navigate(['/register'], {
       queryParams: { email: this.mailInput }
