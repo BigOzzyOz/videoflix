@@ -183,4 +183,91 @@ describe('LoginComponent', () => {
 
     expect(component.toRegister).toHaveBeenCalled();
   });
+
+  describe('Profile selection logic', () => {
+    let dialogService: any;
+    beforeEach(() => {
+      dialogService = {
+        openProfileSelection: jasmine.createSpy('openProfileSelection')
+      };
+      (component as any).dialogService = dialogService;
+      (component as any).api.CurrentProfile = undefined;
+    });
+
+    it('should handle multiple profiles', async () => {
+      const user = {
+        id: 1,
+        username: 'testuser',
+        email: 'test@example.com',
+        role: 'user',
+        profiles: [{ id: 1 }, { id: 2 }]
+      } as any;
+      Object.defineProperty(apiService, 'CurrentUser', { get: () => user });
+      dialogService.openProfileSelection.and.returnValue(Promise.resolve(user.profiles[1]));
+      spyOn(component, 'navigateToMain');
+      await component.handleProfileSelection();
+      expect(dialogService.openProfileSelection).toHaveBeenCalledWith(user.profiles);
+      expect((component as any).api.CurrentProfile).toEqual(user.profiles[1]);
+      expect(component.navigateToMain).toHaveBeenCalled();
+    });
+
+    it('should handle single profile', async () => {
+      const user = {
+        id: 1,
+        username: 'testuser',
+        email: 'test@example.com',
+        role: 'user',
+        profiles: [{ id: 1 }]
+      } as any;
+      Object.defineProperty(apiService, 'CurrentUser', { get: () => user });
+      spyOn(component, 'navigateToMain');
+      await component.handleProfileSelection();
+      expect((component as any).api.CurrentProfile).toEqual(user.profiles[0]);
+      expect(component.navigateToMain).toHaveBeenCalled();
+    });
+
+    it('should handle no profiles', async () => {
+      const user = {
+        id: 1,
+        username: 'testuser',
+        email: 'test@example.com',
+        role: 'user',
+        profiles: []
+      } as any;
+      Object.defineProperty(apiService, 'CurrentUser', { get: () => user });
+      await component.handleProfileSelection();
+      expect(errorService.show).toHaveBeenCalledWith('No profiles available for this account.');
+    });
+
+    it('should handle dialog cancel/error', async () => {
+      const user = {
+        id: 1,
+        username: 'testuser',
+        email: 'test@example.com',
+        role: 'user',
+        profiles: [{ id: 1 }, { id: 2 }]
+      } as any;
+      (component as any).api.CurrentUser = user;
+      dialogService.openProfileSelection.and.returnValue(Promise.reject('cancelled'));
+      await (component as any).awaitProfileSelection(user);
+      expect(errorService.show).toHaveBeenCalledWith('Profile selection was cancelled or timed out.');
+    });
+  });
+
+  describe('Background CSS class', () => {
+    let renderer: any;
+    beforeEach(() => {
+      renderer = (component as any).renderer;
+      spyOn(renderer, 'addClass');
+      spyOn(renderer, 'removeClass');
+    });
+    it('should add login-bg class on ngOnInit', () => {
+      component.ngOnInit();
+      expect(renderer.addClass).toHaveBeenCalledWith(document.body, 'login-bg');
+    });
+    it('should remove login-bg class on ngOnDestroy', () => {
+      component.ngOnDestroy();
+      expect(renderer.removeClass).toHaveBeenCalledWith(document.body, 'login-bg');
+    });
+  });
 });

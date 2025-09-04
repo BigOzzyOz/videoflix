@@ -9,6 +9,8 @@ import { ErrorService } from '../../shared/services/error.service';
 import { DialogService } from '../../shared/services/dialog.service';
 import { Router } from '@angular/router';
 import { OrientationWarningComponent } from '../../shared/components/orientation-warning/orientation-warning.component';
+import { ApiResponse } from '../../shared/models/api-response';
+import { User } from '../../shared/models/user';
 
 @Component({
   selector: 'app-login',
@@ -54,48 +56,57 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   async submitLoginForm() {
-    if (this.loginForm.invalid) {
-      this.loginForm.markAllAsTouched();
-      return;
-    }
-    const email = this.loginForm.value.email;
-    const password = this.loginForm.value.password;
+    if (this.loginForm.invalid) return this.loginForm.markAllAsTouched();
+    const { email, password } = this.getFormValues();
 
     try {
       const response = await this.api.login(email, password);
-      if (!response.ok || response.data === null) {
-        this.errorService.show(response);
-        return;
-      }
+      if (!response.ok || response.data === null) return this.errorService.show(response);
 
-      this.api.AccessToken = response.data['access'];
-      this.api.RefreshToken = response.data['refresh'];
-      this.api.CurrentUser = response.data['user'];
-
+      this.setDataFromResponse(response);
       await this.handleProfileSelection();
     } catch (error) {
       this.errorService.show('An error occurred during login. Please try again later.');
     }
   }
 
+  private setDataFromResponse(response: ApiResponse) {
+    this.api.AccessToken = response.data['access'];
+    this.api.RefreshToken = response.data['refresh'];
+    this.api.CurrentUser = response.data['user'];
+  }
+
+  private getFormValues(): { email: string; password: string } {
+    return {
+      email: this.loginForm.value.email,
+      password: this.loginForm.value.password
+    };
+  }
+
+
   async handleProfileSelection(): Promise<void> {
     const user = this.api.CurrentUser;
 
-    if (user.profiles.length > 1) {
-      try {
-        const selectedProfile = await this.dialogService.openProfileSelection(user.profiles);
-        this.api.CurrentProfile = selectedProfile;
-        this.navigateToMain();
-      } catch (error) {
-        this.errorService.show('Profile selection was cancelled or timed out.');
-      }
-    } else if (user.profiles.length === 1) {
-      this.api.CurrentProfile = user.profiles[0];
+    if (user.profiles.length > 1) await this.awaitProfileSelection(user);
+    else if (user.profiles.length === 1) this.singleProfileSelection(user);
+    else this.errorService.show('No profiles available for this account.');
+  }
+
+  private async awaitProfileSelection(user: User): Promise<void> {
+    try {
+      const selectedProfile = await this.dialogService.openProfileSelection(user.profiles);
+      this.api.CurrentProfile = selectedProfile;
       this.navigateToMain();
-    } else {
-      this.errorService.show('No profiles available for this account.');
+    } catch (error) {
+      this.errorService.show('Profile selection was cancelled or timed out.');
     }
   }
+
+  private singleProfileSelection(user: User): void {
+    this.api.CurrentProfile = user.profiles[0];
+    this.navigateToMain();
+  }
+
 
   navigateToMain(): void {
     this.router.navigate(['/main']);
