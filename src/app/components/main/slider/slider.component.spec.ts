@@ -1,23 +1,173 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { SliderComponent } from './slider.component';
+import { Video } from '../../../shared/models/video';
+import { OverflowDetectionService } from '../../../shared/services/overflow-detection.service';
+import { ChangeDetectorRef, ElementRef } from '@angular/core';
+
+function createVideoMock(): Video {
+  return new Video({
+    id: '1',
+    title: 'Test',
+    description: 'Test description',
+    genres: [],
+    language: 'en',
+    availableLanguages: [],
+    duration: 120,
+    thumbnail: '',
+    preview: '',
+    hls: '',
+    ready: true,
+    created: new Date(),
+    updated: new Date()
+  });
+}
+
+function createOverflowStateMock(): any {
+  return {
+    hasOverflow: true,
+    atStart: false,
+    atEnd: true,
+    atMiddle: false,
+    scrollLeft: 0,
+    scrollWidth: 0,
+    clientWidth: 0,
+    scrollableWidth: 0,
+    visibleStart: 0,
+    visibleEnd: 0,
+    percentage: 0
+  };
+}
 
 describe('SliderComponent', () => {
   let component: SliderComponent;
   let fixture: ComponentFixture<SliderComponent>;
+  let overflowService: jasmine.SpyObj<OverflowDetectionService>;
+  let cdr: jasmine.SpyObj<ChangeDetectorRef>;
 
   beforeEach(async () => {
+    overflowService = jasmine.createSpyObj('OverflowDetectionService', ['checkOverflow']);
+    cdr = jasmine.createSpyObj('ChangeDetectorRef', ['detectChanges', 'markForCheck']);
     await TestBed.configureTestingModule({
-      imports: [SliderComponent]
-    })
-    .compileComponents();
+      imports: [SliderComponent],
+      providers: [
+        { provide: OverflowDetectionService, useValue: overflowService },
+        { provide: ChangeDetectorRef, useValue: cdr }
+      ]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(SliderComponent);
     component = fixture.componentInstance;
+    component['overflowService'] = overflowService;
+    component['cdr'] = cdr;
     fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should emit videoSelected on onVideoSelected', () => {
+    const video = createVideoMock();
+    spyOn(component.videoSelected, 'emit');
+    component.onVideoSelected(video);
+    expect(component.videoSelected.emit).toHaveBeenCalledWith(video);
+  });
+
+  it('should call checkOverflow and setupObservers in ngAfterViewInit', () => {
+    spyOn(component as any, 'checkOverflow');
+    spyOn(component as any, 'setupObservers');
+    component.sliderContainer = new ElementRef(document.createElement('div'));
+    jasmine.clock().install();
+    component.ngAfterViewInit();
+    jasmine.clock().tick(51);
+    expect((component as any).checkOverflow).toHaveBeenCalled();
+    expect((component as any).setupObservers).toHaveBeenCalled();
+    expect(cdr.detectChanges).toHaveBeenCalled();
+    jasmine.clock().uninstall();
+  });
+
+  it('should scroll left if not at start', () => {
+    const container = document.createElement('div');
+    (container as any).scrollBy = jasmine.createSpy('scrollBy');
+    component.sliderContainer = new ElementRef(container);
+    component.atStart = false;
+    spyOn(component as any, 'calculateItemScrollAmount').and.returnValue(100);
+    component.scrollLeft();
+    expect((container as any).scrollBy).toHaveBeenCalledWith({ left: -100, behavior: 'smooth' });
+  });
+
+  it('should not scroll left if at start', () => {
+    const container = document.createElement('div');
+    spyOn(container, 'scrollBy');
+    component.sliderContainer = new ElementRef(container);
+    component.atStart = true;
+    component.scrollLeft();
+    expect(container.scrollBy).not.toHaveBeenCalled();
+  });
+
+  it('should scroll right if not at end', () => {
+    const container = document.createElement('div');
+    (container as any).scrollBy = jasmine.createSpy('scrollBy');
+    component.sliderContainer = new ElementRef(container);
+    component.atEnd = false;
+    spyOn(component as any, 'calculateItemScrollAmount').and.returnValue(100);
+    component.scrollRight();
+    expect((container as any).scrollBy).toHaveBeenCalledWith({ left: 100, behavior: 'smooth' });
+  });
+
+  it('should not scroll right if at end', () => {
+    const container = document.createElement('div');
+    spyOn(container, 'scrollBy');
+    component.sliderContainer = new ElementRef(container);
+    component.atEnd = true;
+    component.scrollRight();
+    expect(container.scrollBy).not.toHaveBeenCalled();
+  });
+
+  it('should calculate fallback scroll amount if no item found', () => {
+    const container = document.createElement('div');
+    component.sliderContainer = new ElementRef(container);
+    expect((component as any).calculateItemScrollAmount()).toBe(432);
+  });
+
+  it('should call checkOverflow on scroll with timeout', () => {
+    spyOn(component as any, 'checkOverflow');
+    component.sliderContainer = new ElementRef(document.createElement('div'));
+    jasmine.clock().install();
+    component.onScroll();
+    jasmine.clock().tick(17);
+    expect((component as any).checkOverflow).toHaveBeenCalled();
+    jasmine.clock().uninstall();
+  });
+
+  it('should clear scroll timeout', () => {
+    component['scrollTimeout'] = setTimeout(() => { }, 1000);
+    component['clearScrollTimeout']();
+    expect(component['scrollTimeout']).toBeUndefined();
+  });
+
+  it('should clear resize timeout', () => {
+    component['resizeTimeout'] = setTimeout(() => { }, 1000);
+    component['clearResizeTimeout']();
+    expect(component['resizeTimeout']).toBeUndefined();
+  });
+
+  it('should disconnect resizeObserver on destroy', () => {
+    const disconnectSpy = jasmine.createSpy('disconnect');
+    component['resizeObserver'] = { disconnect: disconnectSpy } as any;
+    component.ngOnDestroy();
+    expect(disconnectSpy).toHaveBeenCalled();
+  });
+
+  it('should call checkOverflow and markForCheck if overflow state changed', () => {
+    const container = document.createElement('div');
+    component.sliderContainer = new ElementRef(container);
+    overflowService.checkOverflow.and.returnValue(createOverflowStateMock());
+    spyOn(component as any, 'checkHasChanged').and.returnValue(true);
+    spyOn(component as any, 'setNewOverflowState');
+    component['cdr'] = cdr;
+    (component as any).checkOverflow();
+    expect(component['setNewOverflowState']).toHaveBeenCalled();
+    expect(cdr.markForCheck).toHaveBeenCalled();
   });
 });
