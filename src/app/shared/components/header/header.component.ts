@@ -40,7 +40,6 @@ export class HeaderComponent {
 
   async toProfile(): Promise<void> {
     const user = this.api.CurrentUser;
-
     try {
       const selectedProfile = await this.dialogService.openProfileSelection(user.profiles);
       this.api.CurrentProfile = selectedProfile;

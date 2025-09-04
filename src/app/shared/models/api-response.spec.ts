@@ -13,7 +13,14 @@ describe('ApiResponse', () => {
     const mockResponse = {
       ok: true,
       status: 200,
-      json: () => Promise.resolve({ data: 'test' })
+      headers: {
+        get: (key: string) => {
+          if (key === 'content-type') return 'application/json';
+          if (key === 'content-length') return '123';
+          return null;
+        }
+      },
+      text: () => Promise.resolve(JSON.stringify({ data: 'test' }))
     } as Response;
 
     const apiResponse = await ApiResponse.create(mockResponse);
@@ -27,8 +34,9 @@ describe('ApiResponse', () => {
     const mockResponse = {
       ok: false,
       status: 500,
-      json: () => Promise.reject(new Error('Invalid JSON'))
-    } as Response;
+      headers: { get: (key: string) => { /* ... */ } },
+      text: () => { throw new Error('Invalid JSON'); }
+    } as unknown as Response;
 
     const apiResponse = await ApiResponse.create(mockResponse);
 
@@ -41,7 +49,14 @@ describe('ApiResponse', () => {
     const mockResponse = {
       ok: true,
       status: 204,
-      json: () => Promise.resolve(null)
+      headers: {
+        get: (key: string) => {
+          if (key === 'content-type') return 'application/json';
+          if (key === 'content-length') return '0';
+          return null;
+        }
+      },
+      text: () => Promise.resolve('')
     } as Response;
 
     const apiResponse = await ApiResponse.create(mockResponse);
@@ -55,13 +70,20 @@ describe('ApiResponse', () => {
     const mockResponse = {
       ok: true,
       status: 200,
-      json: () => Promise.reject(new SyntaxError('Unexpected token'))
+      headers: {
+        get: (key: string) => {
+          if (key === 'content-type') return 'text/plain';
+          if (key === 'content-length') return '123';
+          return null;
+        }
+      },
+      text: () => Promise.resolve('plain text')
     } as Response;
 
     const apiResponse = await ApiResponse.create(mockResponse);
 
     expect(apiResponse.ok).toBe(true);
     expect(apiResponse.status).toBe(200);
-    expect(apiResponse.data).toBeNull();
+    expect(apiResponse.data).toBe('plain text');
   });
 });

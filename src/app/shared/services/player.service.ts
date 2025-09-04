@@ -8,6 +8,7 @@ import { ApiService } from './api.service';
 import { SeekService } from './seek.service';
 import { ProgressService } from './progress.service';
 import { LoadingService } from './loading.service';
+import type VideoJsMediaError from 'video.js/dist/types/media-error';
 
 @Injectable({
   providedIn: 'root'
@@ -66,7 +67,7 @@ export class PlayerService {
     });
   }
 
-  playerCreateHandler(videoElement: HTMLVideoElement): any {
+  playerCreateHandler(videoElement: HTMLVideoElement): ReturnType<typeof videojs> {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
@@ -150,14 +151,23 @@ export class PlayerService {
     this.playerState.resetState();
   }
 
-  playerErrorHandler(error: any): void {
-    if (error && error.code) {
+  playerErrorHandler(error: VideoJsMediaError | null | undefined): void {
+    if (error && typeof error.code === 'number') {
       switch (error.code) {
-        case 1: this.errorService.show('Video loading was aborted'); break;
-        case 2: this.errorService.show('Network error while loading video'); break;
-        case 3: this.errorService.show('Video could not be decoded'); break;
-        case 4: this.errorService.show('Video format not supported'); break;
-        default: this.errorService.show('Unknown video error occurred');
+        case error.MEDIA_ERR_ABORTED:
+          this.errorService.show('Video loading was aborted');
+          break;
+        case error.MEDIA_ERR_NETWORK:
+          this.errorService.show('Network error while loading video');
+          break;
+        case error.MEDIA_ERR_DECODE:
+          this.errorService.show('Video could not be decoded');
+          break;
+        case error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+          this.errorService.show('Video format not supported');
+          break;
+        default:
+          this.errorService.show('Unknown video error occurred');
       }
     } else {
       this.errorService.show('An unexpected error occurred');

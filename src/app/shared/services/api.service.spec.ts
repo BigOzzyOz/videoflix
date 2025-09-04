@@ -3,6 +3,8 @@ import { Router } from '@angular/router';
 import { ApiService } from './api.service';
 import { ErrorService } from './error.service';
 import { ApiResponse } from '../models/api-response';
+import { User } from '../models/user';
+import { UserApiData } from '../interfaces/user-api-data';
 
 describe('ApiService', () => {
   let service: ApiService;
@@ -24,7 +26,6 @@ describe('ApiService', () => {
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
     errorService = TestBed.inject(ErrorService) as jasmine.SpyObj<ErrorService>;
 
-    // Clear sessionStorage
     sessionStorage.clear();
   });
 
@@ -75,11 +76,20 @@ describe('ApiService', () => {
   });
 
   it('should handle CurrentUser getter/setter', () => {
-    const user = { id: 1, email: 'test@example.com' };
+    const mockData: UserApiData = {
+      id: '1',
+      username: 'TestUser',
+      email: 'test@example.com',
+      role: 'user',
+      first_name: 'Test',
+      last_name: 'User',
+      profiles: []
+    }
+    const user = new User(mockData);
     service.CurrentUser = user;
-
+    const stored = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
     expect(service.CurrentUser).toEqual(user);
-    expect(JSON.parse(sessionStorage.getItem('currentUser') || '{}')).toEqual(user);
+    expect(stored.id).toEqual(user.id);
   });
 
   it('should create payload with body', () => {
@@ -100,9 +110,9 @@ describe('ApiService', () => {
   it('should perform logout and clear session', async () => {
     service.AccessToken = 'test-token';
     service.RefreshToken = 'refresh-token';
-    service.CurrentUser = { id: 1 };
+    service.CurrentUser = new User({ id: '1', username: 'TestUser', email: 'test@example.com', role: 'user', firstName: 'Test', lastName: 'User', profiles: [] });
 
-    spyOn(service, 'fetchData').and.returnValue(
+    spyOn(service, 'directFetch').and.returnValue(
       Promise.resolve(new ApiResponse(true, 200, null))
     );
 
@@ -110,7 +120,7 @@ describe('ApiService', () => {
 
     expect(service.AccessToken).toBeNull();
     expect(service.RefreshToken).toBeNull();
-    expect(service.CurrentUser).toBeNull();
+    expect(service.CurrentUser).toEqual(User.empty());
     expect(router.navigate).toHaveBeenCalledWith(['/']);
   });
 

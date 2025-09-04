@@ -11,6 +11,7 @@ import { EmailInputComponent } from '../../shared/components/input-elements/emai
 import { PasswordInputComponent } from '../../shared/components/input-elements/password-input/password-input.component';
 import { ApiService } from '../../shared/services/api.service';
 import { ErrorService } from '../../shared/services/error.service';
+import { ApiResponse } from '../../shared/models/api-response';
 
 describe('PasswordResetComponent', () => {
   let component: PasswordResetComponent;
@@ -83,7 +84,7 @@ describe('PasswordResetComponent', () => {
   });
 
   it('should verify account successfully on init', async () => {
-    const mockResponse = { ok: true, status: 200, data: null };
+    const mockResponse = new ApiResponse(true, 200, null);
     apiService.verifyEmail.and.returnValue(Promise.resolve(mockResponse));
 
     await component.ngOnInit();
@@ -98,7 +99,7 @@ describe('PasswordResetComponent', () => {
       password: 'NewPassword123',
       confirmedPassword: 'NewPassword123'
     });
-    const mockResponse = { ok: true, status: 200, data: null };
+    const mockResponse = new ApiResponse(true, 200, null);
     apiService.resetPasswordConfirm.and.returnValue(Promise.resolve(mockResponse));
 
     await component.submitResetForm();
@@ -109,7 +110,7 @@ describe('PasswordResetComponent', () => {
 
   it('should submit forgot form successfully', async () => {
     component.forgetForm.patchValue({ email: 'test@example.com' });
-    const mockResponse = { ok: true, status: 200, data: null };
+    const mockResponse = new ApiResponse(true, 200, null);
     apiService.resetPassword.and.returnValue(Promise.resolve(mockResponse));
 
     await component.submitForgotForm();
@@ -135,7 +136,7 @@ describe('PasswordResetComponent', () => {
   });
 
   it('should handle API errors', async () => {
-    const mockResponse = { ok: false, status: 400, data: null };
+    const mockResponse = new ApiResponse(false, 400, null);
     apiService.verifyEmail.and.returnValue(Promise.resolve(mockResponse));
 
     await component.ngOnInit();

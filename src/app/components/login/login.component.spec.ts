@@ -10,6 +10,7 @@ import { EmailInputComponent } from '../../shared/components/input-elements/emai
 import { PasswordInputComponent } from '../../shared/components/input-elements/password-input/password-input.component';
 import { ApiService } from '../../shared/services/api.service';
 import { ErrorService } from '../../shared/services/error.service';
+import { ApiResponse } from '../../shared/models/api-response';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
@@ -99,15 +100,12 @@ describe('LoginComponent', () => {
   });
 
   it('should login successfully with valid credentials', async () => {
-    const mockResponse = {
-      ok: true,
-      status: 200,
-      data: {
-        access: 'access-token',
-        refresh: 'refresh-token',
-        user: { id: 1, email: 'test@example.com' }
-      }
-    };
+    const mockResponse = new ApiResponse(true, 200, {
+      access: 'access-token',
+      refresh: 'refresh-token',
+      user: { id: 1, email: 'test@example.com' }
+    }
+    );
     apiService.login.and.returnValue(Promise.resolve(mockResponse));
 
     component.loginForm.patchValue({
@@ -124,11 +122,7 @@ describe('LoginComponent', () => {
   });
 
   it('should handle login error from API', async () => {
-    const mockResponse = {
-      ok: false,
-      status: 401,
-      data: null
-    };
+    const mockResponse = new ApiResponse(false, 401, null);
     apiService.login.and.returnValue(Promise.resolve(mockResponse));
 
     component.loginForm.patchValue({

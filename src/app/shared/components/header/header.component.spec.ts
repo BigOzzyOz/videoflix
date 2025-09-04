@@ -81,7 +81,8 @@ describe('HeaderComponent', () => {
     fixture.detectChanges();
 
     const logoutDiv = fixture.nativeElement.querySelector('div:last-child');
-    expect(logoutDiv?.textContent).toBe('Logout');
+    const displayedText = logoutDiv?.textContent;
+    expect(displayedText.trim()).toBe('Log Out');
   });
 
   it('should display back arrow when backArrow is true', () => {

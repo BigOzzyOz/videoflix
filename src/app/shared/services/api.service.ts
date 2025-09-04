@@ -94,7 +94,7 @@ export class ApiService {
     }
   }
 
-  private async directFetch(url: string, method: string, body?: Object): Promise<ApiResponse> {
+  async directFetch(url: string, method: string, body?: Object): Promise<ApiResponse> {
     const options = this.createPayload(method, body);
     try {
       const response = await fetch(url, options);
@@ -123,21 +123,39 @@ export class ApiService {
   }
 
   get CurrentUser(): User {
-    return this.currentUser || new User(JSON.parse(sessionStorage.getItem('currentUser') || 'null'));
+    const stored = sessionStorage.getItem('currentUser');
+    if (this.currentUser) return this.currentUser;
+    else if (stored) return new User(JSON.parse(stored));
+    else return User.empty();
   }
 
   set CurrentUser(user: User | null) {
-    this.currentUser = user ? new User(user) : null;
-    sessionStorage.setItem('currentUser', JSON.stringify(user));
+    if (!user) {
+      this.currentUser = User.empty();
+      sessionStorage.removeItem('currentUser');
+      return;
+    } else {
+      this.currentUser = new User(user);
+      sessionStorage.setItem('currentUser', JSON.stringify(user));
+    }
   }
 
   get CurrentProfile(): Profile {
-    return this.currentProfile || new Profile(JSON.parse(sessionStorage.getItem('currentProfile') || 'null'));
+    const stored = sessionStorage.getItem('currentProfile');
+    if (this.currentProfile) return this.currentProfile;
+    else if (stored) return new Profile(JSON.parse(stored));
+    else return Profile.empty();
   }
 
   set CurrentProfile(profile: Profile | null) {
-    this.currentProfile = profile ? new Profile(profile) : null;
-    sessionStorage.setItem('currentProfile', JSON.stringify(profile));
+    if (!profile) {
+      this.currentProfile = Profile.empty();
+      sessionStorage.removeItem('currentProfile');
+      return;
+    } else {
+      this.currentProfile = new Profile(profile);
+      sessionStorage.setItem('currentProfile', JSON.stringify(profile));
+    }
   }
 
   set AccessToken(token: string | null) {
@@ -152,7 +170,6 @@ export class ApiService {
 
   get AccessToken(): string | null {
     return this.access_token || sessionStorage.getItem('token');
-
   }
   set RefreshToken(token: string | null) {
     if (!token) {

@@ -53,4 +53,16 @@ export class User {
             profiles: this.profiles.map(profile => profile.toApiFormat())
         };
     }
+
+    static empty(): User {
+        return new User({
+            id: '',
+            username: '',
+            email: '',
+            role: 'user',
+            first_name: '',
+            last_name: '',
+            profiles: []
+        });
+    }
 }

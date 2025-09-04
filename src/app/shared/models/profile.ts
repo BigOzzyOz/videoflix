@@ -84,4 +84,23 @@ export class Profile implements ProfileData {
             },
         };
     }
+
+    static empty(): Profile {
+        return new Profile({
+            id: '',
+            name: '',
+            profilePic: null,
+            kid: false,
+            language: 'en',
+            videoProgress: [],
+            watchStats: {
+                totalVideosStarted: 0,
+                totalVideosCompleted: 0,
+                totalCompletions: 0,
+                totalWatchTime: 0,
+                uniqueVideosWatched: 0,
+                completionRate: 0,
+            },
+        });
+    }
 }

@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { ActivatedRoute } from '@angular/router';
+import { of } from 'rxjs';
 import { PlayerComponent } from './player.component';
 
 describe('PlayerComponent', () => {
@@ -8,9 +9,12 @@ describe('PlayerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PlayerComponent]
+      imports: [PlayerComponent],
+      providers: [
+        { provide: ActivatedRoute, useValue: { params: of({}), queryParams: of({}) } }
+      ]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(PlayerComponent);
     component = fixture.componentInstance;

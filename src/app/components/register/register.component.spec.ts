@@ -11,6 +11,7 @@ import { EmailInputComponent } from '../../shared/components/input-elements/emai
 import { PasswordInputComponent } from '../../shared/components/input-elements/password-input/password-input.component';
 import { ApiService } from '../../shared/services/api.service';
 import { ErrorService } from '../../shared/services/error.service';
+import { ApiResponse } from '../../shared/models/api-response';
 
 describe('RegisterComponent', () => {
   let component: RegisterComponent;
@@ -98,7 +99,7 @@ describe('RegisterComponent', () => {
   });
 
   it('should register successfully with valid data', async () => {
-    const mockResponse = { ok: true, status: 201, data: { id: 1 } };
+    const mockResponse = new ApiResponse(true, 201, { id: 1 });
     apiService.register.and.returnValue(Promise.resolve(mockResponse));
 
     component.registerForm.patchValue({
@@ -114,7 +115,7 @@ describe('RegisterComponent', () => {
   });
 
   it('should handle registration error from API', async () => {
-    const mockResponse = { ok: false, status: 400, data: null };
+    const mockResponse = new ApiResponse(false, 400, null);
     apiService.register.and.returnValue(Promise.resolve(mockResponse));
 
     component.registerForm.patchValue({
