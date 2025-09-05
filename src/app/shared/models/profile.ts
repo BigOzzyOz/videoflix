@@ -2,6 +2,9 @@ import { ProfileData } from "../interfaces/profile-data";
 import { ProfileApiData } from "../interfaces/profile-api-data";
 import { VideoProgress } from "./video-progress";
 
+/**
+ * Represents a user profile with stats, progress, and conversion helpers.
+ */
 export class Profile implements ProfileData {
     id: string;
     name: string;
@@ -19,6 +22,9 @@ export class Profile implements ProfileData {
     };
 
 
+    /**
+     * Create a Profile from API or internal data.
+     */
     constructor(data: ProfileApiData | ProfileData) {
         this.id = data.id || '';
 
@@ -53,18 +59,22 @@ export class Profile implements ProfileData {
         }
     }
 
+    /** Returns display name or fallback. */
     getDisplayName(): string {
         return this.name || `Profile ${this.id}`;
     }
 
+    /** True if this is a child profile. */
     isChildProfile(): boolean {
         return this.kid;
     }
 
+    /** Returns profile image URL or default. */
     getProfileImage(): string {
         return this.profilePic || '/assets/default-profile.png';
     }
 
+    /** Converts this profile to API format. */
     toApiFormat(): ProfileApiData {
         return {
             id: this.id,
@@ -85,6 +95,7 @@ export class Profile implements ProfileData {
         };
     }
 
+    /** Returns an empty profile. */
     static empty(): Profile {
         return new Profile({
             id: '',
