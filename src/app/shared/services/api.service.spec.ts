@@ -5,6 +5,7 @@ import { ErrorService } from './error.service';
 import { ApiResponse } from '../models/api-response';
 import { User } from '../models/user';
 import { UserApiData } from '../interfaces/user-api-data';
+import { Profile } from '../models/profile';
 
 describe('ApiService', () => {
   let service: ApiService;
@@ -180,16 +181,127 @@ describe('ApiService', () => {
   });
 
   it('should call resetPasswordConfirm with correct parameters', async () => {
-    spyOn(service, 'fetchData').and.returnValue(
-      Promise.resolve(new ApiResponse(true, 200, null))
-    );
-
+    spyOn(service, 'fetchData').and.returnValue(Promise.resolve(new ApiResponse(true, 200, null)));
     await service.resetPasswordConfirm('token', 'newpass', 'newpass');
-
     expect(service.fetchData).toHaveBeenCalledWith(
       service.RESET_CONFIRM_URL,
       'POST',
       { token: 'token', new_password: 'newpass', new_password2: 'newpass' }
     );
+  });
+
+  it('should call getGenresCount with correct URL', async () => {
+    spyOn(service, 'fetchData').and.returnValue(Promise.resolve(new ApiResponse(true, 200, null)));
+    await service.getGenresCount();
+    expect(service.fetchData).toHaveBeenCalledWith(service.GENRES_COUNT_URL, 'GET');
+  });
+
+  it('should call getVideos with and without params', async () => {
+    spyOn(service, 'fetchData').and.returnValue(Promise.resolve(new ApiResponse(true, 200, null)));
+    await service.getVideos('foo=bar');
+    expect(service.fetchData).toHaveBeenCalledWith(service.VIDEOS_URL + '?foo=bar', 'GET');
+    await service.getVideos('');
+    expect(service.fetchData).toHaveBeenCalledWith(service.VIDEOS_URL, 'GET');
+  });
+
+  it('should call getVideoById with correct URL', async () => {
+    spyOn(service, 'fetchData').and.returnValue(Promise.resolve(new ApiResponse(true, 200, null)));
+    await service.getVideoById('vid123');
+    expect(service.fetchData).toHaveBeenCalledWith(service.VIDEOS_URL + 'vid123/', 'GET');
+  });
+
+  it('should call updateVideoProgress with correct parameters', async () => {
+    spyOn(service, 'fetchData').and.returnValue(Promise.resolve(new ApiResponse(true, 200, null)));
+    await service.updateVideoProgress('pid', 'vid', 42);
+    expect(service.fetchData).toHaveBeenCalledWith(service.PROGRESS_UPDATE_URL('pid', 'vid'), 'POST', { current_time: 42 });
+  });
+
+  it('should call createUserProfile with correct parameters', async () => {
+    spyOn(service, 'fetchData').and.returnValue(Promise.resolve(new ApiResponse(true, 201, null)));
+    const file = new File([''], 'pic.png');
+    await service.createUserProfile('name', true, file);
+    expect(service.fetchData).toHaveBeenCalledWith(service.USER_PROFILES_URL, 'POST', jasmine.any(FormData));
+  });
+
+  it('should call editUserProfile with correct parameters', async () => {
+    spyOn(service, 'fetchData').and.returnValue(Promise.resolve(new ApiResponse(true, 200, null)));
+    const profileMock = Profile.empty();
+    profileMock.id = 'pid';
+    profileMock.name = 'old';
+    profileMock.kid = false;
+    service.CurrentUser = new User({ id: '1', username: 'TestUser', email: 'test@example.com', role: 'user', firstName: 'Test', lastName: 'User', profiles: [profileMock] });
+    const file = new File([''], 'pic.png');
+    await service.editUserProfile('pid', 'new', true, file);
+    expect(service.fetchData).toHaveBeenCalledWith(service.USER_PROFILES_URL + 'pid/', 'PATCH', jasmine.any(FormData));
+  });
+
+  it('should call deleteUserProfile with correct URL', async () => {
+    spyOn(service, 'fetchData').and.returnValue(Promise.resolve(new ApiResponse(true, 204, null)));
+    await service.deleteUserProfile('pid');
+    expect(service.fetchData).toHaveBeenCalledWith(service.USER_PROFILES_URL + 'pid/', 'DELETE');
+  });
+
+  it('should call ErrorService.show on network error in fetchData', async () => {
+    spyOn(window, 'fetch').and.throwError('Network error');
+    try {
+      await service.fetchData('url', 'GET');
+    } catch (e) {
+      expect(errorService.show).toHaveBeenCalledWith('Network error. Please try again later.');
+    }
+  });
+
+  it('should call ErrorService.show on network error in directFetch', async () => {
+    spyOn(window, 'fetch').and.throwError('Network error');
+    try {
+      await service.directFetch('url', 'GET');
+    } catch (e) {
+      expect(errorService.show).toHaveBeenCalledWith('Network error. Please try again later.');
+    }
+  });
+
+  it('should fallback to User.empty and Profile.empty if nothing stored', () => {
+    sessionStorage.clear();
+    service.currentUser = null;
+    service.currentProfile = null;
+    expect(service.CurrentUser).toEqual(User.empty());
+    expect(service.CurrentProfile).toEqual(Profile.empty());
+  });
+
+  it('should handle createPayload with FormData', () => {
+    const fd = new FormData();
+    const payload = service.createPayload('POST', fd);
+    expect(payload.body).toBe(fd);
+  });
+
+  it('should handle isNoBodyResponse for 204, 205, and zero content-length', () => {
+    const response = new Response(null, { status: 204 });
+    expect((service as any).isNoBodyResponse(response)).toBeTrue();
+    const response2 = new Response(null, { status: 205 });
+    expect((service as any).isNoBodyResponse(response2)).toBeTrue();
+    const response3 = new Response(null, { status: 200, headers: { 'content-length': '0' } });
+    expect((service as any).isNoBodyResponse(response3)).toBeTrue();
+  });
+
+  it('should handle token refresh on 401 in fetchData', async () => {
+    spyOn(service, 'createPayload').and.callThrough();
+    spyOn(window, 'fetch').and.returnValues(
+      Promise.resolve(new Response(null, { status: 401 })),
+      Promise.resolve(new Response(JSON.stringify({ access: 'new-token' }), { status: 200 })),
+      Promise.resolve(new Response(JSON.stringify({ ok: true, status: 200, data: {} }), { status: 200 }))
+    );
+    spyOn(service, 'refreshToken').and.returnValue(Promise.resolve(new ApiResponse(true, 200, { access: 'new-token' })));
+    service.RefreshToken = 'refresh-token';
+    await service.fetchData('url', 'GET');
+    expect(service.refreshToken).toHaveBeenCalled();
+  });
+
+  it('should handle failed token refresh on 401 in fetchData', async () => {
+    spyOn(service, 'createPayload').and.callThrough();
+    spyOn(window, 'fetch').and.returnValue(Promise.resolve(new Response(null, { status: 401 })));
+    spyOn(service, 'refreshToken').and.returnValue(Promise.resolve(new ApiResponse(false, 401, null)));
+    spyOn(service, 'logout').and.returnValue(Promise.resolve(new ApiResponse(false, 401, null)));
+    service.RefreshToken = 'refresh-token';
+    await service.fetchData('url', 'GET');
+    expect(service.logout).toHaveBeenCalled();
   });
 });
