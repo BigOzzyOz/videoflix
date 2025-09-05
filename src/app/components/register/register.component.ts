@@ -9,6 +9,10 @@ import { EmailInputComponent } from '../../shared/components/input-elements/emai
 import { PasswordInputComponent } from '../../shared/components/input-elements/password-input/password-input.component';
 import { OrientationWarningComponent } from '../../shared/components/orientation-warning/orientation-warning.component';
 
+/**
+ * Component for user registration. Handles form validation, API calls, error feedback,
+ * and navigation. Uses Angular Reactive Forms and provides feedback for success and errors.
+ */
 @Component({
     selector: 'app-register',
     imports: [FormsModule, HeaderComponent, FooterComponent, EmailInputComponent, PasswordInputComponent, ReactiveFormsModule, OrientationWarningComponent],
@@ -27,6 +31,9 @@ export class RegisterComponent {
     registerSuccess: boolean = false;
     registerForm: FormGroup;
 
+    /**
+     * Initializes the registration form and sets email from query params if present.
+     */
     constructor() {
         this.activeRoute.queryParams.subscribe(params => {
             this.tempEmail = params['email'] || '';
@@ -53,76 +60,88 @@ export class RegisterComponent {
         );
     }
 
+    /**
+     * Adds signup background class to body on init.
+     */
     ngOnInit() {
         this.renderer.addClass(document.body, 'signup-bg');
     }
 
+    /**
+     * Removes signup background class from body on destroy.
+     */
     ngOnDestroy() {
         this.renderer.removeClass(document.body, 'signup-bg');
     }
 
-    async submitRegisterForm() {
-        if (this.registerForm.invalid) {
-            this.registerForm.markAllAsTouched();
-            return;
-        }
+    /**
+     * Submits the registration form. Validates input, calls API, and handles success or error feedback.
+     */
+    async submitRegisterForm(): Promise<void> {
+        if (this.registerForm.invalid) return this.registerForm.markAllAsTouched();
         const email = this.registerForm.value.email;
         const password = this.registerForm.value.password;
         const confirmedPassword = this.registerForm.value.confirmedPassword;
-
         try {
             const response = await this.api.register(email, password, confirmedPassword);
-            if (!response.ok || response.data === null) {
-                this.errorService.show(response);
-                return;
-            }
-
+            if (!response.ok || response.data === null) return this.errorService.show(response);
             this.registerSuccess = true;
-
         } catch (error) {
             this.errorService.show('An error occurred while registering. Please try again later.');
         }
     }
 
+    /**
+     * Returns the email form control.
+     */
     get email(): FormControl {
         return this.registerForm.get('email') as FormControl;
     }
 
+    /**
+     * Returns the password form control.
+     */
     get password(): FormControl {
         return this.registerForm.get('password') as FormControl;
     }
 
+    /**
+     * Returns the confirmed password form control.
+     */
     get confirmedPassword(): FormControl {
         return this.registerForm.get('confirmedPassword') as FormControl;
     }
 
-    toHome() {
+    /**
+     * Navigates to the home page.
+     */
+    toHome(): void {
         this.router.navigate(['/']);
     }
 
+    /**
+     * Custom validator to check if password and confirmed password match.
+     * Sets or removes 'mismatch' error on confirmedPassword control.
+     */
     passwordsMatch(group: AbstractControl): ValidationErrors | null {
         const password = group.get('password')?.value;
         const confirmedPassword = group.get('confirmedPassword');
-
-        if (!confirmedPassword) {
-            return null;
-        }
-
-        if (password !== confirmedPassword.value) {
-            confirmedPassword.setErrors({ mismatch: true });
-        } else {
-            if (confirmedPassword.hasError('mismatch')) {
-                const errors = { ...confirmedPassword.errors };
-                delete errors['mismatch'];
-                if (Object.keys(errors).length === 0) {
-                    confirmedPassword.setErrors(null);
-                } else {
-                    confirmedPassword.setErrors(errors);
-                }
-            }
-        }
-
+        if (!confirmedPassword) return null;
+        if (password !== confirmedPassword.value) confirmedPassword.setErrors({ mismatch: true });
+        else RegisterComponent.handlePasswordMismatchError(confirmedPassword);
         return null;
     }
 
+    /**
+     * Removes 'mismatch' error from confirmedPassword control if passwords match.
+     * @param password The confirmedPassword form control
+     */
+    private static handlePasswordMismatchError(password: AbstractControl) {
+        if (password.hasError('mismatch')) {
+            const errors = { ...password.errors };
+            delete errors['mismatch'];
+            if (Object.keys(errors).length === 0) password.setErrors(null);
+            else password.setErrors(errors);
+        }
+    }
 }
