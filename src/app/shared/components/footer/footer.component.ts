@@ -7,10 +7,17 @@ import { Router } from '@angular/router';
   templateUrl: './footer.component.html',
   styleUrl: './footer.component.scss'
 })
+/**
+ * FooterComponent displays the application footer with navigation links to privacy policy and imprint.
+ * It provides methods to open these pages in a new browser tab.
+ */
 export class FooterComponent {
   private router = inject(Router);
 
-  toPrivacyPolicy() {
+  /**
+   * Opens the privacy policy page in a new browser tab.
+   */
+  toPrivacyPolicy(): void {
     const targetTree = this.router.createUrlTree(['/privacy'], {
       queryParams: { subSite: 'privacy' }
     });
@@ -18,7 +25,10 @@ export class FooterComponent {
     window.open(targetUrl, '_blank');
   }
 
-  toImprint() {
+  /**
+   * Opens the imprint page in a new browser tab.
+   */
+  toImprint(): void {
     const targetTree = this.router.createUrlTree(['/imprint'], {
       queryParams: { subSite: 'imprint' }
     });
