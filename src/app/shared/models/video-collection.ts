@@ -41,4 +41,14 @@ export class VideoCollections {
         const firstKey = this.getFirstGenreKey();
         return firstKey ? this[firstKey].videos : [];
     }
+
+    static empty(key: string, params: string, data: Video[] = []): VideoCollections {
+        return new VideoCollections(key, {
+            videos: data,
+            lastUpdated: new Date().toISOString(),
+            next: null,
+            previous: null,
+            params: params
+        });
+    }
 }
