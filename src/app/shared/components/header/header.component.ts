@@ -10,6 +10,10 @@ import { ErrorService } from '../../services/error.service';
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
+/**
+ * HeaderComponent displays the application header with logo, navigation buttons, and profile/logout controls.
+ * It supports various display modes via @Input properties and provides navigation methods.
+ */
 export class HeaderComponent {
   @Input() loginButton: Boolean = false;
   @Input() logoutButton: Boolean = false;
@@ -26,15 +30,24 @@ export class HeaderComponent {
 
   constructor() { }
 
-  toLogin() {
+  /**
+   * Navigates to the login page.
+   */
+  toLogin(): void {
     this.router.navigate(['/login']);
   }
 
-  goBack() {
+  /**
+   * Navigates to the home page.
+   */
+  goBack(): void {
     this.router.navigate(['/']);
   }
 
-  logOut() {
+  /**
+   * Logs out the current user via the ApiService.
+   */
+  logOut(): void {
     this.api.logout()
   }
 
@@ -47,7 +60,6 @@ export class HeaderComponent {
     } catch (error) {
       this.errorService.show('Profile selection was cancelled or timed out.');
     }
-
   }
 
   navigateToMain(): void {
