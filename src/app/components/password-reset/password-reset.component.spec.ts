@@ -62,10 +62,20 @@ describe('PasswordResetComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should initialize forms with validators', () => {
+  it('should initialize forms with validators and not submit if invalid', async () => {
     expect(component.resetForm.get('password')?.hasError('required')).toBeTruthy();
     expect(component.resetForm.get('confirmedPassword')?.hasError('required')).toBeTruthy();
     expect(component.forgetForm.get('email')?.hasError('required')).toBeTruthy();
+
+    spyOn(component.resetForm, 'markAllAsTouched');
+    await component.submitResetForm();
+    expect(component.resetForm.markAllAsTouched).toHaveBeenCalled();
+    expect(apiService.resetPasswordConfirm).not.toHaveBeenCalled();
+
+    spyOn(component.forgetForm, 'markAllAsTouched');
+    await component.submitForgotForm();
+    expect(component.forgetForm.markAllAsTouched).toHaveBeenCalled();
+    expect(apiService.resetPassword).not.toHaveBeenCalled();
   });
 
   it('should render header and footer components', () => {
@@ -91,6 +101,7 @@ describe('PasswordResetComponent', () => {
 
     expect(apiService.verifyEmail).toHaveBeenCalledWith('test-token');
     expect(component.accountVerify).toBeTruthy();
+    expect(router.navigate).not.toHaveBeenCalledWith(['**']);
   });
 
   it('should submit reset form successfully', async () => {
@@ -135,13 +146,75 @@ describe('PasswordResetComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/']);
   });
 
-  it('should handle API errors', async () => {
-    const mockResponse = new ApiResponse(false, 400, null);
+  it('should handle API errors on verify', async () => {
+    const mockResponse = new ApiResponse(false, 400, 'Invalid token');
     apiService.verifyEmail.and.returnValue(Promise.resolve(mockResponse));
 
     await component.ngOnInit();
 
     expect(errorService.show).toHaveBeenCalledWith(mockResponse);
+    expect(router.navigate).toHaveBeenCalledWith(['**']);
+  });
+
+  it('should handle API errors on reset', async () => {
+    component.passwordReset = true;
+    component.resetForm.patchValue({
+      password: 'NewPassword123',
+      confirmedPassword: 'NewPassword123'
+    });
+    const mockResponse = new ApiResponse(false, 400, 'Reset failed');
+    apiService.resetPasswordConfirm.and.returnValue(Promise.resolve(mockResponse));
+
+    await component.submitResetForm();
+    expect(errorService.show).toHaveBeenCalledWith(mockResponse);
+    expect(component.passwordResetSuccess).toBeFalsy();
+  });
+
+  it('should handle API errors on forgot', async () => {
+    component.forgetForm.patchValue({ email: 'test@example.com' });
+    const mockResponse = new ApiResponse(false, 400, 'Forgot failed');
+    apiService.resetPassword.and.returnValue(Promise.resolve(mockResponse));
+
+    await component.submitForgotForm();
+    expect(errorService.show).toHaveBeenCalledWith(mockResponse);
+    expect(component.emailSent).toBeFalsy();
+  });
+
+  it('should handle error in verifyAccount catch block', async () => {
+    apiService.verifyEmail.and.returnValue(Promise.reject('Network error'));
+    await component.ngOnInit();
+    expect(errorService.show).toHaveBeenCalledWith('Verification failed');
+    expect(router.navigate).toHaveBeenCalledWith(['**']);
+  });
+
+  it('should handle error in submitResetForm catch block', async () => {
+    component.passwordReset = true;
+    component.resetForm.patchValue({
+      password: 'NewPassword123',
+      confirmedPassword: 'NewPassword123'
+    });
+    apiService.resetPasswordConfirm.and.returnValue(Promise.reject('Network error'));
+    await component.submitResetForm();
+    expect(errorService.show).toHaveBeenCalledWith('An error occurred during password reset. Please try again later.');
+    expect(component.passwordResetSuccess).toBeFalsy();
+  });
+
+  it('should handle error in submitForgotForm catch block', async () => {
+    component.forgetForm.patchValue({ email: 'test@example.com' });
+    apiService.resetPassword.and.returnValue(Promise.reject('Network error'));
+    await component.submitForgotForm();
+    expect(errorService.show).toHaveBeenCalledWith('An error occurred during password reset. Please try again later.');
+    expect(component.emailSent).toBeFalsy();
+  });
+
+  it('should not verify account if no token in params', async () => {
+    if (activatedRoute.snapshot.routeConfig) {
+      activatedRoute.snapshot.routeConfig.path = 'verify';
+    }
+    activatedRoute.snapshot.queryParams['token'] = undefined;
+    spyOn<any>(component, 'verifyAccount');
+    await component.ngOnInit();
+    expect((component as any).verifyAccount).not.toHaveBeenCalled();
     expect(router.navigate).toHaveBeenCalledWith(['**']);
   });
 });
