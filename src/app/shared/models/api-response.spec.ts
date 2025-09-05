@@ -86,4 +86,26 @@ describe('ApiResponse', () => {
     expect(apiResponse.status).toBe(200);
     expect(apiResponse.data).toBe('plain text');
   });
+
+  it('should identify success, client error, server error, unauthorized, forbidden, not found', () => {
+    expect(new ApiResponse(true, 200, {}).isSuccess()).toBeTrue();
+    expect(new ApiResponse(false, 404, {}).isClientError()).toBeTrue();
+    expect(new ApiResponse(false, 500, {}).isServerError()).toBeTrue();
+    expect(new ApiResponse(false, 401, {}).isUnauthorized()).toBeTrue();
+    expect(new ApiResponse(false, 403, {}).isForbidden()).toBeTrue();
+    expect(new ApiResponse(false, 404, {}).isNotFound()).toBeTrue();
+  });
+
+  it('should detect if data is present', () => {
+    expect(new ApiResponse(true, 200, { foo: 'bar' }).hasData()).toBeTrue();
+    expect(new ApiResponse(true, 200, null).hasData()).toBeFalse();
+    expect(new ApiResponse(true, 200, undefined).hasData()).toBeFalse();
+  });
+
+  it('should return correct error message', () => {
+    expect(new ApiResponse(false, 400, null, 'Custom error').getErrorMessage()).toBe('Custom error');
+    expect(new ApiResponse(false, 400, { message: 'Backend error' }).getErrorMessage()).toBe('Backend error');
+    expect(new ApiResponse(false, 400, { error: 'Error field' }).getErrorMessage()).toBe('Error field');
+    expect(new ApiResponse(false, 400, null).getErrorMessage()).toBe('HTTP 400');
+  });
 });
