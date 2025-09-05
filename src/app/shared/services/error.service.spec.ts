@@ -94,4 +94,49 @@ describe('ErrorService', () => {
     service.clear();
     expect(service.errorTimer).toBeNull();
   });
+
+  it('should show string error', () => {
+    service.show('Test error');
+    expect(service.errorMessage$.getValue()).toBe('Test error');
+  });
+
+  it('should show error from array', () => {
+    service.show(['Array error', 'Other']);
+    expect(service.errorMessage$.getValue()).toBe('Array error');
+  });
+
+  it('should show error from object.detail', () => {
+    service.show({ detail: 'Detail error' });
+    expect(service.errorMessage$.getValue()).toBe('Detail error');
+  });
+
+  it('should show error from object with array property', () => {
+    service.show({ field: ['Field error'] });
+    expect(service.errorMessage$.getValue()).toBe('Field error');
+  });
+
+  it('should show error from object with string property', () => {
+    service.show({ field: 'Field string error' });
+    expect(service.errorMessage$.getValue()).toBe('Field string error');
+  });
+
+  it('should fallback to default message for unknown format', () => {
+    service.show({});
+    expect(service.errorMessage$.getValue()).toBe('An unexpected error occurred. Please try again later.');
+  });
+
+  it('should clear error after timeout', () => {
+    service.show('Timeout error');
+    expect(service.errorMessage$.getValue()).toBe('Timeout error');
+    jasmine.clock().tick(5000);
+    expect(service.errorMessage$.getValue()).toBeNull();
+  });
+
+  it('should clear error manually', () => {
+    service.show('Manual clear error');
+    expect(service.errorMessage$.getValue()).toBe('Manual clear error');
+    service.clear();
+    expect(service.errorMessage$.getValue()).toBeNull();
+  });
+
 });
