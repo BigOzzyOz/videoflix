@@ -137,7 +137,7 @@ export class PlayerService {
    * Handles the 'pause' event: sets end state and saves progress.
    */
   async playerPauseHandler(): Promise<void> {
-  if (!this.playerState.videoId() || !this.playerState.player) return;
+    if (!this.playerState.videoId() || !this.playerState.player) return;
     const currentTime = this.playerState.player.currentTime();
     this.setEndState();
     if (!currentTime) return;
