@@ -1,61 +1,76 @@
 import { Injectable } from '@angular/core';
 import { OverflowState } from '../interfaces/overflow-state';
 
-
 @Injectable({
   providedIn: 'root'
 })
+/**
+ * Service for detecting horizontal overflow and visibility in scrollable containers.
+ */
 export class OverflowDetectionService {
 
   constructor() { }
 
   /**
-   * Prüft Overflow-Status eines Elements
-   * @param element - Das zu prüfende Element
-   * @param threshold - Schwellenwert für "am Rand" (default: 10px)
-   * @returns OverflowState mit allen Informationen
+   * Checks the overflow state of an element and returns detailed metrics and flags.
+   * @param element The element to check
+   * @param threshold Threshold for edge detection (default: 10px)
+   * @returns OverflowState with all scroll and position information
    */
   checkOverflow(element: HTMLElement, threshold: number = 10): OverflowState {
+    const metrics = this.getScrollMetrics(element);
+    const flags = this.getOverflowFlags(metrics, threshold);
+    return { ...metrics, ...flags };
+  }
+
+  /**
+   * Extracts scroll metrics from an element (scrollLeft, scrollWidth, etc.).
+   * @param element The element to read metrics from
+   */
+  private getScrollMetrics(element: HTMLElement) {
     const scrollLeft = element.scrollLeft;
     const scrollWidth = element.scrollWidth;
     const clientWidth = element.clientWidth;
     const scrollableWidth = scrollWidth - clientWidth;
-
-    // Sichtbarer Bereich
     const visibleStart = scrollLeft;
     const visibleEnd = scrollLeft + clientWidth;
-
-    // Overflow vorhanden?
-    const hasOverflow = scrollWidth > clientWidth;
-
-    // Position-Checks
-    const atStart = scrollLeft <= threshold;
-    const atEnd = scrollLeft >= (scrollableWidth - threshold);
-    const atMiddle = !atStart && !atEnd && hasOverflow;
-
-    // Scroll-Prozentsatz
-    const percentage = hasOverflow ? (scrollLeft / scrollableWidth) * 100 : 0;
-
     return {
-      hasOverflow,
-      atStart,
-      atEnd,
-      atMiddle,
       scrollLeft,
       scrollWidth,
       clientWidth,
       scrollableWidth,
       visibleStart,
-      visibleEnd,
+      visibleEnd
+    };
+  }
+
+  /**
+   * Calculates overflow flags and scroll percentage for a given metrics object.
+   * @param metrics Scroll metrics object
+   * @param threshold Threshold for edge detection
+   */
+  private getOverflowFlags(metrics: any, threshold: number) {
+    const { scrollLeft, scrollWidth, clientWidth, scrollableWidth } = metrics;
+    const hasOverflow = scrollWidth > clientWidth;
+    const atStart = scrollLeft <= threshold;
+    const atEnd = scrollLeft >= (scrollableWidth - threshold);
+    const atMiddle = !atStart && !atEnd && hasOverflow;
+    const percentage = hasOverflow && scrollableWidth > 0 ? (scrollLeft / scrollableWidth) * 100 : 0;
+    return {
+      hasOverflow,
+      atStart,
+      atEnd,
+      atMiddle,
       percentage
     };
   }
 
   /**
-   * Beispiel: Container 100px, Content 300px, sichtbar 125px-225px
-   * @param containerWidth - Breite des Containers
-   * @param contentWidth - Breite des Contents
-   * @param scrollPosition - Aktuelle Scroll-Position
+   * Calculates the visible range and scroll percentage for a container/content pair.
+   * @param containerWidth Width of the container
+   * @param contentWidth Width of the content
+   * @param scrollPosition Current scroll position
+   * @returns Object with visible range and percentages
    */
   getVisibleRange(containerWidth: number, contentWidth: number, scrollPosition: number) {
     const visibleStart = scrollPosition;
@@ -71,24 +86,29 @@ export class OverflowDetectionService {
   }
 
   /**
-   * Prüft ob ein bestimmter Bereich sichtbar ist
-   * @param itemStart - Start-Position des Items
-   * @param itemEnd - End-Position des Items
-   * @param visibleStart - Start des sichtbaren Bereichs
-   * @param visibleEnd - Ende des sichtbaren Bereichs
+   * Checks if a given item range is visible within the visible area.
+   * @param itemStart Start position of the item
+   * @param itemEnd End position of the item
+   * @param visibleStart Start of the visible area
+   * @param visibleEnd End of the visible area
+   * @returns True if item is at least partially visible
    */
   isItemVisible(itemStart: number, itemEnd: number, visibleStart: number, visibleEnd: number): boolean {
     return itemStart < visibleEnd && itemEnd > visibleStart;
   }
 
   /**
-   * Berechnet wie viel Prozent eines Items sichtbar sind
+   * Calculates the percentage of an item that is visible within the visible area.
+   * @param itemStart Start position of the item
+   * @param itemEnd End position of the item
+   * @param visibleStart Start of the visible area
+   * @param visibleEnd End of the visible area
+   * @returns Percentage of the item that is visible (0-100)
    */
   getVisibilityPercentage(itemStart: number, itemEnd: number, visibleStart: number, visibleEnd: number): number {
     if (!this.isItemVisible(itemStart, itemEnd, visibleStart, visibleEnd)) {
       return 0;
     }
-
     const visibleItemStart = Math.max(itemStart, visibleStart);
     const visibleItemEnd = Math.min(itemEnd, visibleEnd);
     const visibleItemWidth = visibleItemEnd - visibleItemStart;
