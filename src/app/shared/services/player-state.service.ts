@@ -1,6 +1,9 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { Video } from '../models/video';
 
+/**
+ * Service for managing all state related to the video player, including playback, audio, UI, and progress.
+ */
 @Injectable({
   providedIn: 'root'
 })
@@ -49,6 +52,7 @@ export class PlayerStateService {
   private _availableSpeeds = signal<number[]>([0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]);
 
   // === Player Reference ===
+  /** Reference to the player instance. */
   get player() { return this._player; }
   set player(value: any) { this._player = value; }
 
@@ -98,6 +102,10 @@ export class PlayerStateService {
 
 
   // === State Setters ===
+  /**
+   * Sets the current video and updates related state.
+   * @param video Video object or null
+   */
   setVideo(video: Video | null): void {
     this._video.set(video);
     if (video) {
@@ -106,34 +114,42 @@ export class PlayerStateService {
     }
   }
 
+  /** Sets the video URL. */
   setVideoUrl(url: string): void {
     this._videoUrl.set(url);
   }
 
+  /** Sets the video ID. */
   setVideoId(id: string): void {
     this._videoId.set(id);
   }
 
+  /** Sets the playing state. */
   setIsPlaying(playing: boolean): void {
     this._isPlaying.set(playing);
   }
 
+  /** Sets the optimizing state. */
   setIsOptimizing(optimizing: boolean): void {
     this._isOptimizing.set(optimizing);
   }
 
+  /** Sets the current progress time. */
   setProgressTime(time: number): void {
     this._progressTime.set(time);
   }
 
+  /** Sets the video duration. */
   setVideoDuration(duration: number): void {
     this._videoDuration.set(duration);
   }
 
+  /** Sets the scrubbing state. */
   setIsScrubbing(scrubbing: boolean): void {
     this._isScrubbing.set(scrubbing);
   }
 
+  /** Sets the playback speed and updates the player instance. */
   setPlaybackSpeed(speed: number): void {
     const player = this.player;
     if (player) {
@@ -142,92 +158,114 @@ export class PlayerStateService {
     }
   }
 
+  /** Sets the fullscreen state. */
   setIsFullscreen(fullscreen: boolean): void {
     this._isFullscreen.set(fullscreen);
   }
 
+  /** Sets the volume (clamped between 0 and 1). */
   setVolume(volume: number): void {
     this._volume.set(Math.max(0, Math.min(1, volume)));
   }
 
+  /** Sets the muted state. */
   setIsMuted(muted: boolean): void {
     this._isMuted.set(muted);
   }
 
+  /** Sets the overlay visibility. */
   setShowOverlay(show: boolean): void {
     this._showOverlay.set(show);
   }
 
+  /** Sets the speed menu visibility. */
   setShowSpeedMenu(show: boolean): void {
     this._showSpeedMenu.set(show);
   }
 
+  /** Sets the volume control visibility. */
   setShowVolumeControl(show: boolean): void {
     this._showVolumeControl.set(show);
   }
 
+  /** Sets the volume tooltip visibility. */
   setShowVolumeTooltip(show: boolean): void {
     this._showVolumeTooltip.set(show);
   }
 
+  /** Sets the volume tooltip position. */
   setVolumeTooltipPosition(position: number): void {
     this._volumeTooltipPosition.set(position);
   }
 
+  /** Sets the view initialized state. */
   setViewInitialized(initialized: boolean): void {
     this._viewInitialized.set(initialized);
   }
 
+  /** Sets the last save time. */
   setLastSaveTime(time: number): void {
     this._lastSaveTime.set(time);
   }
 
+  /** Sets the last seek time. */
   setLastSeekTime(time: number): void {
     this._lastSeekTime.set(time);
   }
 
+  /** Sets the seek tooltip visibility. */
   setShowSeekTooltip(show: boolean): void {
     this._showSeekTooltip.set(show);
   }
 
+  /** Sets the seek tooltip time. */
   setSeekTooltipTime(time: number): void {
     this._seekTooltipTime.set(time);
   }
 
+  /** Sets the seek tooltip position. */
   setSeekTooltipPosition(position: number): void {
     this._seekTooltipPosition.set(position);
   }
 
+  /** Sets the buffered time. */
   setBufferedTime(buffered: number): void {
     this._bufferedTime.set(buffered);
   }
 
+  /** Sets the available playback speeds. */
   setAvailableSpeeds(speeds: number[]): void {
     this._availableSpeeds.set(speeds);
   }
 
   // === Toggle Methods ===
+  /** Toggles the playing state. */
   togglePlay(): void {
     this.setIsPlaying(!this.isPlaying());
   }
 
+  /** Toggles the muted state. */
   toggleMute(): void {
     this.setIsMuted(!this.isMuted());
   }
 
+  /** Toggles the speed menu visibility. */
   toggleSpeedMenu(): void {
     this.setShowSpeedMenu(!this.showSpeedMenu());
   }
 
+  /** Toggles the volume control visibility. */
   toggleVolumeControl(): void {
     this.setShowVolumeControl(!this.showVolumeControl());
   }
 
+  /** Toggles the overlay visibility. */
   toggleOverlay(): void {
     this.setShowOverlay(!this.showOverlay());
   }
 
   // === Reset Methods ===
+  /** Resets all player state to initial values. */
   resetState(): void {
     this.setVideo(null);
     this.setVideoUrl('');
@@ -255,21 +293,25 @@ export class PlayerStateService {
   }
 
   // === Utility Methods ===
+  /** Returns the current time as a percentage of the video duration. */
   getCurrentTimePercentage(): number {
     const duration = this.videoDuration();
     return duration > 0 ? (this.progressTime() / duration) * 100 : 0;
   }
 
+  /** Formats a time value (seconds) as mm:ss. */
   getFormattedTime(seconds: number): string {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   }
 
+  /** Returns the current time formatted as mm:ss. */
   getCurrentTimeFormatted(): string {
     return this.getFormattedTime(this.progressTime());
   }
 
+  /** Returns the video duration formatted as mm:ss. */
   getDurationFormatted(): string {
     return this.getFormattedTime(this.videoDuration());
   }
