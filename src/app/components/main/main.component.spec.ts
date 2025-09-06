@@ -9,7 +9,6 @@ import { Profile } from '../../shared/models/profile';
 import { VideoProgress } from '../../shared/models/video-progress';
 import { ApiResponse } from '../../shared/models/api-response';
 
-
 function createVideoProgressMock(): VideoProgress {
   return new VideoProgress({
     id: '1',
@@ -208,5 +207,43 @@ describe('MainComponent', () => {
   it('should check isContinuePossible returns true for progress', () => {
     apiService.CurrentProfile = createProfileMock(createVideoProgressMock());
     expect((component as any).isContinuePossible()).toBeTrue();
+  });
+
+  it('should handle error in getVideoCollection', async () => {
+    component.videoGenres = ['action'];
+    (component as any).getVideoCollectionByGenre = jasmine.createSpy().and.callFake(() => { throw new Error('fail'); });
+    await component.getVideoCollection();
+    expect(errorService.show).toHaveBeenCalledWith('Failed to load videos for genre action: fail');
+  });
+
+  it('should fallback to English if count is 0 in getVideoCollectionByGenre', async () => {
+    apiService.currentProfile = createProfileMock();
+    apiService.currentProfile.language = 'de';
+    apiService.getVideos.and.callFake((params: string) => {
+      if (params.includes('language=de')) return Promise.resolve(new ApiResponse(true, 200, { count: 0 }));
+      if (params.includes('language=de,en')) return Promise.resolve(new ApiResponse(true, 200, { count: 1 }));
+      return Promise.resolve(new ApiResponse(false, 400, 'error'));
+    });
+    await (component as any).getVideoCollectionByGenre('action');
+    expect(component.videoCollection.length).toBeGreaterThan(0);
+  });
+
+  it('should set featuredVideo to null if no videos', () => {
+    component.videoCollection = [{ genre: { videos: [] } } as any];
+    component['setFeaturedVideo']();
+    expect(component.featuredVideo).toBeNull();
+  });
+
+  it('should getSortedGenres filter out zero-count genres', () => {
+    const genreData = { action: 2, drama: 0, comedy: 0 };
+    const sorted = (component as any).getSortedGenres(genreData);
+    expect(sorted).toEqual(['action']);
+  });
+
+  it('should handle error in addContinueWatching', async () => {
+    apiService.CurrentProfile = createProfileMock(createVideoProgressMock());
+    apiService.getVideoById.and.returnValue(Promise.reject(new Error('fail')));
+    await component.addContinueWatching();
+    expect(errorService.show).toHaveBeenCalledWith('Failed to load continue watching videos: fail');
   });
 });

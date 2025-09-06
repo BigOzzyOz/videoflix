@@ -224,4 +224,138 @@ describe('VolumeControlComponent', () => {
     document.body.removeChild(volumeProgress);
     document.body.removeChild(volumeHandle);
   });
+
+  it('should call setShowVolumeControl and setShowVolumeTooltip after delay in hideVolumeControlDelayed if not dragging', () => {
+    (component as any).isDragging = false;
+    spyOn(component, 'clearVolumeHideTimeout').and.callThrough();
+    jasmine.clock().install();
+    component.hideVolumeControlDelayed();
+    expect(component.clearVolumeHideTimeout).toHaveBeenCalled();
+    jasmine.clock().tick(1501);
+    expect(playerStateSpy.setShowVolumeControl).toHaveBeenCalledWith(false);
+    expect(playerStateSpy.setShowVolumeTooltip).toHaveBeenCalledWith(false);
+    jasmine.clock().uninstall();
+  });
+
+  it('should not set timeout in hideVolumeControlDelayed if dragging', () => {
+    (component as any).isDragging = true;
+    spyOn(component, 'clearVolumeHideTimeout');
+    component.hideVolumeControlDelayed();
+    expect(component.clearVolumeHideTimeout).not.toHaveBeenCalled();
+    expect((component as any).volumeHideTimeout).toBeNull();
+  });
+
+  it('should clear timeout and set volumeHideTimeout to null in clearVolumeHideTimeout', () => {
+    const fakeTimeout = setTimeout(() => { }, 1000);
+    (component as any).volumeHideTimeout = fakeTimeout;
+    spyOn(window, 'clearTimeout');
+    component.clearVolumeHideTimeout();
+    expect(window.clearTimeout).toHaveBeenCalledWith(fakeTimeout);
+    expect((component as any).volumeHideTimeout).toBeNull();
+  });
+
+  it('should call setVolume and updateVolumeHandlePosition in setVolumeAndUpdate', () => {
+    spyOn<any>(component, 'updateVolumeHandlePosition');
+    volumeServiceSpy.setVolume.calls.reset();
+    (component as any).setVolumeAndUpdate(0.42);
+    expect(volumeServiceSpy.setVolume).toHaveBeenCalledWith(0.42);
+    expect(component['updateVolumeHandlePosition']).toHaveBeenCalled();
+  });
+
+  it('should set isDragging to false, remove dragging class, hide tooltip after delay, and call hideVolumeControlDelayed in endDrag', () => {
+    (component as any).isDragging = true;
+    const handle = document.createElement('div');
+    spyOn(handle.classList, 'remove');
+    spyOn(component, 'hideVolumeControlDelayed');
+    jasmine.clock().install();
+    (component as any).endDrag(handle);
+    expect((component as any).isDragging).toBeFalse();
+    expect(handle.classList.remove).toHaveBeenCalledWith('dragging');
+    jasmine.clock().tick(1001);
+    expect(playerStateSpy.setShowVolumeTooltip).toHaveBeenCalledWith(false);
+    expect(component.hideVolumeControlDelayed).toHaveBeenCalled();
+    jasmine.clock().uninstall();
+  });
+
+  it('should do nothing in startVolumeDrag if track is not found', () => {
+    const handle = document.createElement('div');
+    const event = {
+      preventDefault: jasmine.createSpy(),
+      stopPropagation: jasmine.createSpy(),
+      type: 'mousedown',
+      target: handle
+    } as any;
+    spyOn(handle, 'closest').and.returnValue(null);
+    spyOn(component as any, 'handleMouseDrag');
+    component.startVolumeDrag(event);
+    expect((component as any).handleMouseDrag).not.toHaveBeenCalled();
+  });
+
+  it('should handle mouse drag events in handleMouseDrag', () => {
+    const handle = document.createElement('div');
+    const rect = { top: 10, height: 100 } as DOMRect;
+    spyOn(component as any, 'setVolumeAndUpdate');
+    spyOn(component as any, 'endDrag');
+    (component as any).handleMouseDrag({} as MouseEvent, rect, handle);
+    const mouseMove = new MouseEvent('mousemove', { clientY: 60 });
+    document.dispatchEvent(mouseMove);
+    expect((component as any).setVolumeAndUpdate).toHaveBeenCalled();
+    const mouseUp = new MouseEvent('mouseup');
+    document.dispatchEvent(mouseUp);
+    expect((component as any).endDrag).toHaveBeenCalledWith(handle);
+  });
+
+  it('should handle touch drag events in handleTouchDrag', () => {
+    let onTouchMove: EventListener = () => { };
+    let onTouchEnd: EventListener = () => { };
+    spyOn(document, 'addEventListener').and.callFake((type: string, listener: EventListenerOrEventListenerObject) => {
+      if (type === 'touchmove') onTouchMove = listener as EventListener;
+      if (type === 'touchend') onTouchEnd = listener as EventListener;
+    });
+    const handle = document.createElement('div');
+    const rect = { top: 10, height: 100 } as DOMRect;
+    spyOn(component as any, 'setVolumeAndUpdate');
+    spyOn(component as any, 'endDrag');
+    (component as any).handleTouchDrag({} as TouchEvent, rect, handle);
+    onTouchMove({ touches: [{ clientY: 60 }] } as any);
+    expect((component as any).setVolumeAndUpdate).toHaveBeenCalled();
+    onTouchEnd({} as any);
+    expect((component as any).endDrag).toHaveBeenCalledWith(handle);
+  });
+
+  it('should not set volume if clicking on volume handle in setVolumeFromClick', () => {
+    const event = {
+      target: { classList: { contains: () => true } },
+      currentTarget: { getBoundingClientRect: () => ({ top: 0, height: 100 }) },
+      clientY: 50
+    } as any;
+    spyOn(component as any, 'setVolumeAndUpdate');
+    component.setVolumeFromClick(event);
+    expect((component as any).setVolumeAndUpdate).not.toHaveBeenCalled();
+  });
+
+  it('should hide volume tooltip after timeout in setVolumeFromClick', () => {
+    const event = {
+      target: { classList: { contains: () => false } },
+      currentTarget: { getBoundingClientRect: () => ({ top: 0, height: 100 }) },
+      clientY: 50
+    } as any;
+    jasmine.clock().install();
+    component.setVolumeFromClick(event);
+    jasmine.clock().tick(1001);
+    expect(playerStateSpy.setShowVolumeTooltip).toHaveBeenCalledWith(false);
+    jasmine.clock().uninstall();
+  });
+
+  it('should hide volume tooltip after timeout in setVolumeFromTouch', () => {
+    const event = {
+      touches: [{ clientY: 50 }],
+      currentTarget: { getBoundingClientRect: () => ({ top: 0, height: 100 }) }
+    } as any;
+    jasmine.clock().install();
+    component.setVolumeFromTouch(event);
+    jasmine.clock().tick(1001);
+    expect(playerStateSpy.setShowVolumeTooltip).toHaveBeenCalledWith(false);
+    jasmine.clock().uninstall();
+  });
 });
