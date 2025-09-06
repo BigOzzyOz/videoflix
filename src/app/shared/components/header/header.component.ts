@@ -56,10 +56,14 @@ export class HeaderComponent {
     try {
       const selectedProfile = await this.dialogService.openProfileSelection(user.profiles);
       this.api.CurrentProfile = selectedProfile;
-      window.location.reload();
+      this.reloadWindow();
     } catch (error) {
       this.errorService.show('Profile selection was cancelled or timed out.');
     }
+  }
+
+  reloadWindow(): void {
+    window.location.reload();
   }
 
   navigateToMain(): void {

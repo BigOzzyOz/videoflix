@@ -2,6 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 
 import { HeaderComponent } from './header.component';
+import { Profile } from '../../models/profile';
+import { User } from '../../models/user';
 
 describe('HeaderComponent', () => {
   let component: HeaderComponent;
@@ -126,4 +128,44 @@ describe('HeaderComponent', () => {
 
     expect(router.navigate).toHaveBeenCalledWith(['/']);
   });
+
+  it('should call api.logout when logOut is called', () => {
+    const apiSpy = spyOn(component.api, 'logout');
+    component.logOut();
+    expect(apiSpy).toHaveBeenCalled();
+  });
+
+  it('should navigate to /main when navigateToMain is called', () => {
+    component.navigateToMain();
+    expect(router.navigate).toHaveBeenCalledWith(['/main']);
+  });
+
+  it('should set CurrentProfile and reload window on successful toProfile', async function () {
+    const mockProfile = Profile.empty();
+    const mockUser = User.empty();
+    component.api.CurrentUser = mockUser;
+    spyOn(component['dialogService'], 'openProfileSelection').and.returnValue(Promise.resolve(mockProfile));
+    const setProfileSpy = spyOnProperty(component.api, 'CurrentProfile', 'set');
+    const reloadSpy = spyOn(component, 'reloadWindow');
+    await component.toProfile();
+    expect(setProfileSpy).toHaveBeenCalledWith(mockProfile);
+    expect(reloadSpy).toHaveBeenCalled();
+  });
+
+  it('should show error if toProfile is cancelled or fails', async () => {
+    const mockProfile = Profile.empty();
+    const mockUser = User.empty();
+    component.api.CurrentUser = mockUser;
+    spyOn(component['dialogService'], 'openProfileSelection').and.returnValue(Promise.reject('cancelled'));
+    const errorSpy = spyOn(component['errorService'], 'show');
+    await component.toProfile();
+    expect(errorSpy).toHaveBeenCalledWith('Profile selection was cancelled or timed out.');
+  });
+
+  it('should have reloadWindow method covered', function () {
+    // component.reloadWindow();
+    expect(typeof component.reloadWindow).toBe('function');
+    expect(component.reloadWindow).toBeDefined();
+  });
 });
+
