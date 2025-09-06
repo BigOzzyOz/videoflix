@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule, FormControl } from '@angular/forms';
+import { ReactiveFormsModule, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { By } from '@angular/platform-browser';
@@ -216,5 +216,140 @@ describe('PasswordResetComponent', () => {
     await component.ngOnInit();
     expect((component as any).verifyAccount).not.toHaveBeenCalled();
     expect(router.navigate).toHaveBeenCalledWith(['**']);
+  });
+
+  it('should set mismatch error when passwords do not match', () => {
+    component.resetForm.patchValue({
+      password: 'Password123',
+      confirmedPassword: 'DifferentPassword'
+    });
+    const confirmedPasswordControl = component.resetForm.get('confirmedPassword');
+    expect(confirmedPasswordControl?.hasError('mismatch')).toBeTrue();
+  });
+
+  it('should remove mismatch error when passwords match again', () => {
+    component.resetForm.patchValue({
+      password: 'Password123',
+      confirmedPassword: 'DifferentPassword'
+    });
+    const confirmedPasswordControl = component.resetForm.get('confirmedPassword');
+    expect(confirmedPasswordControl?.hasError('mismatch')).toBeTrue();
+
+    component.resetForm.patchValue({
+      confirmedPassword: 'Password123'
+    });
+    expect(confirmedPasswordControl?.hasError('mismatch')).toBeFalsy();
+  });
+
+  it('should clean up background and timeout on destroy', () => {
+    component.timeoutId = setTimeout(() => { }, 1000);
+    spyOn(window, 'clearTimeout');
+    const rendererRemoveClassSpy = spyOn(component['renderer'], 'removeClass');
+    component.ngOnDestroy();
+    expect(window.clearTimeout).toHaveBeenCalledWith(jasmine.anything());
+    expect(component.timeoutId).toBeNull();
+    expect(rendererRemoveClassSpy).toHaveBeenCalledWith(document.body, 'login-bg');
+  });
+
+  it('should return truthy/falsy for isPasswordReset with various params', () => {
+    expect((component as any).isPasswordReset('password/reset', { reset: 'true', token: 'abc' })).toBeTruthy();
+    expect((component as any).isPasswordReset('password/reset', { reset: 'true' })).toBeFalsy();
+    expect((component as any).isPasswordReset('other', { reset: 'true', token: 'abc' })).toBeFalsy();
+  });
+
+  it('should return true/false for isPasswordForget with various params', () => {
+    expect((component as any).isPasswordForget('password/forgot', { forgot: 'true' })).toBeTrue();
+    expect((component as any).isPasswordForget('password/forgot', {})).toBeFalse();
+    expect((component as any).isPasswordForget('other', { forgot: 'true' })).toBeFalse();
+  });
+
+  it('should navigate to login without clearing timeout if timeoutId is null', () => {
+    component.timeoutId = null;
+    spyOn(window, 'clearTimeout');
+    component.toLogin();
+    expect(window.clearTimeout).not.toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledWith(['/login']);
+  });
+
+  it('should do nothing in handlePasswordValidationErrors if confirmedPassword is null', () => {
+    expect(() => (PasswordResetComponent as any).handlePasswordValidationErrors(null)).not.toThrow();
+  });
+
+  it('should set passwordReset and resetToken on ngOnInit if isPasswordReset', async () => {
+    const path = 'password/reset';
+    const params = { reset: 'true', token: 'abc' };
+    spyOn(component as any, 'isPasswordReset').and.returnValue(true);
+    spyOn(component as any, 'isPasswordForget').and.returnValue(false);
+    Object.defineProperty(component['activeRoute'].snapshot, 'routeConfig', {
+      value: { path },
+      configurable: true
+    });
+    component['activeRoute'].snapshot.queryParams = params;
+    await component.ngOnInit();
+    expect(component.passwordReset).toBeTrue();
+    expect(component.resetToken).toBe('abc');
+  });
+
+  it('should set passwordForget on ngOnInit if isPasswordForget', async () => {
+    const path = 'password/forgot';
+    const params = { forgot: 'true' };
+    spyOn(component as any, 'isPasswordReset').and.returnValue(false);
+    spyOn(component as any, 'isPasswordForget').and.returnValue(true);
+    Object.defineProperty(component['activeRoute'].snapshot, 'routeConfig', {
+      value: { path },
+      configurable: true
+    });
+    component['activeRoute'].snapshot.queryParams = params;
+    await component.ngOnInit();
+    expect(component.passwordForget).toBeTrue();
+  });
+
+  it('should set timeout and navigate to login after verifyAccount success', async () => {
+    const token = 'abc';
+    const mockResponse = new ApiResponse(true, 200, null);
+    apiService.verifyEmail.and.returnValue(Promise.resolve(mockResponse));
+    router.navigate.calls.reset();
+    jasmine.clock().install();
+    await (component as any).verifyAccount(token);
+    expect(component.timeoutId).not.toBeNull();
+    jasmine.clock().tick(5001);
+    expect(component['router'].navigate).toHaveBeenCalledWith(['/login']);
+    jasmine.clock().uninstall();
+  });
+
+  it('should return null in passwordsMatch if confirmedPassword is missing', () => {
+    const group = new FormGroup({
+      password: new FormControl('Password123')
+    });
+    expect(component.passwordsMatch(group)).toBeNull();
+  });
+
+  it('should remove only mismatch error in handlePasswordValidationErrors', () => {
+    const control = new FormControl('Password123');
+    control.setErrors({ mismatch: true, required: true });
+    (PasswordResetComponent as any).handlePasswordValidationErrors(control);
+    expect(control.hasError('mismatch')).toBeFalse();
+    expect(control.hasError('required')).toBeTrue();
+  });
+
+  it('should clear all errors in handlePasswordValidationErrors if only mismatch', () => {
+    const control = new FormControl('Password123');
+    control.setErrors({ mismatch: true });
+    (PasswordResetComponent as any).handlePasswordValidationErrors(control);
+    expect(control.errors).toBeNull();
+  });
+
+  it('should set resetToken to empty string if token param is missing', async () => {
+    spyOn(component as any, 'isPasswordReset').and.returnValue(true);
+    spyOn(component as any, 'isPasswordForget').and.returnValue(false);
+
+    Object.defineProperty(component['activeRoute'].snapshot, 'routeConfig', {
+      value: { path: 'password/reset' },
+      configurable: true
+    });
+    component['activeRoute'].snapshot.queryParams = { reset: 'true' };
+
+    await component.ngOnInit();
+    expect(component.resetToken).toBe('');
   });
 });
