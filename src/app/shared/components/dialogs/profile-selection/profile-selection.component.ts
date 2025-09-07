@@ -152,9 +152,13 @@ export class ProfileSelectionComponent implements OnInit, OnDestroy {
     }
     const name = formValue.name.trim();
     const isKid = formValue.kid || false;
-    const response = await this.api.editUserProfile(this.profileToEdit.id, name, isKid, this.profilePicFile || undefined);
-    if (response.isSuccess() && response.data) this.handleProfileUpdate(response);
-    else this.errorService.show(response);
+    try {
+      const response = await this.api.editUserProfile(this.profileToEdit.id, name, isKid, this.profilePicFile || undefined);
+      if (response.isSuccess() && response.data) this.handleProfileUpdate(response);
+      else this.errorService.show(response);
+    } catch (error) {
+      this.errorService.show('Error updating profile. Please try again later.');
+    }
   }
 
   /**
@@ -178,9 +182,13 @@ export class ProfileSelectionComponent implements OnInit, OnDestroy {
   async deleteProfile(): Promise<void> {
     if (!this.profileToEdit) return;
     if (!this.confirmDeleteProfile(this.profileToEdit)) return;
-    const response = await this.api.deleteUserProfile(this.profileToEdit.id);
-    if (response.isSuccess()) this.handleProfileDelete(this.profileToEdit);
-    else this.errorService.show(response);
+    try {
+      const response = await this.api.deleteUserProfile(this.profileToEdit.id);
+      if (response.isSuccess()) this.handleProfileDelete(this.profileToEdit);
+      else this.errorService.show(response);
+    } catch (error) {
+      this.errorService.show('Error deleting profile. Please try again later.');
+    }
   }
 
   /**
@@ -189,8 +197,11 @@ export class ProfileSelectionComponent implements OnInit, OnDestroy {
    */
   private handleProfileDelete(profile: Profile): void {
     const user = this.api.CurrentUser;
-    user.profiles = user.profiles.filter(p => p.id !== this.profileToEdit?.id);
+    user.profiles = user.profiles.filter(p => p.id !== profile.id);
+    console.log(user.profiles);
     this.api.CurrentUser = user;
+    console.log(this.api.CurrentUser);
+    console.log(this.api.CurrentProfile);
     if (this.api.CurrentProfile.id === profile.id) {
       this.api.CurrentProfile = user.profiles.length > 0 ? user.profiles[0] : null;
     }
@@ -227,6 +238,7 @@ export class ProfileSelectionComponent implements OnInit, OnDestroy {
    * @param profile Profile to select
    */
   selectProfile(profile: Profile): void {
+    if (!profile) return;
     this.dialogService.selectProfile(profile);
   }
 

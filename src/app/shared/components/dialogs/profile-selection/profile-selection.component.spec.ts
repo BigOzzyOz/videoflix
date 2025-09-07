@@ -80,12 +80,14 @@ describe('ProfileSelectionComponent', () => {
       profileSelectionData: profileSelectionData$.asObservable(),
       isProfileSelectionVisible: isProfileSelectionVisible$.asObservable()
     });
-    apiService = jasmine.createSpyObj('ApiService', [
-      'createUserProfile', 'editUserProfile', 'deleteUserProfile'
-    ], {
+    const realApiService = {
+      createUserProfile: jasmine.createSpy(),
+      editUserProfile: jasmine.createSpy(),
+      deleteUserProfile: jasmine.createSpy(),
       CurrentUser: { profiles: [...profiles] },
       CurrentProfile: profiles[0]
-    });
+    };
+    apiService = realApiService as any;
     errorService = jasmine.createSpyObj('ErrorService', ['show']);
 
     await TestBed.configureTestingModule({
@@ -221,5 +223,203 @@ describe('ProfileSelectionComponent', () => {
     dialogService.openProfileSelection.calls.reset();
     component.closeCreateDialog();
     expect(dialogService.openProfileSelection).toHaveBeenCalled();
+  });
+
+  it('should not create profile if form is invalid', async () => {
+    component.createProfileForm.setValue({ name: '', kid: false });
+    await component.createProfile(component.createProfileForm.value);
+    expect(apiService.createUserProfile).not.toHaveBeenCalled();
+  });
+
+  it('should not edit profile if form is invalid', async () => {
+    component.profileToEdit = createProfileMock('1', 'User1', false);
+    component.createProfileForm.setValue({ name: '', kid: false });
+    await component.editProfile(component.createProfileForm.value);
+    expect(apiService.editUserProfile).not.toHaveBeenCalled();
+  });
+
+  it('should handle exception in editProfile', async () => {
+    component.profileToEdit = createProfileMock('1', 'User1', false);
+    component.createProfileForm.setValue({ name: 'User1', kid: false });
+    apiService.editUserProfile.and.rejectWith(new Error('fail'));
+    try {
+      await component.editProfile(component.createProfileForm.value);
+    } catch (e) { }
+    expect(errorService.show).toHaveBeenCalledWith('Error updating profile. Please try again later.');
+  });
+
+  it('should handle exception in deleteProfile', async () => {
+    component.profileToEdit = createProfileMock('1', 'User1', false);
+    spyOn(window, 'confirm').and.returnValue(true);
+    apiService.deleteUserProfile.and.rejectWith(new Error('fail'));
+    try {
+      await component.deleteProfile();
+    } catch (e) { }
+    expect(errorService.show).toHaveBeenCalledWith('Error deleting profile. Please try again later.');
+  });
+
+  it('should not open edit profile dialog for invalid id', () => {
+    component.profiles = profiles;
+    const event = new Event('click');
+    component.openEditProfile(event, 'invalid');
+    expect(dialogService.openProfileEdit).not.toHaveBeenCalled();
+  });
+
+  it('should not select profile if undefined', () => {
+    component.selectProfile(undefined as any);
+    expect(dialogService.selectProfile).not.toHaveBeenCalled();
+  });
+
+  it('should create child profile successfully', async () => {
+    const newProfile = createProfileMock('4', 'KidUser', true);
+    apiService.createUserProfile.and.returnValue(Promise.resolve(createApiResponseMock(true, newProfile)));
+    spyOn<any>(component, 'handleProfileCreation');
+    component.createProfileForm.setValue({ name: 'KidUser', kid: true });
+    await component.createProfile(component.createProfileForm.value);
+    expect(apiService.createUserProfile).toHaveBeenCalledWith('KidUser', true, undefined);
+    expect((component as any).handleProfileCreation).toHaveBeenCalled();
+  });
+
+  it('should unsubscribe and cleanup on destroy', () => {
+    const sub = { unsubscribe: jasmine.createSpy('unsubscribe') };
+    (component as any).subscriptions = [sub];
+    component.profilePicPreview = 'preview';
+    component.profilePicFile = new File(['dummy'], 'pic.png', { type: 'image/png' });
+    component.createProfileForm.setValue({ name: 'User', kid: false });
+    component.ngOnDestroy();
+    expect(sub.unsubscribe).toHaveBeenCalled();
+    expect(component.profilePicFile).toBeNull();
+    expect(component.profilePicPreview).toBeNull();
+    expect(component.createProfileForm.value.name).toBeNull();
+  });
+
+  it('should set profilesFull to false when profiles is empty', () => {
+    const data = { profiles: [], mode: undefined, profileToEdit: undefined };
+    profileSelectionData$.next(data);
+    component.ngOnInit();
+    expect(component.profilesFull).toBe(false);
+    expect(component.mode).toBe('select');
+    expect(component.profileToEdit).toBeNull();
+  });
+
+  it('should set profilesFull to true when profiles length >= MAX_PROFILES', () => {
+    const profiles = Array((component as any).MAX_PROFILES).fill({ id: 1 });
+    profileSelectionData$.next({ profiles });
+    component.ngOnInit();
+    expect(component.profilesFull).toBe(true);
+  });
+
+  it('should set profilePicPreview on reader.onload', () => {
+    const mockResult = 'data:image/png;base64,xyz';
+    class MockFileReader {
+      result = mockResult;
+      onload: Function | null = null;
+      readAsDataURL() {
+        if (this.onload) this.onload();
+      }
+    }
+    spyOn(window as any, 'FileReader').and.returnValue(new MockFileReader());
+    component.profilePicPreview = '';
+    const file = new File(['dummy'], 'pic.png', { type: 'image/png' });
+    const event = { target: { files: [file] } } as any;
+    component.onProfilePicUpload(event);
+    expect(component.profilePicPreview).toBe(mockResult);
+  });
+
+  it('should add new profile and call closeCreateDialog', () => {
+    const response = { data: createProfileMock('123', 'NewUser', false) };
+    spyOn(component, 'closeCreateDialog');
+    const initialLength = component.api.CurrentUser.profiles.length;
+    (component as any)['handleProfileCreation'](response);
+    expect(component.api.CurrentUser.profiles.length).toBe(initialLength + 1);
+    expect(component.closeCreateDialog).toHaveBeenCalled();
+  });
+
+  it('should update profile if found and call closeCreateDialog', () => {
+    const oldProfile = createProfileMock('1', 'User1', false);
+    component.api.CurrentUser.profiles = [oldProfile];
+    component.profileToEdit = createProfileMock('1', 'User1', false);
+    const response = { data: createProfileMock('1', 'updated', false) };
+    spyOn(component, 'closeCreateDialog');
+    (component as any)['handleProfileUpdate'](response);
+    expect(component.api.CurrentUser.profiles[0].name).toBe('updated');
+    expect(component.closeCreateDialog).toHaveBeenCalled();
+  });
+
+  it('should call closeCreateDialog if profile not found', () => {
+    component.api.CurrentUser.profiles = [createProfileMock('2', 'User2', false)];
+    component.profileToEdit = createProfileMock('1', 'User1', false);
+    const response = { data: createProfileMock('1', 'updated', false) };
+    spyOn(component, 'closeCreateDialog');
+    (component as any).handleProfileUpdate(response);
+    expect(component.closeCreateDialog).toHaveBeenCalled();
+  });
+
+  it('should remove profile and update CurrentProfile if deleted', () => {
+    const profile1 = createProfileMock('1', 'User1', false);
+    const profile2 = createProfileMock('2', 'User2', false);
+    component.api.CurrentUser.profiles = [profile1, profile2];
+    component.profileToEdit = profile1;
+    component.api.CurrentProfile = profile1;
+    spyOn(component, 'closeCreateDialog');
+    (component as any)['handleProfileDelete'](profile1);
+    expect(component.api.CurrentUser.profiles.length).toBe(1);
+    expect(component.api.CurrentProfile.id).toBe('2');
+    expect(component.closeCreateDialog).toHaveBeenCalled();
+  });
+
+  it('should set CurrentProfile to null if no profiles remain after delete', () => {
+    const profile1 = createProfileMock('1', 'User1', false);
+    component.api.CurrentUser.profiles = [profile1];
+    component.profileToEdit = profile1;
+    component.api.CurrentProfile = profile1;
+    spyOn(component, 'closeCreateDialog');
+    (component as any).handleProfileDelete(profile1);
+    expect(component.api.CurrentUser.profiles.length).toBe(0);
+    expect(component.api.CurrentProfile).toBeNull();
+    expect(component.closeCreateDialog).toHaveBeenCalled();
+  });
+
+  it('should return early if profileToEdit is not set in update/delete', () => {
+    component.profileToEdit = null;
+    spyOn(component, 'closeCreateDialog');
+    expect(() => (component as any)['handleProfileUpdate']({ data: createProfileMock('1', 'User1', false) })).not.toThrow();
+    expect(() => (component as any)['handleProfileDelete'](createProfileMock('1', 'User1', false))).not.toThrow();
+  });
+
+  it('should call URL.revokeObjectURL only if profilePicPreview is set', () => {
+    component.profilePicPreview = 'blob:url';
+    const revokeSpy = spyOn(URL, 'revokeObjectURL');
+    component.ngOnDestroy();
+    expect(revokeSpy).toHaveBeenCalledWith('blob:url');
+  });
+
+  it('should not call URL.revokeObjectURL if profilePicPreview is not set', () => {
+    component.profilePicPreview = '';
+    const revokeSpy = spyOn(URL, 'revokeObjectURL');
+    component.ngOnDestroy();
+    expect(revokeSpy).not.toHaveBeenCalled();
+  });
+
+  it('should revokeObjectURL in closeCreateDialog if profilePicPreview is set', () => {
+    component.profilePicPreview = 'blob:url';
+    const revokeSpy = spyOn(URL, 'revokeObjectURL');
+    component.closeCreateDialog();
+    expect(revokeSpy).toHaveBeenCalledWith('blob:url');
+  });
+
+  it('should set profiles to empty array if profiles is undefined in profileSelectionData', () => {
+    const data = { profiles: undefined, mode: 'select', profileToEdit: undefined };
+    profileSelectionData$.next(data);
+    component.ngOnInit();
+    expect(component.profiles).toEqual([]);
+  });
+
+  it('should return early in deleteProfile if profileToEdit is not set', async () => {
+    component.profileToEdit = null;
+    spyOn(window, 'confirm').and.returnValue(true);
+    await component.deleteProfile();
+    expect(apiService.deleteUserProfile).not.toHaveBeenCalled();
+    expect(errorService.show).not.toHaveBeenCalled();
   });
 });
