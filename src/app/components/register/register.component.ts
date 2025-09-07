@@ -136,7 +136,7 @@ export class RegisterComponent {
      * Removes 'mismatch' error from confirmedPassword control if passwords match.
      * @param password The confirmedPassword form control
      */
-    private static handlePasswordMismatchError(password: AbstractControl) {
+    static handlePasswordMismatchError(password: AbstractControl) {
         if (password.hasError('mismatch')) {
             const errors = { ...password.errors };
             delete errors['mismatch'];

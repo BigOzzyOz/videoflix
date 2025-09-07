@@ -1,9 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule, FormControl } from '@angular/forms';
+import { ReactiveFormsModule, FormControl, FormBuilder } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { By } from '@angular/platform-browser';
-
 import { RegisterComponent } from './register.component';
 import { HeaderComponent } from '../../shared/components/header/header.component';
 import { FooterComponent } from '../../shared/components/footer/footer.component';
@@ -220,4 +219,93 @@ describe('RegisterComponent', () => {
 
     expect(component.toHome).toHaveBeenCalled();
   });
+
+  it('should return null from passwordsMatch if confirmedPassword is falsy', () => {
+    component.registerForm.patchValue({
+      password: 'password',
+      confirmedPassword: null
+    });
+    expect(component.passwordsMatch(component.registerForm)).toBeNull();
+    expect(component.passwordsMatch(component.registerForm)).toBeNull();
+    expect(component.passwordsMatch(component.registerForm)).toBeNull();
+  });
+
+
+  it('should return null from passwordsMatch if confirmedPassword control is missing', () => {
+    const fb = new FormBuilder();
+    const group = fb.group({
+      password: ['password']
+      // no confirmedPassword control
+    });
+    expect(component.passwordsMatch(group)).toBeNull();
+  });
+
+  it('should remove mismatch error and reset errors if no other errors remain', () => {
+    const passwordControl = {
+      errors: { mismatch: true },
+      hasError: (err: string) => err === 'mismatch',
+      setErrors: jasmine.createSpy()
+    };
+    RegisterComponent.handlePasswordMismatchError(passwordControl as any);
+    expect(passwordControl.setErrors).toHaveBeenCalledWith(null);
+  });
+
+  it('should remove only mismatch error and keep other errors', () => {
+    const passwordControl = {
+      errors: { mismatch: true, required: true },
+      hasError: (err: string) => err === 'mismatch' || err === 'required',
+      setErrors: jasmine.createSpy()
+    };
+    RegisterComponent.handlePasswordMismatchError(passwordControl as any);
+    expect(passwordControl.setErrors).toHaveBeenCalledWith({ required: true });
+  });
 });
+
+
+describe('RegisterComponent with missing email param', () => {
+  let component: RegisterComponent;
+  let fixture: ComponentFixture<RegisterComponent>;
+  let router: jasmine.SpyObj<Router>;
+  let apiService: jasmine.SpyObj<ApiService>;
+  let errorService: jasmine.SpyObj<ErrorService>;
+  let activatedRoute: jasmine.SpyObj<ActivatedRoute>;
+
+  beforeEach(async () => {
+    const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+    const apiSpy = jasmine.createSpyObj('ApiService', ['register']);
+    const errorSpy = jasmine.createSpyObj('ErrorService', ['show']);
+    const routeSpy = jasmine.createSpyObj('ActivatedRoute', [], { queryParams: of({}) });
+
+    await TestBed.configureTestingModule({
+      imports: [
+        RegisterComponent,
+        HeaderComponent,
+        FooterComponent,
+        EmailInputComponent,
+        PasswordInputComponent,
+        ReactiveFormsModule
+      ],
+      providers: [
+        { provide: Router, useValue: routerSpy },
+        { provide: ApiService, useValue: apiSpy },
+        { provide: ErrorService, useValue: errorSpy },
+        { provide: ActivatedRoute, useValue: routeSpy }
+      ]
+    })
+      .compileComponents();
+
+    fixture = TestBed.createComponent(RegisterComponent);
+    component = fixture.componentInstance;
+    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+    apiService = TestBed.inject(ApiService) as jasmine.SpyObj<ApiService>;
+    errorService = TestBed.inject(ErrorService) as jasmine.SpyObj<ErrorService>;
+    activatedRoute = TestBed.inject(ActivatedRoute) as jasmine.SpyObj<ActivatedRoute>;
+    fixture.detectChanges();
+  });
+
+  it('should set tempEmail to empty string if email param is missing', async () => {
+    expect(component.tempEmail).toBe('');
+  });
+});
+
+
