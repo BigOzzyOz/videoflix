@@ -198,10 +198,7 @@ export class ProfileSelectionComponent implements OnInit, OnDestroy {
   private handleProfileDelete(profile: Profile): void {
     const user = this.api.CurrentUser;
     user.profiles = user.profiles.filter(p => p.id !== profile.id);
-    console.log(user.profiles);
     this.api.CurrentUser = user;
-    console.log(this.api.CurrentUser);
-    console.log(this.api.CurrentProfile);
     if (this.api.CurrentProfile.id === profile.id) {
       this.api.CurrentProfile = user.profiles.length > 0 ? user.profiles[0] : null;
     }
