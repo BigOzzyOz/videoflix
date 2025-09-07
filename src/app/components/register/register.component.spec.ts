@@ -235,7 +235,6 @@ describe('RegisterComponent', () => {
     const fb = new FormBuilder();
     const group = fb.group({
       password: ['password']
-      // no confirmedPassword control
     });
     expect(component.passwordsMatch(group)).toBeNull();
   });
