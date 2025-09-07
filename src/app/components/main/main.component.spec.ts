@@ -246,4 +246,76 @@ describe('MainComponent', () => {
     await component.addContinueWatching();
     expect(errorService.show).toHaveBeenCalledWith('Failed to load continue watching videos: fail');
   });
+
+  it('should call addContinueWatching in ngOnInit if isContinuePossible returns true', async () => {
+    spyOn(component as any, 'isContinuePossible').and.returnValue(true);
+    spyOn(component as any, 'addContinueWatching').and.returnValue(Promise.resolve());
+    spyOn(component as any, 'getGenreCount').and.returnValue(Promise.resolve());
+    spyOn(component as any, 'getVideoCollection').and.returnValue(Promise.resolve());
+    spyOn(component as any, 'setFeaturedVideo');;
+    await component.ngOnInit();
+    expect((component as any).addContinueWatching).toHaveBeenCalled();
+    expect(component.loadingService.setLoading).toHaveBeenCalledWith(false);
+  });
+
+  it('should show error with String(error) in ngOnInit catch block', async () => {
+    spyOn(component as any, 'isContinuePossible').and.throwError('TestError');
+    await component.ngOnInit();
+    expect(errorService.show).toHaveBeenCalledWith('Failed to initialize component: TestError');
+    (component as any).isContinuePossible.and.callFake(() => { throw 'TestErrorString'; });
+    await component.ngOnInit();
+    expect(errorService.show).toHaveBeenCalledWith('Failed to initialize component: TestErrorString');
+  });
+
+  it('should show error with String(error) in getGenreCount catch block', async () => {
+    apiService.getGenresCount.and.throwError('GenreError');
+    await component.getGenreCount();
+    expect(errorService.show).toHaveBeenCalledWith('Failed to load genres count: GenreError');
+    apiService.getGenresCount.and.callFake(() => { throw 'TestErrorString'; });
+    await component.getGenreCount();
+    expect(errorService.show).toHaveBeenCalledWith('Failed to load genres count: TestErrorString');
+  });
+
+  it('should show error with String(error) in getVideoCollection catch block', async () => {
+    component.videoGenres = ['action'];
+    spyOn(component as any, 'getVideoCollectionByGenre').and.callFake(() => { throw new Error('VideoError'); });
+    await component.getVideoCollection();
+    expect(errorService.show).toHaveBeenCalledWith('Failed to load videos for genre action: VideoError');
+    (component as any).getVideoCollectionByGenre.and.callFake(() => { throw 'TestErrorString'; });
+    await component.getVideoCollection();
+    expect(errorService.show).toHaveBeenCalledWith('Failed to load videos for genre action: TestErrorString');
+  });
+
+  it('should use newly_released=true param for genre \"new\" in getVideoCollectionByGenre', async () => {
+    apiService.getVideos.and.returnValue(Promise.resolve(new ApiResponse(true, 200, { count: 1 })));
+    spyOn(component.videoCollection, 'push');
+    await (component as any).getVideoCollectionByGenre('new');
+    expect(component.api.getVideos).toHaveBeenCalledWith(jasmine.stringMatching(/^newly_released=true/));
+  });
+
+  it('should show error if newVideo.isSuccess() is false in addContinueWatching', async () => {
+    component.api.CurrentProfile = createProfileMock();
+    const apiResponseMock = new ApiResponse(false, 400, 'ErrorData');
+    apiService.getVideoById.and.returnValue(Promise.resolve(apiResponseMock));
+    await component.addContinueWatching();
+    expect(errorService.show).toHaveBeenCalledWith('ErrorData');
+  });
+
+  it('should return early if continueWatching is empty in addContinueWatching', async () => {
+    component.api.CurrentProfile = createProfileMock();
+    component.api.CurrentProfile.videoProgress = [];
+    await component.addContinueWatching();
+    expect(component.videoCollection[0]?.['genre']).not.toBe('continue_watching');
+  });
+
+  it('should show error with String(err) in addContinueWatching catch block', async () => {
+    const profileMock = createProfileMock();
+    apiService.getVideoById.and.throwError('ContinueError');
+    component.api.CurrentProfile = profileMock;
+    await component.addContinueWatching();
+    expect(errorService.show).toHaveBeenCalledWith('Failed to load continue watching videos: ContinueError');
+    apiService.getVideoById.and.callFake(() => { throw 'TestErrorString'; });
+    await component.addContinueWatching();
+    expect(errorService.show).toHaveBeenCalledWith('Failed to load continue watching videos: TestErrorString');
+  });
 });
