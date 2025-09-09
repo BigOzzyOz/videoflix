@@ -139,4 +139,19 @@ describe('ErrorService', () => {
     expect(service.errorMessage$.getValue()).toBeNull();
   });
 
+  it('should clear previous error timer before showing new error', () => {
+    service.show('First error');
+    const firstTimer = service.errorTimer;
+    service.show('Second error');
+    expect(firstTimer).not.toBeNull();
+    expect(service.errorTimer).not.toBe(firstTimer);
+    expect(service.errorMessage$.getValue()).toBe('Second error');
+  });
+
+  it('should extract error message from string data property', () => {
+    const response = { data: 'String error message' };
+    const result = (service as any).extractErrorMessage(response);
+    expect(result).toBe('String error message');
+  });
+
 });
