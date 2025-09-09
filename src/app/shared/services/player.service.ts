@@ -1,5 +1,4 @@
 import { inject, Injectable } from '@angular/core';
-import videojs from 'video.js';
 import '@videojs/http-streaming';
 import { PlayerStateService } from './player-state.service';
 import { ErrorService } from './error.service';
@@ -28,19 +27,25 @@ export class PlayerService {
   /**
    * Constructs the PlayerService and injects all required dependencies.
    */
-  constructor() { }
+  videojs: any;
+  constructor() {
+    this.videojs = (window as any).videojs;
+  }
 
   /**
    * Toggles playback: plays if paused, pauses if playing. Updates state and overlay timer.
    */
-  togglePlay(): void {
+  async togglePlay(): Promise<void> {
     const player = this.playerState.player;
     if (player) {
       if (player.paused()) {
-        player.play().then(() => {
+        try {
+          await player.play();
           this.playerState.setIsPlaying(true);
           this.overlayService.resetOverlayTimer(true);
-        }).catch(() => this.errorService.show('Error playing video. Please try again.'));
+        } catch {
+          this.errorService.show('Error playing video. Please try again.');
+        }
       } else {
         player.pause();
         this.playerState.setIsPlaying(false);
@@ -83,11 +88,11 @@ export class PlayerService {
    * @param videoElement The HTML video element to attach the player to.
    * @returns The created video.js player instance.
    */
-  playerCreateHandler(videoElement: HTMLVideoElement): ReturnType<typeof videojs> {
+  playerCreateHandler(videoElement: HTMLVideoElement): any {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
-    return videojs(videoElement, {
+    return this.videojs(videoElement, {
       autoplay: false,
       preload: 'metadata',
       controls: false,
@@ -126,8 +131,8 @@ export class PlayerService {
     const currentTime = this.playerState.player.currentTime();
     if (typeof currentTime === 'number') this.playerState.setProgressTime(currentTime);
     const lastSaveTime = await this.progressService.updateProgress(
-      this.api.CurrentProfile.id || '',
-      this.playerState.videoId() || '',
+      this.api.CurrentProfile.id,
+      this.playerState.videoId(),
       this.playerState.lastSaveTime() || 0
     );
     this.playerState.setLastSaveTime(lastSaveTime);
@@ -142,8 +147,8 @@ export class PlayerService {
     this.setEndState();
     if (!currentTime) return;
     const lastSaveTime = await this.progressService.updateProgress(
-      this.api.CurrentProfile.id || '',
-      this.playerState.videoId() || '',
+      this.api.CurrentProfile.id,
+      this.playerState.videoId(),
       0
     );
     this.playerState.setLastSaveTime(lastSaveTime);
@@ -153,13 +158,13 @@ export class PlayerService {
    * Handles the 'ended' event: sets end state and saves progress.
    */
   async playerEndHandler(): Promise<void> {
-    if (!this.playerState.videoId() && !this.playerState.player()) return;
+    if (!this.playerState.videoId() || !this.playerState.player()) return;
     const currentTime = this.playerState.player.currentTime();
     this.setEndState();
     if (!currentTime) return;
     const lastSaveTime = await this.progressService.updateProgress(
-      this.api.CurrentProfile.id || '',
-      this.playerState.videoId() || '',
+      this.api.CurrentProfile.id,
+      this.playerState.videoId(),
       0
     );
     this.setEndState(lastSaveTime);

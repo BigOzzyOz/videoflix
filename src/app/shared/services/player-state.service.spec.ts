@@ -15,6 +15,8 @@ describe('PlayerStateService', () => {
 
   it('should set and get video state', () => {
     service.setVideo({ id: '1', hls: 'url', title: 'Test' } as any);
+    service.setIsOptimizing(false);
+    expect(service.isOptimizing()).toBeFalse();
     expect(service.video()?.title).toBe('Test');
     expect(service.videoUrl()).toBe('url');
     expect(service.videoId()).toBe('1');
@@ -43,6 +45,7 @@ describe('PlayerStateService', () => {
   it('should clamp volume between 0 and 1', () => {
     service.setVolume(2);
     expect(service.volume()).toBe(1);
+    expect(service.volumePercentage()).toBe(100);
     service.setVolume(-1);
     expect(service.volume()).toBe(0);
   });
@@ -64,12 +67,18 @@ describe('PlayerStateService', () => {
   it('should set and get speed menu state', () => {
     service.setShowSpeedMenu(true);
     expect(service.showSpeedMenu()).toBeTrue();
+    service.setAvailableSpeeds([0.5, 1, 1.5, 2]);
+    expect(service.availableSpeeds()).toEqual([0.5, 1, 1.5, 2]);
     service.toggleSpeedMenu();
     expect(service.showSpeedMenu()).toBeFalse();
   });
 
   it('should set and get volume control state', () => {
     service.setShowVolumeControl(true);
+    service.setShowVolumeTooltip(true);
+    service.setVolumeTooltipPosition(0.5);
+    expect(service.volumeTooltipPosition()).toBe(0.5);
+    expect(service.showVolumeTooltip()).toBeTrue();
     expect(service.showVolumeControl()).toBeTrue();
     service.toggleVolumeControl();
     expect(service.showVolumeControl()).toBeFalse();
@@ -78,10 +87,18 @@ describe('PlayerStateService', () => {
   it('should set and get progress and duration', () => {
     service.setProgressTime(50);
     service.setVideoDuration(100);
+    service.setIsScrubbing(true);
+    expect(service.isScrubbing()).toBeTrue();
+    service.setIsScrubbing(false);
+    expect(service.isScrubbing()).toBeFalse();
     expect(service.progressTime()).toBe(50);
     expect(service.videoDuration()).toBe(100);
     expect(service.getCurrentTimePercentage()).toBe(50);
     expect(service.progress()).toBe(50);
+    service.setVideoDuration(-1);
+    expect(service.videoDuration()).toBe(-1);
+    expect(service.getCurrentTimePercentage()).toBe(0);
+    expect(service.progress()).toBe(0);
   });
 
   it('should format time correctly', () => {
@@ -89,7 +106,11 @@ describe('PlayerStateService', () => {
     service.setProgressTime(125);
     expect(service.getCurrentTimeFormatted()).toBe('2:05');
     service.setVideoDuration(3600);
+    service.setBufferedTime(0);
+    service.setSeekTooltipTime(0);
     expect(service.getDurationFormatted()).toBe('60:00');
+    expect(service.bufferedPercentage()).toBe(0);
+    expect(service.seekTooltipTimeFormatted()).toBe('0:00');
   });
 
   it('should reset state', () => {
@@ -105,4 +126,42 @@ describe('PlayerStateService', () => {
     expect(service.isFullscreen()).toBeFalse();
     expect(service.showOverlay()).toBeTrue();
   });
+
+  it('should set and get player state correctly', () => {
+    const mockPlayer = {
+      play: jasmine.createSpy('play'),
+      pause: jasmine.createSpy('pause'),
+      currentTime: jasmine.createSpy('currentTime').and.returnValue(0),
+      duration: jasmine.createSpy('duration').and.returnValue(100),
+      playbackRate: jasmine.createSpy('playbackRate').and.returnValue(1.5)
+    } as any;
+    service.player = mockPlayer;
+    service.setViewInitialized(true);
+    service.setPlaybackSpeed(1.5);
+    expect(service.playbackSpeed()).toBe(1.5);
+    expect(service.player?.playbackRate()).toBe(1.5);
+    expect(service.viewInitialized()).toBeTrue();
+    expect(service.player).toBeDefined();
+    expect(service.player).toBe(mockPlayer);
+    expect(service.player?.play).toBeDefined();
+    expect(service.player?.pause).toBeDefined();
+    expect(service.player?.currentTime()).toBe(0);
+    expect(service.player?.duration()).toBe(100);
+    expect(service.canPlay()).toBeTrue();
+  });
+
+  it('should handle seek states correctly', () => {
+    service.setLastSaveTime(0);
+    expect(service.seekTooltipTime()).toBe(0);
+    service.setLastSeekTime(120);
+    expect(service.lastSeekTime()).toBe(120);
+    service.setShowSeekTooltip(true);
+    expect(service.showSeekTooltip()).toBeTrue();
+    service.setSeekTooltipPosition(0.3);
+    expect(service.seekTooltipPosition()).toBe(0.3);
+    service.setSeekTooltipTime(30);
+    expect(service.seekTooltipTime()).toBe(30);
+    expect(service.seekTooltipTimeFormatted()).toBe('0:30');
+  });
 });
+
