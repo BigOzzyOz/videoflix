@@ -30,6 +30,10 @@ describe('ApiService', () => {
     sessionStorage.clear();
   });
 
+  afterEach(() => {
+    service.logout();
+  });
+
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
@@ -91,6 +95,16 @@ describe('ApiService', () => {
     const stored = JSON.parse(sessionStorage.getItem('currentUser') || '{}');
     expect(service.CurrentUser).toEqual(user);
     expect(stored.id).toEqual(user.id);
+  });
+
+  it('should handle CurrentProfile getter/setter', () => {
+    const profile = Profile.empty();
+    profile.id = 'profile1';
+    profile.name = 'Profile One';
+    service.CurrentProfile = profile;
+    const stored = JSON.parse(sessionStorage.getItem('currentProfile') || '{}');
+    expect(service.CurrentProfile).toEqual(profile);
+    expect(stored.id).toEqual(profile.id);
   });
 
   it('should create payload with body', () => {
@@ -303,5 +317,64 @@ describe('ApiService', () => {
     service.RefreshToken = 'refresh-token';
     await service.fetchData('url', 'GET');
     expect(service.logout).toHaveBeenCalled();
+  });
+
+  it('should return ApiResponse with null data for no-body response in handleResponse', async () => {
+    const response = new Response(null, { status: 204 });
+    const result = await (service as any).handleResponse(response, 'url', 'GET');
+    expect(result).toEqual(jasmine.objectContaining({ ok: true, status: 204, data: null }));
+  });
+
+  it('should return ApiResponse with data for normal response in handleResponse', async () => {
+    const body = { test: 'bar' };
+    const response = new Response(JSON.stringify(body), { status: 200, headers: { 'content-length': '13' } });
+    spyOn(ApiResponse, 'create').and.callThrough();
+    const result = await (service as any).handleResponse(response, 'url', 'GET');
+    expect(ApiResponse.create).toHaveBeenCalledWith(response);
+    expect(result.data).toEqual('{"test":"bar"}');
+  });
+
+  it('should return ApiResponse from directFetch for successful fetch', async () => {
+    const body = { test: 'bar' };
+    const response = new Response(JSON.stringify(body), { status: 200, headers: { 'content-length': '13' } });
+    spyOn(window, 'fetch').and.resolveTo(response);
+    spyOn(ApiResponse, 'create').and.callThrough();
+    const result = await service.directFetch('url', 'GET');
+    expect(ApiResponse.create).toHaveBeenCalledWith(response);
+    expect(result.data).toEqual('{"test":"bar"}');
+  });
+
+  it('should return User from sessionStorage if currentUser is null in CurrentUser getter', () => {
+    const profileObj = Profile.empty();
+    profileObj.id = 'p1';
+    profileObj.name = 'Profile1';
+    const userObj = { id: 'u1', username: 'TestUser', email: 'test@example.com', role: 'user', profiles: [profileObj] };
+    sessionStorage.setItem('currentUser', JSON.stringify(userObj));
+    sessionStorage.setItem('currentProfile', JSON.stringify(profileObj));
+    service.currentUser = null;
+    service.currentProfile = null;
+    const resultUser = service.CurrentUser;
+    const resultProfile = service.CurrentProfile;
+    expect(resultUser).toEqual(jasmine.objectContaining(userObj));
+    expect(resultProfile).toEqual(jasmine.objectContaining(profileObj));
+    sessionStorage.removeItem('currentUser');
+    sessionStorage.removeItem('currentProfile');
+  });
+
+  it('should show error and return response if logout fails', async () => {
+    const failedResponse = new ApiResponse(false, 400, null);
+    spyOn(service, 'directFetch').and.returnValue(Promise.resolve(failedResponse));
+    const result = await service.logout();
+    expect(errorService.show).toHaveBeenCalledWith('Logout failed. Please try again.');
+    expect(result).toBe(failedResponse);
+  });
+
+  it('should call directFetch and return its result in refreshToken', async () => {
+    const expectedResponse = new ApiResponse(true, 200, { access: 'new-token' });
+    spyOn(service, 'directFetch').and.returnValue(Promise.resolve(expectedResponse));
+    service.RefreshToken = 'refresh-token';
+    const result = await service.refreshToken();
+    expect(service.directFetch).toHaveBeenCalledWith(service.REFRESH_URL, 'POST', { refresh: 'refresh-token' });
+    expect(result).toBe(expectedResponse);
   });
 });
