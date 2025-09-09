@@ -16,10 +16,14 @@ describe('FeaturedComponent', () => {
         { provide: Router, useValue: router }
       ]
     }).compileComponents();
-
+    jasmine.clock().install();
     fixture = TestBed.createComponent(FeaturedComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    jasmine.clock().uninstall();
   });
 
   it('should create', () => {
@@ -39,13 +43,11 @@ describe('FeaturedComponent', () => {
       } as unknown as HTMLVideoElement;
       component.videoElement = new ElementRef(videoMock);
       spyOn(component as any, 'checkTextOverflow');
-      jasmine.clock().install();
       component.ngOnChanges({ video: { currentValue: component.video, previousValue: null, firstChange: true, isFirstChange: () => true } });
       jasmine.clock().tick(100);
       expect((component as any).checkTextOverflow).toHaveBeenCalled();
       jasmine.clock().tick(2000);
       expect(videoMock.play).toHaveBeenCalled();
-      jasmine.clock().uninstall();
     });
   });
 

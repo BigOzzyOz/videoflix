@@ -134,4 +134,11 @@ describe('ProgressService', () => {
       expect(service.key()).toBe('resume:vid');
     });
   });
+
+  it('should return 0 if not found in profile and sessionStorage is empty', () => {
+    spyOnProperty(service, 'videoId', 'get').and.returnValue('vid');
+    (service as any).api = { CurrentProfile: {} };
+    spyOn(sessionStorage, 'getItem').and.returnValue(null);
+    expect(service.getResumeTime()).toBe(0);
+  });
 });

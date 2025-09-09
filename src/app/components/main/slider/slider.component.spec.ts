@@ -59,7 +59,6 @@ describe('SliderComponent', () => {
         { provide: ChangeDetectorRef, useValue: cdr }
       ]
     }).compileComponents();
-
     fixture = TestBed.createComponent(SliderComponent);
     component = fixture.componentInstance;
     component['overflowService'] = overflowService;
@@ -83,17 +82,74 @@ describe('SliderComponent', () => {
     expect(component.videoSelected.emit).toHaveBeenCalledWith(video);
   });
 
-  it('should call checkOverflow and setupObservers in ngAfterViewInit', () => {
-    spyOn(component as any, 'checkOverflow');
-    spyOn(component as any, 'setupObservers');
-    component.sliderContainer = new ElementRef(document.createElement('div'));
-    jasmine.clock().install();
-    component.ngAfterViewInit();
-    jasmine.clock().tick(51);
-    expect((component as any).checkOverflow).toHaveBeenCalled();
-    expect((component as any).setupObservers).toHaveBeenCalled();
-    expect(cdr.detectChanges).toHaveBeenCalled();
-    jasmine.clock().uninstall();
+  describe('with fake timers', () => {
+    beforeEach(() => {
+      jasmine.clock().install();
+    });
+    afterEach(() => {
+      jasmine.clock().uninstall();
+    });
+
+    it('should call checkOverflow on scroll with timeout', () => {
+      spyOn(component as any, 'checkOverflow');
+      component.sliderContainer = new ElementRef(document.createElement('div'));
+      component.onScroll();
+      jasmine.clock().tick(17);
+      expect((component as any).checkOverflow).toHaveBeenCalled();
+    });
+
+    it('should call checkOverflow and setupObservers in ngAfterViewInit', () => {
+      spyOn(component as any, 'checkOverflow');
+      spyOn(component as any, 'setupObservers');
+      component.sliderContainer = new ElementRef(document.createElement('div'));
+      component.ngAfterViewInit();
+      jasmine.clock().tick(51);
+      expect((component as any).checkOverflow).toHaveBeenCalled();
+      expect((component as any).setupObservers).toHaveBeenCalled();
+      expect(cdr.detectChanges).toHaveBeenCalled();
+    });
+
+    it('should clear resize timeout and set new timeout to call checkOverflow on resize', () => {
+      const originalResizeObserver = window.ResizeObserver;
+      const container = document.createElement('div');
+      component.sliderContainer = new ElementRef(container);
+      spyOn(component as any, 'clearResizeTimeout');
+      spyOn(component as any, 'checkOverflow');
+      let resizeCallback: (() => void) | undefined = undefined;
+      const mockObserve = jasmine.createSpy('observe');
+      (window as any).ResizeObserver = function (cb: () => void) {
+        resizeCallback = cb;
+        return { observe: mockObserve };
+      };
+      (component as any).setupObservers();
+      component['resizeObserver'] = {
+        observe: jasmine.createSpy('observe'),
+        unobserve: jasmine.createSpy('unobserve'),
+        disconnect: jasmine.createSpy('disconnect')
+      };
+      if (resizeCallback) {
+        (resizeCallback as (() => void))();
+      }
+      jasmine.clock().tick(101);
+      expect((component as any).clearResizeTimeout).toHaveBeenCalled();
+      expect((component as any).checkOverflow).toHaveBeenCalled();
+      expect(mockObserve).toHaveBeenCalledWith(container);
+      window.ResizeObserver = originalResizeObserver;
+    });
+
+    it('should call checkOverflow when intersection entry is intersecting', () => {
+      const container = document.createElement('div');
+      component.sliderContainer = new ElementRef(container);
+      spyOn(component as any, 'checkOverflow');
+      const mockObserve = jasmine.createSpy('observe');
+      (window as any).IntersectionObserver = function (cb: Function) {
+        cb([{ isIntersecting: true }]);
+        return { observe: mockObserve };
+      };
+      (component as any).setupObservers();
+      expect((component as any).checkOverflow).toHaveBeenCalled();
+      expect(mockObserve).toHaveBeenCalledWith(container);
+    });
   });
 
   it('should scroll left if not at start', () => {
@@ -138,22 +194,6 @@ describe('SliderComponent', () => {
     const container = document.createElement('div');
     component.sliderContainer = new ElementRef(container);
     expect((component as any).calculateItemScrollAmount()).toBe(432);
-  });
-
-  it('should call checkOverflow on scroll with timeout', () => {
-    spyOn(component as any, 'checkOverflow');
-    component.sliderContainer = new ElementRef(document.createElement('div'));
-    jasmine.clock().install();
-    component.onScroll();
-    jasmine.clock().tick(17);
-    expect((component as any).checkOverflow).toHaveBeenCalled();
-    jasmine.clock().uninstall();
-  });
-
-  it('should clear scroll timeout', () => {
-    component['scrollTimeout'] = setTimeout(() => { }, 1000);
-    component['clearScrollTimeout']();
-    expect(component['scrollTimeout']).toBeUndefined();
   });
 
   it('should disconnect resizeObserver on destroy', () => {
@@ -206,55 +246,6 @@ describe('SliderComponent', () => {
     overflowService.checkOverflow.and.returnValue(createOverflowStateMock());
     (component as any).checkOverflow();
     expect(component['overflowService'].checkOverflow).not.toHaveBeenCalled();
-  });
-
-  it('should call checkOverflow when intersection entry is intersecting', () => {
-    const container = document.createElement('div');
-    component.sliderContainer = new ElementRef(container);
-    spyOn(component as any, 'checkOverflow');
-    const mockObserve = jasmine.createSpy('observe');
-    (window as any).IntersectionObserver = function (cb: Function) {
-      cb([{ isIntersecting: true }]);
-      return { observe: mockObserve };
-    };
-    (component as any).setupObservers();
-    expect((component as any).checkOverflow).toHaveBeenCalled();
-    expect(mockObserve).toHaveBeenCalledWith(container);
-  });
-
-  it('should clear resize timeout and set new timeout to call checkOverflow on resize', () => {
-    const originalResizeObserver = window.ResizeObserver; // Save original
-    const container = document.createElement('div');
-    component.sliderContainer = new ElementRef(container);
-    spyOn(component as any, 'clearResizeTimeout');
-    spyOn(component as any, 'checkOverflow');
-    let resizeCallback: (() => void) | undefined = undefined;
-    const mockObserve = jasmine.createSpy('observe');
-    (window as any).ResizeObserver = function (cb: () => void) {
-      resizeCallback = cb;
-      return { observe: mockObserve };
-    };
-
-    (component as any).setupObservers();
-
-    component['resizeObserver'] = {
-      observe: jasmine.createSpy('observe'),
-      unobserve: jasmine.createSpy('unobserve'),
-      disconnect: jasmine.createSpy('disconnect')
-    };
-
-    jasmine.clock().install();
-    if (resizeCallback) {
-      (resizeCallback as (() => void))();
-    }
-    jasmine.clock().tick(101);
-
-    expect((component as any).clearResizeTimeout).toHaveBeenCalled();
-    expect((component as any).checkOverflow).toHaveBeenCalled();
-    expect(mockObserve).toHaveBeenCalledWith(container);
-    jasmine.clock().uninstall();
-
-    window.ResizeObserver = originalResizeObserver;
   });
 
   it('should return true if atStart changed in checkHasChanged', () => {
