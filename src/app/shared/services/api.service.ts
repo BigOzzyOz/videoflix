@@ -83,6 +83,13 @@ export class ApiService {
     }
   }
 
+  /**
+   * Handles the response, including token refresh if needed.
+   * @param response Fetch API Response object
+   * @param url API endpoint
+   * @param method HTTP method
+   * @param body Optional request body
+   */
   private async handleResponse(response: Response, url: string, method: string, body?: Object): Promise<ApiResponse> {
     if (response.status === 401 && this.RefreshToken !== null) {
       this.AccessToken = null;
@@ -100,6 +107,10 @@ export class ApiService {
     return responseData;
   }
 
+  /**
+   * Determines if the response has no body (e.g., 204 No Content).
+   * @param response Fetch API Response object
+   */
   private isNoBodyResponse(response: Response): boolean {
     return response.status === 204 || response.status === 205 || !response.headers.get('content-length') || response.headers.get('content-length') === '0';
   }

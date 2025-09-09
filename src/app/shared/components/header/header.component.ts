@@ -25,7 +25,6 @@ export class HeaderComponent {
   public api = inject(ApiService);
   private errorService = inject(ErrorService);
   private dialogService = inject(DialogService);
-  private cdRef = inject(ChangeDetectorRef);
 
 
   constructor() { }
@@ -51,6 +50,10 @@ export class HeaderComponent {
     this.api.logout()
   }
 
+  /**
+   * Allows the user to select a different profile and reloads the window to apply changes.
+   * Handles errors if the profile selection is cancelled or times out.
+   */
   async toProfile(): Promise<void> {
     const user = this.api.CurrentUser;
     try {
@@ -62,10 +65,20 @@ export class HeaderComponent {
     }
   }
 
+  /**
+   * Reloads the current window by navigating to a dummy route and then back to the original URL.
+   * This forces a full reload of the current route.
+   */
   reloadWindow(): void {
-    window.location.reload();
+    const originalUrl = this.router.url;
+    this.router.navigateByUrl('/dummy', { skipLocationChange: true }).then(() => {
+      this.router.navigate([originalUrl]);
+    });
   }
 
+  /**
+   * Navigates to the main page.
+   */
   navigateToMain(): void {
     this.router.navigate(['/main']);
   }

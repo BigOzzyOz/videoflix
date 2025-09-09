@@ -77,6 +77,7 @@ describe('VolumeService', () => {
       };
       (service as any).playerState = playerState;
     });
+
     it('should unmute and set volume to 0.5 if muted or volume is 0', () => {
       player.muted.and.returnValue(true);
       playerState.volume.and.returnValue(0);
@@ -85,6 +86,16 @@ describe('VolumeService', () => {
       expect(playerState.setIsMuted).toHaveBeenCalledWith(false);
       expect(playerState.setVolume).toHaveBeenCalledWith(0.5);
     });
+
+    it('should unmute and set volume to 1 if muted or volume is 1', () => {
+      playerState.volume.and.returnValue(1);
+      player.muted.and.returnValue(true);
+      service.toggleSound();
+      expect(player.muted).toHaveBeenCalledWith(false);
+      expect(playerState.setIsMuted).toHaveBeenCalledWith(false);
+      expect(playerState.setVolume).toHaveBeenCalledWith(1);
+    });
+
     it('should mute if not muted and volume > 0', () => {
       player.muted.and.returnValue(false);
       playerState.volume.and.returnValue(0.5);
@@ -92,6 +103,7 @@ describe('VolumeService', () => {
       expect(player.muted).toHaveBeenCalledWith(true);
       expect(playerState.setIsMuted).toHaveBeenCalledWith(true);
     });
+
     it('should do nothing if no player', () => {
       (service as any).playerState = { player: null };
       service.toggleSound();

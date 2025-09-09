@@ -11,7 +11,8 @@ describe('HeaderComponent', () => {
   let router: jasmine.SpyObj<Router>;
 
   beforeEach(async () => {
-    const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+    const routerSpy = jasmine.createSpyObj('Router', ['navigate', 'navigateByUrl']);
+    routerSpy.navigateByUrl.and.returnValue(Promise.resolve(true));
 
     await TestBed.configureTestingModule({
       imports: [HeaderComponent],
@@ -163,7 +164,7 @@ describe('HeaderComponent', () => {
   });
 
   it('should have reloadWindow method covered', function () {
-    // component.reloadWindow();
+    component.reloadWindow();
     expect(typeof component.reloadWindow).toBe('function');
     expect(component.reloadWindow).toBeDefined();
   });
