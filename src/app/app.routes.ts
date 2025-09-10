@@ -8,6 +8,10 @@ import { FourOFourComponent } from './shared/components/four-o-four/four-o-four.
 import { MainComponent } from './components/main/main.component';
 import { PlayerComponent } from './components/player/player.component';
 
+/**
+ * Main application routes for Videoflix.
+ * Includes landing, login, registration, password, legal, main, player, and 404 routes.
+ */
 export const routes: Routes = [
     {
         path: 'landing',

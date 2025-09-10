@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PlayButtonComponent } from '../sub/play-button/play-button.component';
 import { SeekButtonComponent } from '../sub/seek-button/seek-button.component';
@@ -8,6 +8,9 @@ import { SpeedControlComponent } from '../sub/speed-control/speed-control.compon
 import { FullscreenButtonComponent } from '../sub/fullscreen-button/fullscreen-button.component';
 import { ProgressBarComponent } from '../sub/progress-bar/progress-bar.component';
 
+/**
+ * UI wrapper for the player bottom bar controls.
+ */
 @Component({
   selector: 'app-bottom-bar',
   standalone: true,

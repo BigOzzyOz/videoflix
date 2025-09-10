@@ -7,6 +7,10 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
   templateUrl: './password-input.component.html',
   styleUrl: './password-input.component.scss'
 })
+/**
+ * PasswordInputComponent provides a styled password input field with visibility toggle and validation error display.
+ * It binds to a FormControl and supports a customizable placeholder.
+ */
 export class PasswordInputComponent {
   @ViewChild('passwordInput') passwordInput: ElementRef | undefined;
   @Input() placeholder: string = 'Password';
@@ -16,7 +20,10 @@ export class PasswordInputComponent {
 
   constructor() { }
 
-  toggleVisibility() {
+  /**
+   * Toggles the visibility of the password input field between plain text and masked.
+   */
+  toggleVisibility(): void {
     this.isVisible = !this.isVisible;
     if (this.passwordInput) {
       const inputElement = this.passwordInput.nativeElement;

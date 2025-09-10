@@ -10,6 +10,10 @@ import { LoadingComponent } from './shared/components/loading/loading.component'
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
+/**
+ * The root component for the Videoflix app.
+ * Renders the router outlet and global dialogs.
+ */
 export class AppComponent {
   title = 'Videoflix';
 }

@@ -1,4 +1,4 @@
-import { Component, inject, Input } from '@angular/core';
+import { Component, inject, Input, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { DialogService } from '../../services/dialog.service';
@@ -10,6 +10,10 @@ import { ErrorService } from '../../services/error.service';
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
+/**
+ * HeaderComponent displays the application header with logo, navigation buttons, and profile/logout controls.
+ * It supports various display modes via @Input properties and provides navigation methods.
+ */
 export class HeaderComponent {
   @Input() loginButton: Boolean = false;
   @Input() logoutButton: Boolean = false;
@@ -22,39 +26,59 @@ export class HeaderComponent {
   private errorService = inject(ErrorService);
   private dialogService = inject(DialogService);
 
+
   constructor() { }
 
-  toLogin() {
+  /**
+   * Navigates to the login page.
+   */
+  toLogin(): void {
     this.router.navigate(['/login']);
   }
 
-  goBack() {
+  /**
+   * Navigates to the home page.
+   */
+  goBack(): void {
     this.router.navigate(['/']);
   }
 
-  logOut() {
+  /**
+   * Logs out the current user via the ApiService.
+   */
+  logOut(): void {
     this.api.logout()
   }
 
+  /**
+   * Allows the user to select a different profile and reloads the window to apply changes.
+   * Handles errors if the profile selection is cancelled or times out.
+   */
   async toProfile(): Promise<void> {
     const user = this.api.CurrentUser;
-
-    if (user.profiles.length > 1) {
-      try {
-        const selectedProfile = await this.dialogService.openProfileSelection(user.profiles);
-        this.api.CurrentProfile = selectedProfile;
-        this.navigateToMain();
-      } catch (error) {
-        this.errorService.show('Profile selection was cancelled or timed out.');
-      }
-    } else if (user.profiles.length === 1) {
-      this.api.CurrentProfile = user.profiles[0];
-      this.navigateToMain();
-    } else {
-      this.errorService.show('No profiles available for this account.');
+    try {
+      const selectedProfile = await this.dialogService.openProfileSelection(user.profiles);
+      this.api.CurrentProfile = selectedProfile;
+      this.reloadWindow();
+    } catch (error) {
+      this.errorService.show('Profile selection was cancelled or timed out.');
     }
   }
 
+  /**
+   * Reloads the current window by navigating to a dummy route and then back to the original URL.
+   * This forces a full reload of the current route.
+   */
+  reloadWindow(): void {
+    const originalUrl = this.router.url;
+    this.router.navigateByUrl('/dummy', { skipLocationChange: true }).then(() => {
+      this.router.navigate([originalUrl]);
+    });
+  }
+
+  /**
+   * Navigates to the main page.
+   */
   navigateToMain(): void {
     this.router.navigate(['/main']);
   }

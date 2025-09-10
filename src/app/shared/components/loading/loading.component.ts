@@ -7,6 +7,10 @@ import { LoadingService } from '../../services/loading.service';
   templateUrl: './loading.component.html',
   styleUrl: './loading.component.scss'
 })
+/**
+ * LoadingComponent displays a loading spinner when the application is in a loading state.
+ * It uses LoadingService to determine visibility.
+ */
 export class LoadingComponent {
   loadingService = inject(LoadingService);
 }

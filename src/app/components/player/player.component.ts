@@ -27,6 +27,10 @@ import { OverlayService } from '../../shared/services/overlay.service';
 import { ProgressService } from '../../shared/services/progress.service';
 import { LoadingService } from '../../shared/services/loading.service';
 
+/**
+ * Main video player component. Handles initialization, state management, keyboard/mouse/touch events,
+ * overlay logic, and session storage for video playback. Integrates all player subcomponents and services.
+ */
 @Component({
   selector: 'app-player',
   imports: [FormsModule, OrientationWarningComponent, BottomBarComponent, CenterControlsComponent, TopBarComponent],
@@ -37,6 +41,8 @@ import { LoadingService } from '../../shared/services/loading.service';
   providers: []
 })
 export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('vjs', { static: true }) vjsRef!: ElementRef<HTMLVideoElement>;
+
   activeRoute = inject(ActivatedRoute);
   api = inject(ApiService);
   errorService = inject(ErrorService);
@@ -49,11 +55,11 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   progressService = inject(ProgressService);
   loadingService = inject(LoadingService);
 
-
-  @ViewChild('vjs', { static: true }) vjsRef!: ElementRef<HTMLVideoElement>;
-
   readonly OVERLAY_HIDE_DELAY = 3000;
 
+  /**
+   * Initializes player state and loads video from session storage if available.
+   */
   constructor() {
     this.loadingService.setLoading(true);
     this.activeRoute.queryParams.subscribe(params => {
@@ -67,42 +73,54 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Loads video data if not present in session storage. Initializes player if view is ready.
+   */
   async ngOnInit() {
     if (!sessionStorage.getItem(this.playerState.videoId()) || !this.playerState.videoUrl()) {
       const videoData = await this.api.getVideoById(this.playerState.videoId());
-
       if (videoData.isSuccess()) {
         this.playerState.setVideo(new Video(videoData.data));
         this.playerState.setVideoUrl(this.playerState.video()!.hls);
-        sessionStorage.setItem('videoId', this.playerState.videoId());
-
+        this.manageSessionStorage(true);
         if (this.playerState.viewInitialized()) this.playerService.initializePlayer(this.vjsRef.nativeElement);
       }
       else this.errorService.show('Video not found or could not be loaded.');
     }
   }
 
+  /**
+   * Marks view as initialized and sets up the video player if video URL is available.
+   */
   ngAfterViewInit(): void {
     this.playerState.setViewInitialized(true);
-
     if (this.playerState.videoUrl()) this.playerService.initializePlayer(this.vjsRef.nativeElement);
   }
 
+  /**
+   * Handles mouse movement to reset overlay timer.
+   */
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(): void {
     this.overlayService.resetOverlayTimer(this.playerState.isPlaying());
   }
 
+  /**
+   * Handles touch events to reset overlay timer.
+   */
   @HostListener('document:touchstart', ['$event'])
   @HostListener('document:touchmove', ['$event'])
   onTouch(): void {
     this.overlayService.resetOverlayTimer(this.playerState.isPlaying());
   }
 
+  /**
+   * Handles keyboard events for player controls (play/pause, seek, mute, fullscreen).
+   * @param event KeyboardEvent
+   */
   @HostListener('document:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent): void {
     this.overlayService.resetOverlayTimer(this.playerState.isPlaying());
-
     switch (event.code) {
       case 'Space':
         event.preventDefault();
@@ -127,35 +145,56 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Handles document click events to hide volume and speed controls if clicked outside.
+   * @param event Event
+   */
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event): void {
     const target = event.target as HTMLElement;
-
-    if (!target.closest('.vjs-sound-control')) {
-      this.playerState.setShowVolumeControl(false);
-    }
-
-    if (!target.closest('.vjs-speed-control')) {
-      this.playerState.setShowSpeedMenu(false);
-    }
+    if (!target.closest('.vjs-sound-control')) this.playerState.setShowVolumeControl(false);
+    if (!target.closest('.vjs-speed-control')) this.playerState.setShowSpeedMenu(false);
   }
 
+  /**
+   * Cleans up player state, disposes player, and clears overlay timer on destroy.
+   */
   async ngOnDestroy(): Promise<void> {
     if (this.playerState.player) {
       await this.playerService.playerEndHandler();
       this.playerState.resetState();
+      this.manageSessionStorage(false);
       this.playerState.player.dispose();
     }
     this.overlayService.clearOverlayTimer();
   }
 
+  /**
+   * Adds or removes video data from session storage.
+   * @param add If true, adds data; if false, removes data.
+   */
+  manageSessionStorage(add: boolean): void {
+    if (add) {
+      sessionStorage.setItem('videoId', this.playerState.videoId());
+      sessionStorage.setItem(this.playerState.videoId(), JSON.stringify(this.playerState.video()));
+    } else {
+      sessionStorage.removeItem('videoId');
+      sessionStorage.removeItem(this.playerState.videoId());
+    }
+  }
+
+  /**
+   * Returns whether the overlay is currently shown.
+   */
   get showOverlay(): boolean {
     return this.overlayService.showOverlay();
   }
 
+  /**
+   * Returns whether the video is currently playing.
+   */
   get isPlaying(): boolean {
     return this.playerState.isPlaying();
   }
-
 }
 

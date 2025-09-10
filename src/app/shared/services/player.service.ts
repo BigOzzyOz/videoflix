@@ -1,5 +1,4 @@
 import { inject, Injectable } from '@angular/core';
-import videojs from 'video.js';
 import '@videojs/http-streaming';
 import { PlayerStateService } from './player-state.service';
 import { ErrorService } from './error.service';
@@ -8,7 +7,11 @@ import { ApiService } from './api.service';
 import { SeekService } from './seek.service';
 import { ProgressService } from './progress.service';
 import { LoadingService } from './loading.service';
+import type VideoJsMediaError from 'video.js/dist/types/media-error';
 
+/**
+ * Service for managing the video.js player instance, playback control, event handling, and integration with state and UI services.
+ */
 @Injectable({
   providedIn: 'root'
 })
@@ -21,35 +24,47 @@ export class PlayerService {
   progressService = inject(ProgressService);
   loadingService = inject(LoadingService);
 
+  /**
+   * Constructs the PlayerService and injects all required dependencies.
+   */
+  videojs: any;
   constructor() {
+    this.videojs = (window as any).videojs;
   }
 
-  togglePlay(): void {
+  /**
+   * Toggles playback: plays if paused, pauses if playing. Updates state and overlay timer.
+   */
+  async togglePlay(): Promise<void> {
     const player = this.playerState.player;
     if (player) {
       if (player.paused()) {
-        player.play().then(() => {
+        try {
+          await player.play();
           this.playerState.setIsPlaying(true);
           this.overlayService.resetOverlayTimer(true);
-        }).catch(() => {
+        } catch {
           this.errorService.show('Error playing video. Please try again.');
-          console.error('Error playing video:', player.error);
-        });
+        }
       } else {
         player.pause();
         this.playerState.setIsPlaying(false);
       }
-    } else {
-      this.errorService.show('Player not available. Please check if the video is loaded.');
-      console.error('Player not available');
-    }
+    } else this.errorService.show('Player not available.');
   }
 
+  /**
+   * Pauses the video player if available.
+   */
   pause(): void {
     const player = this.playerState.player;
-    player.pause();
+    if (player) player.pause();
   }
 
+  /**
+   * Initializes the video.js player on the given video element and binds all event handlers.
+   * @param videoElement The HTML video element to initialize the player on.
+   */
   initializePlayer(videoElement: HTMLVideoElement): void {
     if (!videoElement) return this.errorService.show('Video player could not be initialized');
 
@@ -68,11 +83,16 @@ export class PlayerService {
     });
   }
 
+  /**
+   * Creates and configures a new video.js player instance for the given video element.
+   * @param videoElement The HTML video element to attach the player to.
+   * @returns The created video.js player instance.
+   */
   playerCreateHandler(videoElement: HTMLVideoElement): any {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
-    return videojs(videoElement, {
+    return this.videojs(videoElement, {
       autoplay: false,
       preload: 'metadata',
       controls: false,
@@ -96,74 +116,97 @@ export class PlayerService {
     });
   }
 
-
+  /**
+   * Handles the 'loadedmetadata' event: sets video duration and seeks to start.
+   */
   loadMetaHandler(): void {
     this.playerState.setVideoDuration(this.playerState.player.duration() || 0);
     this.seekService.jumpTime(0, true);
   }
 
+  /**
+   * Handles the 'timeupdate' event: updates progress time and saves progress to the API.
+   */
   async timeUpdateHandler(): Promise<void> {
     const currentTime = this.playerState.player.currentTime();
     if (typeof currentTime === 'number') this.playerState.setProgressTime(currentTime);
-
     const lastSaveTime = await this.progressService.updateProgress(
-      this.api.CurrentProfile.id || '',
-      this.playerState.videoId() || '',
+      this.api.CurrentProfile.id,
+      this.playerState.videoId(),
       this.playerState.lastSaveTime() || 0
     );
     this.playerState.setLastSaveTime(lastSaveTime);
   }
 
+  /**
+   * Handles the 'pause' event: sets end state and saves progress.
+   */
   async playerPauseHandler(): Promise<void> {
-    if (!this.playerState.videoId() && !this.playerState.player()) return;
+    if (!this.playerState.videoId() || !this.playerState.player) return;
     const currentTime = this.playerState.player.currentTime();
-
-    this.playerState.setIsPlaying(false);
-    this.overlayService.resetOverlayTimer(true);
-    this.overlayService.clearOverlayTimer();
-
+    this.setEndState();
     if (!currentTime) return;
-
     const lastSaveTime = await this.progressService.updateProgress(
-      this.api.CurrentProfile.id || '',
-      this.playerState.videoId() || '',
+      this.api.CurrentProfile.id,
+      this.playerState.videoId(),
       0
     );
     this.playerState.setLastSaveTime(lastSaveTime);
   }
 
+  /**
+   * Handles the 'ended' event: sets end state and saves progress.
+   */
   async playerEndHandler(): Promise<void> {
-    if (!this.playerState.videoId() && !this.playerState.player()) return;
+    if (!this.playerState.videoId() || !this.playerState.player()) return;
     const currentTime = this.playerState.player.currentTime();
-
-    this.playerState.setIsPlaying(false);
-    this.overlayService.resetOverlayTimer(true);
-    this.overlayService.clearOverlayTimer();
-
+    this.setEndState();
     if (!currentTime) return;
-
     const lastSaveTime = await this.progressService.updateProgress(
-      this.api.CurrentProfile.id || '',
-      this.playerState.videoId() || '',
+      this.api.CurrentProfile.id,
+      this.playerState.videoId(),
       0
     );
-    this.playerState.setLastSaveTime(lastSaveTime);
-    sessionStorage.removeItem(this.progressService.key());
-    this.playerState.resetState();
+    this.setEndState(lastSaveTime);
   }
 
-  playerErrorHandler(error: any): void {
-    if (error && error.code) {
-      switch (error.code) {
-        case 1: this.errorService.show('Video loading was aborted'); break;
-        case 2: this.errorService.show('Network error while loading video'); break;
-        case 3: this.errorService.show('Video could not be decoded'); break;
-        case 4: this.errorService.show('Video format not supported'); break;
-        default: this.errorService.show('Unknown video error occurred');
-      }
+  /**
+   * Sets the end state for the player, updates state and session storage, and resets player state if needed.
+   * @param lastSaveTime The last saved time, if available.
+   */
+  setEndState(lastSaveTime?: number): void {
+    if (!lastSaveTime) {
+      this.playerState.setIsPlaying(false);
+      this.overlayService.resetOverlayTimer(true);
+      this.overlayService.clearOverlayTimer();
     } else {
-      this.errorService.show('An unexpected error occurred');
+      this.playerState.setLastSaveTime(lastSaveTime);
+      sessionStorage.removeItem(this.progressService.key());
+      this.playerState.resetState();
     }
   }
 
+  /**
+   * Handles player errors and displays user-friendly error messages.
+   * @param error The Video.js media error object.
+   */
+  playerErrorHandler(error: VideoJsMediaError | null | undefined): void {
+    if (error && typeof error.code === 'number') {
+      switch (error.code) {
+        case error.MEDIA_ERR_ABORTED:
+          this.errorService.show('Video loading was aborted');
+          break;
+        case error.MEDIA_ERR_NETWORK:
+          this.errorService.show('Network error while loading video');
+          break;
+        case error.MEDIA_ERR_DECODE:
+          this.errorService.show('Video could not be decoded');
+          break;
+        case error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+          this.errorService.show('Video format not supported');
+          break;
+        default: this.errorService.show('Unknown video error occurred');
+      }
+    } else this.errorService.show('An unexpected error occurred');
+  }
 }

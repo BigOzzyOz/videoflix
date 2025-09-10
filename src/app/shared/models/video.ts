@@ -1,6 +1,9 @@
 import { VideoData } from "../interfaces/video-data";
 import { VideoApiData } from "../interfaces/video-api-data";
 
+/**
+ * Represents a video with metadata, formats, and conversion helpers.
+ */
 export class Video implements VideoData {
     id: string;
     title: string;
@@ -16,6 +19,10 @@ export class Video implements VideoData {
     created: Date;
     updated: Date;
 
+    /**
+     * Creates a Video instance from API or internal data.
+     * @param data Video data from API or internal format.
+     */
     constructor(data: VideoApiData | VideoData) {
         this.id = data.id || '';
         this.title = data.title || '';
@@ -30,8 +37,8 @@ export class Video implements VideoData {
             this.preview = data.preview_url || '';
             this.hls = data.hls_url || '';
             this.ready = data.is_ready || false;
-            this.created = new Date(data.created_at) || new Date();
-            this.updated = new Date(data.updated_at) || new Date();
+            this.created = data.created_at ? new Date(data.created_at) : new Date();
+            this.updated = data.updated_at ? new Date(data.updated_at) : new Date();
         } else {
             this.availableLanguages = data.availableLanguages || [];
             this.thumbnail = data.thumbnail || '';
@@ -43,6 +50,9 @@ export class Video implements VideoData {
         }
     }
 
+    /**
+     * Returns the video duration formatted as HH:MM:SS or MM:SS.
+     */
     get formattedDuration(): string {
         const hours = Math.floor(this.duration / 3600);
         const minutes = Math.floor((this.duration % 3600) / 60);
@@ -54,11 +64,20 @@ export class Video implements VideoData {
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }
 
+    /**
+     * Returns the video duration in milliseconds.
+     */
     get durationMs(): number {
         return Math.round(this.duration * 1000);
     }
 
+    /**
+     * Converts the instance to API format for backend communication.
+     */
     toApiFormat(): VideoApiData {
+        const formatDate = (date: Date) => {
+            return date.toISOString().replace(/\.\d{3}Z$/, 'Z');
+        };
         return {
             id: this.id,
             title: this.title,
@@ -71,8 +90,8 @@ export class Video implements VideoData {
             preview_url: this.preview,
             hls_url: this.hls,
             is_ready: this.ready,
-            created_at: this.created.toISOString(),
-            updated_at: this.updated.toISOString()
+            created_at: formatDate(this.created),
+            updated_at: formatDate(this.updated)
         };
     }
 }

@@ -6,6 +6,12 @@ import { OverflowDetectionService } from '../../../shared/services/overflow-dete
 import { MovieComponent } from '../movie/movie.component';
 import { OverflowState } from '../../../shared/interfaces/overflow-state';
 
+/**
+ * SliderComponent displays a horizontal scrollable list of movies (Video items) from a given collection.
+ * It provides navigation controls to scroll left/right, emits events when a video is selected,
+ * and manages overflow state for UI responsiveness. Uses ResizeObserver and IntersectionObserver
+ * to detect container changes and update scroll/overflow state.
+ */
 @Component({
   selector: 'app-slider',
   imports: [MovieComponent],
@@ -15,7 +21,13 @@ import { OverflowState } from '../../../shared/interfaces/overflow-state';
 })
 export class SliderComponent implements AfterViewInit, OnDestroy {
   @Input() collection: VideoCollections | null = null;
+  /**
+   * Emits when a video is selected from the slider.
+   */
   @Output() videoSelected = new EventEmitter<Video>();
+  /**
+   * Reference to the slider container element.
+   */
   @ViewChild('sliderContainer') sliderContainer!: ElementRef<HTMLDivElement>;
 
   api = inject(ApiService);
@@ -23,7 +35,10 @@ export class SliderComponent implements AfterViewInit, OnDestroy {
   private resizeObserver?: ResizeObserver;
   private cdr = inject(ChangeDetectorRef);
 
-  // Separate Properties für bessere Kontrolle
+  /**
+   * Default scroll amount in pixels if no item width can be determined.
+   */
+  DEFAULT_SCROLL_AMOUNT = 432;
   hasOverflow: boolean = false;
   atStart: boolean = true;
   atEnd: boolean = false;
@@ -31,7 +46,6 @@ export class SliderComponent implements AfterViewInit, OnDestroy {
   private scrollTimeout: number | undefined;
   private resizeTimeout: number | undefined;
 
-  // Für Debug (optional)
   overflowState: OverflowState = {
     hasOverflow: false,
     atStart: true,
@@ -47,9 +61,10 @@ export class SliderComponent implements AfterViewInit, OnDestroy {
   };
 
 
+  /**
+   * Called after the view is initialized. Sets up overflow detection and observers.
+   */
   ngAfterViewInit(): void {
-    console.log('SliderComponent initialized with collection:', this.collection);
-    // Mehrere Frames warten für DOM-Stabilität
     setTimeout(() => {
       this.checkOverflow();
       this.setupObservers();
@@ -57,18 +72,28 @@ export class SliderComponent implements AfterViewInit, OnDestroy {
     }, 50);
   }
 
+  /**
+   * Emits the selected video via the videoSelected output.
+   * @param video The selected Video object.
+   */
   onVideoSelected(video: Video): void {
     this.videoSelected.emit(video);
   }
 
+  /**
+   * Handles scroll events, debouncing overflow checks for performance.
+   */
   onScroll(): void {
     this.clearScrollTimeout();
     this.scrollTimeout = setTimeout(() => {
       this.checkOverflow();
       this.scrollTimeout = undefined;
-    }, 16); // ~60fps
+    }, 16);
   }
 
+  /**
+   * Scrolls the slider container to the left by one item width, unless at the start.
+   */
   scrollLeft(): void {
     if (!this.sliderContainer || this.atStart) return;
 
@@ -81,6 +106,9 @@ export class SliderComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Scrolls the slider container to the right by one item width, unless at the end.
+   */
   scrollRight(): void {
     if (!this.sliderContainer || this.atEnd) return;
 
@@ -93,6 +121,10 @@ export class SliderComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Calculates the scroll amount based on the first item's width and container gap.
+   * Returns DEFAULT_SCROLL_AMOUNT if no item is found.
+   */
   private calculateItemScrollAmount(): number {
     const container = this.sliderContainer.nativeElement;
     const firstItem = container.querySelector('app-movie') as HTMLElement;
@@ -105,41 +137,57 @@ export class SliderComponent implements AfterViewInit, OnDestroy {
       return itemWidth + gap;
     }
 
-    return 432; // fallback
+    return this.DEFAULT_SCROLL_AMOUNT;
   }
 
+  /**
+   * Checks and updates the overflow state of the slider container.
+   * Triggers change detection if state changes.
+   */
   private checkOverflow(): void {
     if (!this.sliderContainer) return;
 
     const container = this.sliderContainer.nativeElement;
     const newOverflowState = this.overflowService.checkOverflow(container);
-
-    // Nur bei echten Änderungen updaten
-    const hasChanged =
-      this.hasOverflow !== newOverflowState.hasOverflow ||
-      this.atStart !== newOverflowState.atStart ||
-      this.atEnd !== newOverflowState.atEnd ||
-      this.atMiddle !== newOverflowState.atMiddle;
+    const hasChanged = this.checkHasChanged(container);
 
     if (hasChanged) {
-      this.hasOverflow = newOverflowState.hasOverflow;
-      this.atStart = newOverflowState.atStart;
-      this.atEnd = newOverflowState.atEnd;
-      this.atMiddle = newOverflowState.atMiddle;
-      this.overflowState = newOverflowState;
-
-      // Nur markieren, nicht sofort detectChanges
+      this.setNewOverflowState(newOverflowState);
       this.cdr.markForCheck();
     }
   }
 
+  /**
+   * Determines if the overflow state has changed compared to the previous state.
+   */
+  private checkHasChanged(container: HTMLDivElement): boolean {
+    const newOverflowState = this.overflowService.checkOverflow(container);
+    return (
+      this.hasOverflow !== newOverflowState.hasOverflow ||
+      this.atStart !== newOverflowState.atStart ||
+      this.atEnd !== newOverflowState.atEnd ||
+      this.atMiddle !== newOverflowState.atMiddle
+    );
+  }
+
+  /**
+   * Updates the overflow state properties from the given state object.
+   */
+  private setNewOverflowState(state: OverflowState): void {
+    this.hasOverflow = state.hasOverflow;
+    this.atStart = state.atStart;
+    this.atEnd = state.atEnd;
+    this.atMiddle = state.atMiddle;
+    this.overflowState = state;
+  }
+
+  /**
+   * Sets up IntersectionObserver and ResizeObserver to monitor container changes.
+   */
   private setupObservers(): void {
-    // Intersection Observer für Performance
     const intersectionObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          this.checkOverflow();
-        }
+        if (entry.isIntersecting) this.checkOverflow();
       });
     });
 
@@ -147,14 +195,15 @@ export class SliderComponent implements AfterViewInit, OnDestroy {
 
     this.resizeObserver = new ResizeObserver(() => {
       this.clearResizeTimeout();
-      this.resizeTimeout = setTimeout(() => {
-        this.checkOverflow();
-      }, 100);
+      this.resizeTimeout = setTimeout(() => this.checkOverflow(), 100);
     });
 
     this.resizeObserver.observe(this.sliderContainer.nativeElement);
   }
 
+  /**
+   * Clears the scroll timeout if set.
+   */
   private clearScrollTimeout(): void {
     if (this.scrollTimeout) {
       clearTimeout(this.scrollTimeout);
@@ -162,6 +211,9 @@ export class SliderComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Clears the resize timeout if set.
+   */
   private clearResizeTimeout(): void {
     if (this.resizeTimeout) {
       clearTimeout(this.resizeTimeout);
@@ -169,6 +221,9 @@ export class SliderComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Cleans up observers and timeouts when the component is destroyed.
+   */
   ngOnDestroy(): void {
     this.clearScrollTimeout();
     this.clearResizeTimeout();

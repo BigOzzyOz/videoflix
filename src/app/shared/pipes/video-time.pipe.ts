@@ -4,8 +4,16 @@ import { Pipe, PipeTransform } from '@angular/core';
   name: 'videoTime',
   standalone: true
 })
+/**
+ * Pipe to format seconds as video time (HH:MM:SS or MM:SS).
+ */
 export class VideoTimePipe implements PipeTransform {
 
+  /**
+   * Transforms seconds to formatted time string.
+   * @param seconds Number of seconds to format.
+   * @returns Formatted time string (HH:MM:SS or MM:SS).
+   */
   transform(seconds: number): string {
     if (!seconds || seconds < 0) return '00:00';
 

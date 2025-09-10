@@ -82,4 +82,16 @@ describe('LegalNoticeComponent', () => {
     const sectionContent = fixture.nativeElement.querySelector('section.legal-notice');
     expect(sectionContent?.textContent?.trim()).toBe('');
   });
+
+  it('should add legal-notice-bg class to body on init and remove on destroy', () => {
+    const renderer = (component as any).renderer;
+    spyOn(renderer, 'addClass').and.callThrough();
+    spyOn(renderer, 'removeClass').and.callThrough();
+
+    component.ngOnInit();
+    expect(renderer.addClass).toHaveBeenCalledWith(document.body, 'legal-notice-bg');
+
+    component.ngOnDestroy();
+    expect(renderer.removeClass).toHaveBeenCalledWith(document.body, 'legal-notice-bg');
+  });
 });

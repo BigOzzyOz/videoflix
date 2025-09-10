@@ -1,8 +1,10 @@
 import { ProfileData } from "../interfaces/profile-data";
 import { ProfileApiData } from "../interfaces/profile-api-data";
 import { VideoProgress } from "./video-progress";
-import { VideoProgressData } from "../interfaces/video-progress-data";
 
+/**
+ * Represents a user profile with stats, progress, and conversion helpers.
+ */
 export class Profile implements ProfileData {
     id: string;
     name: string;
@@ -20,12 +22,15 @@ export class Profile implements ProfileData {
     };
 
 
+    /**
+     * Create a Profile from API or internal data.
+     */
     constructor(data: ProfileApiData | ProfileData) {
         this.id = data.id || '';
 
         if ('profile_name' in data) {
             this.name = data.profile_name || '';
-            this.profilePic = data.profile_picture || null;
+            this.profilePic = data.profile_picture_url || null;
             this.kid = data.is_kid || false;
             this.language = data.preferred_language || 'en';
             this.videoProgress = (data.video_progress || []).map(video => new VideoProgress(video));
@@ -54,23 +59,28 @@ export class Profile implements ProfileData {
         }
     }
 
+    /** Returns display name or fallback. */
     getDisplayName(): string {
         return this.name || `Profile ${this.id}`;
     }
 
+    /** True if this is a child profile. */
     isChildProfile(): boolean {
         return this.kid;
     }
 
+    /** Returns profile image URL or default. */
     getProfileImage(): string {
         return this.profilePic || '/assets/default-profile.png';
     }
 
+    /** Converts this profile to API format. */
     toApiFormat(): ProfileApiData {
         return {
             id: this.id,
             profile_name: this.name,
             profile_picture: this.profilePic,
+            profile_picture_url: this.profilePic,
             is_kid: this.kid,
             preferred_language: this.language,
             video_progress: this.videoProgress.map(video => (video.toApiFormat())),
@@ -83,5 +93,25 @@ export class Profile implements ProfileData {
                 completion_rate: this.watchStats.completionRate,
             },
         };
+    }
+
+    /** Returns an empty profile. */
+    static empty(): Profile {
+        return new Profile({
+            id: '',
+            name: '',
+            profilePic: null,
+            kid: false,
+            language: 'en',
+            videoProgress: [],
+            watchStats: {
+                totalVideosStarted: 0,
+                totalVideosCompleted: 0,
+                totalCompletions: 0,
+                totalWatchTime: 0,
+                uniqueVideosWatched: 0,
+                completionRate: 0,
+            },
+        });
     }
 }
