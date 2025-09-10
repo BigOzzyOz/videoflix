@@ -313,4 +313,12 @@ describe('SliderComponent', () => {
     });
     expect((component as any).checkHasChanged(container)).toBeTrue();
   });
+
+  it('should clear scroll timeout if set', () => {
+    const spy = spyOn(window, 'clearTimeout');
+    component['scrollTimeout'] = setTimeout(() => { }, 1000);
+    (component as any).clearScrollTimeout();
+    expect(spy).toHaveBeenCalled();
+    expect(component['scrollTimeout']).toBeUndefined();
+  });
 });
