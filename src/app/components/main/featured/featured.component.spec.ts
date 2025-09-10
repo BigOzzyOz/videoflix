@@ -79,6 +79,24 @@ describe('FeaturedComponent', () => {
       expect(component.hasDescriptionOverflow).toBeFalse();
       expect((component as any).changeOverflowStyle).toHaveBeenCalledWith(element);
     });
+
+    describe('early return', () => {
+      it('should return early if videoDescription is not set', () => {
+        component.video = { description: 'desc' } as any;
+        component.videoDescription = undefined as any;
+        const spy = spyOn(component as any, 'getVisibleHeight');
+        (component as any).checkTextOverflow();
+        expect(spy).not.toHaveBeenCalled();
+      });
+
+      it('should return early if video is not set', () => {
+        component.video = null;
+        component.videoDescription = new ElementRef(document.createElement('div'));
+        const spy = spyOn(component as any, 'getVisibleHeight');
+        (component as any).checkTextOverflow();
+        expect(spy).not.toHaveBeenCalled();
+      });
+    });
   });
 
   describe('togglePreview', () => {

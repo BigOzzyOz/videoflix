@@ -184,6 +184,11 @@ describe('LoginComponent', () => {
     expect(component.toRegister).toHaveBeenCalled();
   });
 
+  it('should navigate to main when navigateToMain is called', () => {
+    component.navigateToMain();
+    expect(router.navigate).toHaveBeenCalledWith(['/main']);
+  });
+
   describe('Profile selection logic', () => {
     let dialogService: any;
     beforeEach(() => {
