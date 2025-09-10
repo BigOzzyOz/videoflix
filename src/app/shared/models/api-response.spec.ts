@@ -108,4 +108,24 @@ describe('ApiResponse', () => {
     expect(new ApiResponse(false, 400, { error: 'Error field' }).getErrorMessage()).toBe('Error field');
     expect(new ApiResponse(false, 400, null).getErrorMessage()).toBe('HTTP 400');
   });
+
+  it('should set data to null if response body is empty JSON', async () => {
+    const mockResponse = {
+      ok: true,
+      status: 200,
+      headers: {
+        get: (key: string) => {
+          if (key === 'content-type') return 'application/json';
+          if (key === 'content-length') return '123';
+          return null;
+        }
+      },
+      text: () => Promise.resolve('   ')
+    } as Response;
+
+    const apiResponse = await ApiResponse.create(mockResponse);
+    expect(apiResponse.ok).toBe(true);
+    expect(apiResponse.status).toBe(200);
+    expect(apiResponse.data).toBeNull();
+  });
 });
