@@ -118,4 +118,64 @@ describe('Video', () => {
     expect(video.formattedDuration).toBe('0:00');
     expect(video.durationMs).toBe(0);
   });
+
+  it('should fallback to empty array if available_languages is missing', () => {
+    const apiData: any = {
+      id: '3',
+      title: 'No Languages',
+      description: '',
+      genres: [],
+      language: 'en',
+      duration: 10,
+      thumbnail_url: '',
+      preview_url: '',
+      hls_url: '',
+      is_ready: true,
+      created_at: '2023-10-01T12:00:00Z',
+      updated_at: '2023-10-02T12:00:00Z'
+    };
+    const video = new Video(apiData);
+    expect(Array.isArray(video.availableLanguages)).toBeTrue();
+    expect(video.availableLanguages.length).toBe(0);
+  });
+
+  it('should fallback to current date if created_at is missing', () => {
+    const apiData: any = {
+      id: '4',
+      title: 'No Created',
+      description: '',
+      genres: [],
+      language: 'en',
+      available_languages: ['en'],
+      duration: 10,
+      thumbnail_url: '',
+      preview_url: '',
+      hls_url: '',
+      is_ready: true,
+      updated_at: '2023-10-02T12:00:00Z'
+    };
+    const video = new Video(apiData);
+    expect(video.created instanceof Date).toBeTrue();
+    expect(isNaN(video.created.getTime())).toBeFalse();
+  });
+
+  it('should fallback to current date if updated_at is missing', () => {
+    const apiData: any = {
+      id: '5',
+      title: 'No Updated',
+      description: '',
+      genres: [],
+      language: 'en',
+      available_languages: ['en'],
+      duration: 10,
+      thumbnail_url: '',
+      preview_url: '',
+      hls_url: '',
+      is_ready: true,
+      created_at: '2023-10-01T12:00:00Z'
+    };
+    const video = new Video(apiData);
+    expect(video.updated instanceof Date).toBeTrue();
+    expect(isNaN(video.updated.getTime())).toBeFalse();
+  });
 });

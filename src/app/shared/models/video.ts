@@ -37,8 +37,8 @@ export class Video implements VideoData {
             this.preview = data.preview_url || '';
             this.hls = data.hls_url || '';
             this.ready = data.is_ready || false;
-            this.created = new Date(data.created_at) || new Date();
-            this.updated = new Date(data.updated_at) || new Date();
+            this.created = data.created_at ? new Date(data.created_at) : new Date();
+            this.updated = data.updated_at ? new Date(data.updated_at) : new Date();
         } else {
             this.availableLanguages = data.availableLanguages || [];
             this.thumbnail = data.thumbnail || '';
