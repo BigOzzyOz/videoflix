@@ -1,8 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-
 import { PlayerService } from './player.service';
 import { Profile } from '../models/profile';
-import * as videojsModule from 'video.js';
 
 (window as any).videojs = jasmine.createSpy('videojs').and.callFake(() => ({
   on: jasmine.createSpy('on'),
@@ -488,4 +486,16 @@ describe('PlayerService', () => {
     });
   });
 
+  describe('PlayerService.chooseImport', () => {
+    it('should return videojsImport if defined', () => {
+      const mockImport = {};
+      expect(PlayerService.chooseImport(mockImport)).toBe(mockImport);
+    });
+
+    it('should return window.videojs if import is falsy', () => {
+      const windowVideojsMock = {};
+      (window as any).videojs = windowVideojsMock;
+      expect(PlayerService.chooseImport(undefined)).toBe(windowVideojsMock);
+    });
+  });
 });

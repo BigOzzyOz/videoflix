@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import videojsImport from 'video.js';
 import '@videojs/http-streaming';
 import { PlayerStateService } from './player-state.service';
 import { ErrorService } from './error.service';
@@ -29,7 +30,11 @@ export class PlayerService {
    */
   videojs: any;
   constructor() {
-    this.videojs = (window as any).videojs;
+    this.videojs = PlayerService.chooseImport(videojsImport);
+  }
+
+  static chooseImport(videojsImport?: any) {
+    return videojsImport ? videojsImport : (window as any).videojs;
   }
 
   /**
@@ -158,7 +163,7 @@ export class PlayerService {
    * Handles the 'ended' event: sets end state and saves progress.
    */
   async playerEndHandler(): Promise<void> {
-    if (!this.playerState.videoId() || !this.playerState.player()) return;
+    if (!this.playerState.videoId() || !this.playerState.player) return;
     const currentTime = this.playerState.player.currentTime();
     this.setEndState();
     if (!currentTime) return;
