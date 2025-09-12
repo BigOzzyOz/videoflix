@@ -4,6 +4,7 @@ import { ErrorService } from './error.service';
 import { ApiResponse } from '../models/api-response';
 import { User } from '../models/user';
 import { Profile } from '../models/profile';
+import { environment } from '../../../environments/environment';
 
 /**
  * Service for handling all API requests, authentication, and user/profile state.
@@ -14,7 +15,7 @@ import { Profile } from '../models/profile';
 export class ApiService {
   private router = inject(Router);
   private errorService = inject(ErrorService);
-  BASE_URL: string = 'http://localhost:8000/api';
+  BASE_URL: string = environment.apiUrl;
   LOGIN_URL: string = `${this.BASE_URL}/users/login/`;
   LOGOUT_URL: string = `${this.BASE_URL}/users/logout/`;
   REGISTER_URL: string = `${this.BASE_URL}/users/register/`;
