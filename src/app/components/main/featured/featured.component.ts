@@ -36,15 +36,19 @@ export class FeaturedComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['video'] && this.video) {
       this.isPreviewPlaying = false;
+      this.isSoundEnabled = false;
       if (this.videoElement && this.videoElement.nativeElement) {
         const video = this.videoElement.nativeElement;
         video.currentTime = 0;
         video.load();
+        video.muted = true;
         setTimeout(() => {
           this.checkTextOverflow();
         }, 100);
+
         setTimeout(() => {
           video.play();
+          this.isPreviewPlaying = true;
         }, 2000);
       }
     }
