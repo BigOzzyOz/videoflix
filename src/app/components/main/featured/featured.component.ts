@@ -157,7 +157,7 @@ export class FeaturedComponent implements OnChanges {
       const video = this.videoElement.nativeElement;
       video.pause();
       video.currentTime = 0;
-      video.load();
+      video.play();
     }
   }
 
