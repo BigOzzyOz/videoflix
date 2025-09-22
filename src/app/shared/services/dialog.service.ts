@@ -14,6 +14,10 @@ export class DialogService {
   private profileSelectionVisible$ = new BehaviorSubject<boolean>(false);
   private profileSelectionData$ = new BehaviorSubject<DialogData | null>(null);
   private profileSelectionResult$ = new BehaviorSubject<Profile | null>(null);
+  private confirmDialogVisible$ = new BehaviorSubject<boolean>(false);
+  private confirmDialogData$ = new BehaviorSubject<{ title: string, message: string } | null>(null);
+  private confirmDialogResult: ((result: boolean) => void) | null = null;
+
 
   constructor() { }
 
@@ -99,5 +103,33 @@ export class DialogService {
     this.profileSelectionVisible$.next(false);
     this.profileSelectionData$.next(null);
     this.profileSelectionResult$.next(null);
+  }
+
+  get isConfirmDialogVisible(): Observable<boolean> {
+    return this.confirmDialogVisible$.asObservable();
+  }
+
+  get confirmDialogData(): Observable<{ title: string, message: string } | null> {
+    return this.confirmDialogData$.asObservable();
+  }
+
+  openConfirmationDialog(dialogData: { title: string, message: string }): Promise<boolean> {
+    return new Promise((resolve) => {
+      this.confirmDialogData$.next(dialogData);
+      this.confirmDialogVisible$.next(true);
+      this.confirmDialogResult = (result: boolean) => {
+        this.confirmDialogVisible$.next(false);
+        this.confirmDialogData$.next(null);
+        this.confirmDialogResult = null;
+        resolve(result);
+      };
+    });
+  }
+
+  // Diese Methode rufst du aus dem ConfirmDialogComponent auf:
+  confirmDialogResponse(result: boolean) {
+    if (this.confirmDialogResult) {
+      this.confirmDialogResult(result);
+    }
   }
 }

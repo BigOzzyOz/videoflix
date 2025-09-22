@@ -181,7 +181,17 @@ export class ProfileSelectionComponent implements OnInit, OnDestroy {
    */
   async deleteProfile(): Promise<void> {
     if (!this.profileToEdit) return;
-    if (!this.confirmDeleteProfile(this.profileToEdit)) return;
+    this.profiles = this.api.CurrentUser.profiles;
+    if (this.profiles.length <= 1) {
+      this.errorService.show('Cannot delete the last profile.');
+      return;
+    }
+    const confirmed = await this.dialogService.openConfirmationDialog({
+      title: 'Delete Profile',
+      message: `Are you sure you want to delete the profile "${this.profileToEdit.name}"? This action cannot be undone.`
+    });
+
+    if (!confirmed) return;
     try {
       const response = await this.api.deleteUserProfile(this.profileToEdit.id);
       if (response.isSuccess()) this.handleProfileDelete(this.profileToEdit);

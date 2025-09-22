@@ -1,0 +1,12 @@
+@if (dialogService.isConfirmDialogVisible | async) {
+    <div class="confirm-dialog-overlay" (click)="onCancel()">
+        <div class="confirm-dialog" (click)="$event.stopPropagation()">
+            <h2>{{ (dialogService.confirmDialogData | async)?.title }}</h2>
+            <p>{{ (dialogService.confirmDialogData | async)?.message }}</p>
+            <div class="buttons">
+                <button (click)="onConfirm()">Yes</button>
+                <button (click)="onCancel()">No</button>
+            </div>
+        </div>
+    </div>
+}
