@@ -15,10 +15,18 @@ export class ConfirmDialogComponent {
 
   constructor() { }
 
+  /**
+   * Called when the user confirms the action.
+   * Resolves the confirm dialog promise with true.
+   */
   onConfirm() {
     this.dialogService.confirmDialogResponse(true);
   }
 
+  /**
+   * Called when the user cancels the action or clicks outside the dialog.
+   * Resolves the confirm dialog promise with false.
+   */
   onCancel() {
     this.dialogService.confirmDialogResponse(false);
   }
