@@ -19,9 +19,6 @@ export class LegalNoticeComponent implements OnInit, OnDestroy {
   private activeRoute = inject(ActivatedRoute);
   private renderer = inject(Renderer2);
 
-  /**
-   * The currently selected sub-site (e.g. 'imprint', 'privacy').
-   */
   subSite: string = '';
   /**
    * Constructor: Subscribes to query parameters and sets the subSite value.

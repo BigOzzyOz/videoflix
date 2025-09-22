@@ -1,4 +1,5 @@
-import { Component, inject, Input, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
+import { Location } from '@angular/common';
 import { Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { DialogService } from '../../services/dialog.service';
@@ -25,6 +26,7 @@ export class HeaderComponent {
   public api = inject(ApiService);
   private errorService = inject(ErrorService);
   private dialogService = inject(DialogService);
+  private location = inject(Location);
 
 
   constructor() { }
@@ -40,7 +42,7 @@ export class HeaderComponent {
    * Navigates to the home page.
    */
   goBack(): void {
-    this.router.navigate(['/']);
+    this.location.back();
   }
 
   /**

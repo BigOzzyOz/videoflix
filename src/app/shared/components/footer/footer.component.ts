@@ -18,21 +18,13 @@ export class FooterComponent {
    * Opens the privacy policy page in a new browser tab.
    */
   toPrivacyPolicy(): void {
-    const targetTree = this.router.createUrlTree(['/privacy'], {
-      queryParams: { subSite: 'privacy' }
-    });
-    const targetUrl = this.router.serializeUrl(targetTree);
-    window.open(targetUrl, '_blank');
+    this.router.navigate(['/privacy'], { queryParams: { subSite: 'privacy' } });
   }
 
   /**
    * Opens the imprint page in a new browser tab.
    */
   toImprint(): void {
-    const targetTree = this.router.createUrlTree(['/imprint'], {
-      queryParams: { subSite: 'imprint' }
-    });
-    const targetUrl = this.router.serializeUrl(targetTree);
-    window.open(targetUrl, '_blank');
+    this.router.navigate(['/imprint'], { queryParams: { subSite: 'imprint' } });
   }
 }
