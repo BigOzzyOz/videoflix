@@ -78,7 +78,7 @@ export class PasswordResetComponent implements OnInit {
       this.passwordReset = true;
       this.resetToken = params['token'] || '';
     } else if (this.isPasswordForget(path, params)) this.passwordForget = true;
-    else this.router.navigate(['**']);
+    else this.router.navigate(['/login']);
   }
 
   /**
