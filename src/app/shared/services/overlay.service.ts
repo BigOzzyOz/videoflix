@@ -1,35 +1,27 @@
-import { Injectable, signal } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { PlayerStateService } from './player-state.service';
 
 /**
  * Service for managing the visibility and auto-hide behavior of the player overlay.
  */
 @Injectable({ providedIn: 'root' })
 export class OverlayService {
+  private playerState = inject(PlayerStateService);
   private overlayTimeoutId: any = null;
   private readonly OVERLAY_HIDE_DELAY = 3000;
-  private _showOverlay = signal<boolean>(true);
 
-  readonly showOverlay = this._showOverlay.asReadonly();
-
-  /**
-   * Sets the overlay visibility state.
-   * @param value True to show overlay, false to hide
-   */
-  setShowOverlay(value: boolean) {
-    this._showOverlay.set(value);
-  }
 
   /**
    * Resets the overlay timer and auto-hides overlay if playing.
    * @param isPlaying True if video is playing, triggers auto-hide
    */
   resetOverlayTimer(isPlaying: boolean): void {
-    this.setShowOverlay(true);
+    this.playerState.setShowOverlay(true);
     if (this.overlayTimeoutId) {
       clearTimeout(this.overlayTimeoutId);
     }
     if (isPlaying) {
-      this.overlayTimeoutId = setTimeout(() => this.setShowOverlay(false), this.OVERLAY_HIDE_DELAY);
+      this.overlayTimeoutId = setTimeout(() => this.playerState.toggleOverlay(), this.OVERLAY_HIDE_DELAY);
     }
   }
 

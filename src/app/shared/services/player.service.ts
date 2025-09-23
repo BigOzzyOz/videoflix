@@ -122,11 +122,26 @@ export class PlayerService {
   }
 
   /**
-   * Handles the 'loadedmetadata' event: sets video duration and seeks to start.
+   * Handles the 'loadedmetadata' event:
+   * - Sets the video duration in the state.
+   * - Seeks to the start of the video.
+   * - Extracts available video qualities from the player and updates the state.
+   *   Qualities are sorted in descending order (e.g., 1080p, 720p, 480p).
+   *   Adds 'auto' as the first option for automatic quality selection.
    */
   loadMetaHandler(): void {
     this.playerState.setVideoDuration(this.playerState.player.duration() || 0);
     this.seekService.jumpTime(0, true);
+    const player = this.playerState.player;
+    const qualities: string[] = [];
+    if (player && player.qualityLevels) {
+      const ql = player.qualityLevels();
+      for (let i = 0; i < ql.length; i++) {
+        if (ql[i].height) qualities.push(ql[i].height + 'p');
+      }
+    }
+    qualities.sort((a, b) => parseInt(b) - parseInt(a));
+    this.playerState.setAvailableQualities(['auto', ...qualities]);
   }
 
   /**
@@ -213,5 +228,28 @@ export class PlayerService {
         default: this.errorService.show('Unknown video error occurred');
       }
     } else this.errorService.show('An unexpected error occurred');
+  }
+
+  /**
+   * Changes the video quality by setting the appropriate rendition.
+   * @param quality The desired quality label (e.g., '720p', '1080p', 'auto')
+   */
+  setQuality(quality: string): void {
+    const player = this.playerState.player;
+    if (!player || !player.qualityLevels) return;
+
+    if (quality === 'auto') {
+      // Enable all levels for auto
+      for (let i = 0; i < player.qualityLevels().length; i++) {
+        player.qualityLevels()[i].enabled = true;
+      }
+    } else {
+      for (let i = 0; i < player.qualityLevels().length; i++) {
+        const level = player.qualityLevels()[i];
+        // Beispiel: level.height === 720 für '720p'
+        level.enabled = (level.height + 'p') === quality;
+      }
+    }
+    this.playerState.setCurrentQuality(quality);
   }
 }

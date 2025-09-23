@@ -1,0 +1,65 @@
+@use 'index' as *;
+
+.vjs-quality-control {
+    position: relative;
+    display: inline-block;
+
+    .quality-settings-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 50%;
+        transition: background 0.2s;
+
+        svg {
+            display: block;
+        }
+    }
+
+    .quality-dropdown {
+        position: absolute;
+        bottom: 6rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background: $card-background;
+        border-radius: 1rem;
+        box-shadow: 0 0.5rem 3rem $bg-color;
+        padding: 1rem;
+        min-width: 7rem;
+        z-index: 10;
+        animation: dropdownUp 0.2s ease;
+
+        ul {
+            list-style: none;
+            padding: 0.5rem;
+
+            li {
+                font-size: 2rem;
+                padding: 1rem;
+                cursor: pointer;
+                color: $secondary-color;
+                text-align: center;
+                transition: all 125ms ease;
+
+                &.active,
+                &:hover {
+                    background: $primary-color;
+                    border-radius: 0.5rem;
+                }
+            }
+        }
+    }
+}
+
+@keyframes dropdownUp {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 1rem);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}

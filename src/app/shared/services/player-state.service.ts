@@ -51,6 +51,11 @@ export class PlayerStateService {
   // === Speed Control State ===
   private _availableSpeeds = signal<number[]>([0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]);
 
+  // === Quality Control State ===
+  private _availableQualities = signal<string[]>(['auto']); // z.B. ['auto', '1080p', '720p', '480p']
+  private _currentQuality = signal<string>('auto');
+  private _showQualityMenu = signal<boolean>(false);
+
   // === Player Reference ===
   /** Reference to the player instance. */
   get player() { return this._player; }
@@ -82,6 +87,9 @@ export class PlayerStateService {
   readonly seekTooltipPosition = this._seekTooltipPosition.asReadonly();
   readonly bufferedTime = this._bufferedTime.asReadonly();
   readonly availableSpeeds = this._availableSpeeds.asReadonly();
+  readonly availableQualities = this._availableQualities.asReadonly();
+  readonly currentQuality = this._currentQuality.asReadonly();
+  readonly showQualityMenu = this._showQualityMenu.asReadonly();
 
   // === Computed Values ===
   readonly volumePercentage = computed(() => Math.round(this.volume() * 100));
@@ -238,6 +246,21 @@ export class PlayerStateService {
     this._availableSpeeds.set(speeds);
   }
 
+  /** Sets the available video qualities. */
+  setAvailableQualities(qualities: string[]): void {
+    this._availableQualities.set(qualities);
+  }
+
+  /** Sets the current video quality. */
+  setCurrentQuality(quality: string): void {
+    this._currentQuality.set(quality);
+  }
+
+  /** Sets the quality menu visibility. */
+  setShowQualityMenu(show: boolean): void {
+    this._showQualityMenu.set(show);
+  }
+
   // === Toggle Methods ===
   /** Toggles the playing state. */
   togglePlay(): void {
@@ -249,19 +272,57 @@ export class PlayerStateService {
     this.setIsMuted(!this.isMuted());
   }
 
-  /** Toggles the speed menu visibility. */
+  /** Toggles the speed menu visibility.
+   * If opening, closes quality and volume controls.
+   */
   toggleSpeedMenu(): void {
-    this.setShowSpeedMenu(!this.showSpeedMenu());
+    const isOpen = this.showSpeedMenu();
+    this.setShowSpeedMenu(!isOpen);
+    if (!isOpen) {
+      this.setShowQualityMenu(false);
+      this.setShowVolumeControl(false);
+    }
   }
 
-  /** Toggles the volume control visibility. */
+  /**
+   * Toggles the volume control visibility.
+   * If opening, closes speed and quality menus.
+   */
   toggleVolumeControl(): void {
-    this.setShowVolumeControl(!this.showVolumeControl());
+    const isOpen = this.showVolumeControl();
+    this.setShowVolumeControl(!isOpen);
+    if (!isOpen) {
+      this.setShowSpeedMenu(false);
+      this.setShowQualityMenu(false);
+    }
   }
 
-  /** Toggles the overlay visibility. */
+  /**
+   * Toggles the quality menu visibility.
+   * If opening, closes speed and volume controls.
+   */
+  toggleQualityMenu(): void {
+    console.log('Toggling Quality Menu');
+    const isOpen = this.showQualityMenu();
+    this.setShowQualityMenu(!isOpen);
+    if (!isOpen) {
+      this.setShowSpeedMenu(false);
+      this.setShowVolumeControl(false);
+    }
+  }
+
+  /**
+   * Toggles the overlay visibility.
+   * If closing, also closes speed, volume, and quality menus.
+   */
   toggleOverlay(): void {
-    this.setShowOverlay(!this.showOverlay());
+    const isOpen = this.showOverlay();
+    this.setShowOverlay(!isOpen);
+    if (isOpen) {
+      this.setShowSpeedMenu(false);
+      this.setShowVolumeControl(false);
+      this.setShowQualityMenu(false);
+    }
   }
 
   // === Reset Methods ===

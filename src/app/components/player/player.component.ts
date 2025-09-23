@@ -154,6 +154,7 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     const target = event.target as HTMLElement;
     if (!target.closest('.vjs-sound-control')) this.playerState.setShowVolumeControl(false);
     if (!target.closest('.vjs-speed-control')) this.playerState.setShowSpeedMenu(false);
+    if (!target.closest('.vjs-quality-control')) this.playerState.setShowQualityMenu(false);
   }
 
   /**
@@ -187,7 +188,7 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
    * Returns whether the overlay is currently shown.
    */
   get showOverlay(): boolean {
-    return this.overlayService.showOverlay();
+    return this.playerState.showOverlay();
   }
 
   /**
