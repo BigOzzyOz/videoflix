@@ -133,16 +133,6 @@ describe('PlayerService', () => {
   });
 
   describe('initializePlayer', () => {
-    // beforeEach(() => {
-    //   spyOn<any>(videojsModule, 'default').and.callFake(() => ({
-    //     on: jasmine.createSpy('on'),
-    //     one: jasmine.createSpy('one'),
-    //     ready: jasmine.createSpy('ready'),
-    //     error: jasmine.createSpy('error'),
-    //     play: jasmine.createSpy('play'),
-    //     pause: jasmine.createSpy('pause')
-    //   }));
-    // });
 
     it('should show error if videoElement is null', () => {
       const errorServiceSpy = jasmine.createSpyObj('ErrorService', ['show']);
@@ -302,7 +292,11 @@ describe('PlayerService', () => {
   describe('loadMetaHandler', () => {
     it('should set video duration and seek to start', () => {
       const playerMock = { duration: jasmine.createSpy().and.returnValue(123) };
-      const playerStateMock = { player: playerMock, setVideoDuration: jasmine.createSpy() };
+      const playerStateMock = {
+        player: playerMock,
+        setVideoDuration: jasmine.createSpy(),
+        setAvailableQualities: jasmine.createSpy()
+      };
       const seekServiceMock = { jumpTime: jasmine.createSpy() };
       (service as any).playerState = playerStateMock;
       (service as any).seekService = seekServiceMock;

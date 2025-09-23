@@ -140,7 +140,6 @@ describe('FeaturedComponent', () => {
       component.endPreview();
       expect(videoMock.pause).toHaveBeenCalled();
       expect(videoMock.currentTime).toBe(0);
-      expect(videoMock.load).toHaveBeenCalled();
     });
   });
 

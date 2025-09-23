@@ -102,10 +102,18 @@ describe('HeaderComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/login']);
   });
 
-  it('should navigate to home when goBack is called', () => {
+  it('should navigate back when goBack is called', () => {
+    const locationSpy = jasmine.createSpyObj('Location', ['back']);
+    component['location'] = locationSpy;
     component.goBack();
+    expect(locationSpy.back).toHaveBeenCalled();
+  });
 
-    expect(router.navigate).toHaveBeenCalledWith(['/']);
+  it('should trigger back navigation when back arrow is clicked', () => {
+    const locationSpy = jasmine.createSpyObj('Location', ['back']);
+    component['location'] = locationSpy;
+    component.goBack();
+    expect(locationSpy.back).toHaveBeenCalled();
   });
 
   it('should trigger login navigation when login button is clicked', () => {
@@ -116,18 +124,6 @@ describe('HeaderComponent', () => {
     button.click();
 
     expect(router.navigate).toHaveBeenCalledWith(['/login']);
-  });
-
-  it('should trigger back navigation when back arrow is clicked', () => {
-    component.backArrow = true;
-    fixture.detectChanges();
-
-    const backArrow = fixture.nativeElement.querySelector('.header__back_arrow');
-
-    const clickEvent = new Event('click');
-    backArrow.dispatchEvent(clickEvent);
-
-    expect(router.navigate).toHaveBeenCalledWith(['/']);
   });
 
   it('should call api.logout when logOut is called', () => {

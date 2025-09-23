@@ -9,7 +9,7 @@ describe('FooterComponent', () => {
   let router: jasmine.SpyObj<Router>;
 
   beforeEach(async () => {
-    const routerSpy = jasmine.createSpyObj('Router', ['createUrlTree', 'serializeUrl']);
+    const routerSpy = jasmine.createSpyObj('Router', ['navigate', 'navigateByUrl']);
     spyOn(window, 'open');
 
     await TestBed.configureTestingModule({
@@ -36,40 +36,8 @@ describe('FooterComponent', () => {
     const copyright = fixture.nativeElement.querySelector('p');
 
     expect(privacyLink?.textContent).toBe('Privacy Policy');
-    expect(imprintLink?.textContent).toBe('Imprint');
+    expect(imprintLink?.textContent).toBe('Site Notice');
     expect(copyright?.textContent).toBe('© 2025 Jan Holtschke');
-  });
-
-  it('should open privacy policy in new tab when clicked', () => {
-    // Fix: Korrekte UrlTree Mock
-    const mockUrlTree = { toString: () => '/privacy?subSite=privacy' } as UrlTree;
-    const mockUrl = '/privacy?subSite=privacy';
-    router.createUrlTree.and.returnValue(mockUrlTree);
-    router.serializeUrl.and.returnValue(mockUrl);
-
-    component.toPrivacyPolicy();
-
-    expect(router.createUrlTree).toHaveBeenCalledWith(['/privacy'], {
-      queryParams: { subSite: 'privacy' }
-    });
-    expect(router.serializeUrl).toHaveBeenCalledWith(mockUrlTree);
-    expect(window.open).toHaveBeenCalledWith(mockUrl, '_blank');
-  });
-
-  it('should open imprint in new tab when clicked', () => {
-    // Fix: Korrekte UrlTree Mock
-    const mockUrlTree = { toString: () => '/imprint?subSite=imprint' } as UrlTree;
-    const mockUrl = '/imprint?subSite=imprint';
-    router.createUrlTree.and.returnValue(mockUrlTree);
-    router.serializeUrl.and.returnValue(mockUrl);
-
-    component.toImprint();
-
-    expect(router.createUrlTree).toHaveBeenCalledWith(['/imprint'], {
-      queryParams: { subSite: 'imprint' }
-    });
-    expect(router.serializeUrl).toHaveBeenCalledWith(mockUrlTree);
-    expect(window.open).toHaveBeenCalledWith(mockUrl, '_blank');
   });
 
   it('should trigger privacy policy navigation when link is clicked', () => {
@@ -88,5 +56,19 @@ describe('FooterComponent', () => {
     imprintLink.click();
 
     expect(component.toImprint).toHaveBeenCalled();
+  });
+
+  it('should navigate to privacy policy when clicked', () => {
+    component.toPrivacyPolicy();
+    expect(router.navigate).toHaveBeenCalledWith(['/privacy'], {
+      queryParams: { subSite: 'privacy' }
+    });
+  });
+
+  it('should navigate to imprint when clicked', () => {
+    component.toImprint();
+    expect(router.navigate).toHaveBeenCalledWith(['/imprint'], {
+      queryParams: { subSite: 'imprint' }
+    });
   });
 });
