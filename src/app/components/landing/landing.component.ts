@@ -48,15 +48,27 @@ export class LandingComponent implements OnInit, OnDestroy {
   async ngOnInit() {
     this.renderer.addClass(document.body, 'landing-bg');
     const storageToken = sessionStorage.getItem('token');
-    if (storageToken) {
-      try {
-        const response = await this.api.validateToken(storageToken);
-        if (response.isSuccess()) this.router.navigate(['/main']);
-        else sessionStorage.clear();
-      } catch (error) {
-        this.errorService.show('Error validating token, please log in again.');
+    if (storageToken) await this.validateSessionToken(storageToken);
+  }
+
+  /**
+   * 
+   * Validates the token with the backend API.
+   * Navigates to the main page if valid, otherwise clears sessionStorage.
+   * Shows an error message if validation fails due to a network or server error.
+   * @param storageToken The JWT token stored in sessionStorage.
+   */
+  async validateSessionToken(storageToken: string) {
+    try {
+      const response = await this.api.validateToken(storageToken);
+      if (response.isSuccess()) {
+        this.router.navigate(['/main']);
+      } else {
         sessionStorage.clear();
       }
+    } catch (error) {
+      this.errorService.show('Error validating token, please log in again.');
+      sessionStorage.clear();
     }
   }
 

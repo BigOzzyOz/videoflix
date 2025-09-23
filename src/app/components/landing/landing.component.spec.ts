@@ -7,22 +7,31 @@ import { LoadingService } from '../../shared/services/loading.service';
 import { LandingComponent } from './landing.component';
 import { HeaderComponent } from '../../shared/components/header/header.component';
 import { FooterComponent } from '../../shared/components/footer/footer.component';
+import { ApiService } from '../../shared/services/api.service';
+import { ErrorService } from '../../shared/services/error.service';
+import { ApiResponse } from '../../shared/models/api-response';
 
 describe('LandingComponent', () => {
   let component: LandingComponent;
   let fixture: ComponentFixture<LandingComponent>;
   let router: jasmine.SpyObj<Router>;
   let loadingServiceSpy: jasmine.SpyObj<LoadingService>;
+  let apiService: jasmine.SpyObj<ApiService>;
+  let errorService: jasmine.SpyObj<ErrorService>;
 
   beforeEach(async () => {
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
     loadingServiceSpy = jasmine.createSpyObj('LoadingService', ['setLoading']);
+    apiService = jasmine.createSpyObj('ApiService', ['validateToken']);
+    errorService = jasmine.createSpyObj('ErrorService', ['show']);
 
     await TestBed.configureTestingModule({
       imports: [LandingComponent, HeaderComponent, FooterComponent, FormsModule],
       providers: [
         { provide: Router, useValue: routerSpy },
-        { provide: LoadingService, useValue: loadingServiceSpy }
+        { provide: LoadingService, useValue: loadingServiceSpy },
+        { provide: ApiService, useValue: apiService },
+        { provide: ErrorService, useValue: errorService }
       ]
     })
       .compileComponents();
@@ -120,5 +129,82 @@ describe('LandingComponent', () => {
 
   it('should call loadingService.setLoading(false) in constructor', () => {
     expect(loadingServiceSpy.setLoading).toHaveBeenCalledWith(false);
+  });
+
+  it('should navigate to /main if token is valid', async () => {
+    const responseMock: ApiResponse = {
+      ok: true,
+      status: 200,
+      data: {},
+      isClientError: () => false,
+      isServerError: () => false,
+      isSuccess: () => true,
+      message: '',
+      isUnauthorized: function (): boolean {
+        throw new Error('Function not implemented.');
+      },
+      isForbidden: function (): boolean {
+        throw new Error('Function not implemented.');
+      },
+      isNotFound: function (): boolean {
+        throw new Error('Function not implemented.');
+      },
+      hasData: function (): boolean {
+        throw new Error('Function not implemented.');
+      },
+      getErrorMessage: function (): string {
+        throw new Error('Function not implemented.');
+      }
+    };
+    apiService.validateToken.and.resolveTo(responseMock);
+    spyOn(sessionStorage, 'clear');
+    await component.validateSessionToken('token');
+    expect(router.navigate).toHaveBeenCalledWith(['/main']);
+    expect(sessionStorage.clear).not.toHaveBeenCalled();
+  });
+
+  it('should clear sessionStorage if token is invalid', async () => {
+    spyOn(sessionStorage, 'clear');
+    const responseMock: ApiResponse = {
+      ok: false,
+      status: 401,
+      data: {},
+      isClientError: () => true,
+      isServerError: () => false,
+      isSuccess: () => false,
+      message: '',
+      isUnauthorized: function (): boolean { return true; },
+      isForbidden: function (): boolean { return false; },
+      isNotFound: function (): boolean { return false; },
+      hasData: function (): boolean { return false; },
+      getErrorMessage: function (): string { return 'Unauthorized'; }
+    };
+    apiService.validateToken.and.resolveTo(responseMock);
+    await component.validateSessionToken('token');
+    expect(router.navigate).not.toHaveBeenCalled();
+    expect(sessionStorage.clear).toHaveBeenCalled();
+  });
+
+  it('should show error and clear sessionStorage on exception', async () => {
+    apiService.validateToken.and.rejectWith(new Error('fail'));
+    spyOn(sessionStorage, 'clear');
+    await component.validateSessionToken('token');
+    expect(errorService.show).toHaveBeenCalledWith('Error validating token, please log in again.');
+    expect(sessionStorage.clear).toHaveBeenCalled();
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('should call validateSessionToken in ngOnInit if token exists', async () => {
+    spyOn(component, 'validateSessionToken').and.returnValue(Promise.resolve());
+    spyOn(sessionStorage, 'getItem').and.returnValue('token');
+    await component.ngOnInit();
+    expect(component.validateSessionToken).toHaveBeenCalledWith('token');
+  });
+
+  it('should not call validateSessionToken in ngOnInit if no token exists', async () => {
+    spyOn(component, 'validateSessionToken');
+    spyOn(sessionStorage, 'getItem').and.returnValue(null);
+    await component.ngOnInit();
+    expect(component.validateSessionToken).not.toHaveBeenCalled();
   });
 });
