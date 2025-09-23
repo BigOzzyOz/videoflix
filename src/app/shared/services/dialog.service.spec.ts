@@ -71,4 +71,30 @@ describe('DialogService', () => {
     expect(data).toBeNull();
     expect(result).toBeNull();
   });
+
+  it('should emit confirm dialog data and visibility on openConfirmationDialog', async () => {
+    let visible: boolean | undefined;
+    let data: { title: string, message: string } | null | undefined;
+    service.isConfirmDialogVisible.subscribe(v => visible = v);
+    service.confirmDialogData.subscribe(d => data = d);
+
+    const dialogData = { title: 'Test', message: 'Are you sure?' };
+    const promise = service.openConfirmationDialog(dialogData);
+
+    expect(visible).toBeTrue();
+    expect(data).toEqual(dialogData);
+
+    service.confirmDialogResponse(true);
+    const result = await promise;
+    expect(result).toBeTrue();
+  });
+
+  it('should resolve confirm dialog promise with false on cancel', async () => {
+    const dialogData = { title: 'Test', message: 'Cancel?' };
+    const promise = service.openConfirmationDialog(dialogData);
+
+    service.confirmDialogResponse(false);
+    const result = await promise;
+    expect(result).toBeFalse();
+  });
 });

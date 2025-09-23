@@ -290,26 +290,106 @@ describe('PlayerService', () => {
   });
 
   describe('loadMetaHandler', () => {
-    it('should set video duration and seek to start', () => {
-      const playerMock = { duration: jasmine.createSpy().and.returnValue(123) };
+    it('should extract and sort available qualities', () => {
+      const playerMock = {
+        duration: jasmine.createSpy().and.returnValue(100),
+        qualityLevels: jasmine.createSpy().and.returnValue([
+          { height: 720 },
+          { height: 1080 },
+          { height: 480 }
+        ])
+      };
       const playerStateMock = {
         player: playerMock,
         setVideoDuration: jasmine.createSpy(),
         setAvailableQualities: jasmine.createSpy()
       };
-      const seekServiceMock = { jumpTime: jasmine.createSpy() };
       (service as any).playerState = playerStateMock;
-      (service as any).seekService = seekServiceMock;
+      (service as any).seekService = { jumpTime: jasmine.createSpy() };
+
       service.loadMetaHandler();
-      expect(playerStateMock.setVideoDuration).toHaveBeenCalledWith(123);
-      expect(seekServiceMock.jumpTime).toHaveBeenCalledWith(0, true);
+
+      expect(playerStateMock.setVideoDuration).toHaveBeenCalledWith(100);
+      expect(service.seekService.jumpTime).toHaveBeenCalledWith(0, true);
+      expect(playerStateMock.setAvailableQualities).toHaveBeenCalledWith(['auto', '1080p', '720p', '480p']);
+    });
+
+    it('should handle missing qualityLevels gracefully', () => {
+      const playerMock = { duration: jasmine.createSpy().and.returnValue(100) };
+      const playerStateMock = {
+        player: playerMock,
+        setVideoDuration: jasmine.createSpy(),
+        setAvailableQualities: jasmine.createSpy()
+      };
+      (service as any).playerState = playerStateMock;
+      (service as any).seekService = { jumpTime: jasmine.createSpy() };
+
+      service.loadMetaHandler();
+
+      expect(playerStateMock.setAvailableQualities).toHaveBeenCalledWith(['auto']);
     });
 
     it('should set video duration to 0 if player.duration is falsy', () => {
-      service.playerState.player = { duration: jasmine.createSpy('duration').and.returnValue(undefined) } as any;
-      spyOn(service.playerState, 'setVideoDuration');
+      const playerMock = {
+        duration: jasmine.createSpy().and.returnValue(undefined),
+        qualityLevels: jasmine.createSpy().and.returnValue([])
+      };
+      const playerStateMock = {
+        player: playerMock,
+        setVideoDuration: jasmine.createSpy(),
+        setAvailableQualities: jasmine.createSpy()
+      };
+      (service as any).playerState = playerStateMock;
+      (service as any).seekService = { jumpTime: jasmine.createSpy() };
+
       service.loadMetaHandler();
-      expect(service.playerState.setVideoDuration).toHaveBeenCalledWith(0);
+
+      expect(playerStateMock.setVideoDuration).toHaveBeenCalledWith(0);
+      expect(service.seekService.jumpTime).toHaveBeenCalledWith(0, true);
+      expect(playerStateMock.setAvailableQualities).toHaveBeenCalledWith(['auto']);
+    });
+  });
+
+  describe('setQuality', () => {
+    let playerMock: any;
+    let playerStateMock: any;
+
+    beforeEach(() => {
+      playerMock = {
+        qualityLevels: jasmine.createSpy().and.returnValue([
+          { height: 1080, enabled: false },
+          { height: 720, enabled: false },
+          { height: 480, enabled: false }
+        ])
+      };
+      playerStateMock = {
+        player: playerMock,
+        setCurrentQuality: jasmine.createSpy()
+      };
+      (service as any).playerState = playerStateMock;
+    });
+
+    it('should enable all levels for auto', () => {
+      service.setQuality('auto');
+      const levels = playerMock.qualityLevels();
+      expect(levels.every((l: { enabled: boolean }) => l.enabled)).toBeTrue();
+      expect(playerStateMock.setCurrentQuality).toHaveBeenCalledWith('auto');
+    });
+
+    it('should enable only the selected quality', () => {
+      service.setQuality('720p');
+      const levels = playerMock.qualityLevels();
+      expect(levels[1].enabled).toBeTrue();
+      expect(levels[0].enabled).toBeFalse();
+      expect(levels[2].enabled).toBeFalse();
+      expect(playerStateMock.setCurrentQuality).toHaveBeenCalledWith('720p');
+    });
+
+    it('should do nothing if player or qualityLevels is missing', () => {
+      playerStateMock.player = null;
+      expect(() => service.setQuality('720p')).not.toThrow();
+      playerStateMock.player = { qualityLevels: undefined };
+      expect(() => service.setQuality('720p')).not.toThrow();
     });
   });
 

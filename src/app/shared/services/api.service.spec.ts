@@ -378,4 +378,13 @@ describe('ApiService', () => {
     expect(service.directFetch).toHaveBeenCalledWith(service.REFRESH_URL, 'POST', { refresh: 'refresh-token' });
     expect(result).toBe(expectedResponse);
   });
+
+  it('should call directFetch with correct URL and body in validateToken', async () => {
+    const expectedResponse = new ApiResponse(true, 200, { valid: true });
+    spyOn(service, 'directFetch').and.returnValue(Promise.resolve(expectedResponse));
+    const token = 'jwt-token';
+    const result = await service.validateToken(token);
+    expect(service.directFetch).toHaveBeenCalledWith(service.VERIFY_TOKEN, 'POST', { token: token });
+    expect(result).toBe(expectedResponse);
+  });
 });
