@@ -5,6 +5,8 @@ import { FooterComponent } from "../../shared/components/footer/footer.component
 import { Router } from '@angular/router';
 import { OrientationWarningComponent } from '../../shared/components/orientation-warning/orientation-warning.component';
 import { LoadingService } from '../../shared/services/loading.service';
+import { ApiService } from '../../shared/services/api.service';
+import { ErrorService } from '../../shared/services/error.service';
 
 @Component({
   selector: 'app-landing',
@@ -19,6 +21,8 @@ import { LoadingService } from '../../shared/services/loading.service';
  * Handles background styling, navigation, and loading state.
  */
 export class LandingComponent implements OnInit, OnDestroy {
+  private api = inject(ApiService);
+  private errorService = inject(ErrorService);
   private router = inject(Router);
   private renderer = inject(Renderer2);
   loadingService = inject(LoadingService);
@@ -37,9 +41,35 @@ export class LandingComponent implements OnInit, OnDestroy {
 
   /**
    * Lifecycle hook: Adds the CSS class for the landing page background when initialized.
+   * If a JWT token is found in sessionStorage, validates it with the backend.
+   * Navigates to the main page if the token is valid, otherwise clears the session.
+   * Shows an error message if validation fails due to a network or server error.
    */
-  ngOnInit() {
+  async ngOnInit() {
     this.renderer.addClass(document.body, 'landing-bg');
+    const storageToken = sessionStorage.getItem('token');
+    if (storageToken) await this.validateSessionToken(storageToken);
+  }
+
+  /**
+   * 
+   * Validates the token with the backend API.
+   * Navigates to the main page if valid, otherwise clears sessionStorage.
+   * Shows an error message if validation fails due to a network or server error.
+   * @param storageToken The JWT token stored in sessionStorage.
+   */
+  async validateSessionToken(storageToken: string) {
+    try {
+      const response = await this.api.validateToken(storageToken);
+      if (response.isSuccess()) {
+        this.router.navigate(['/main']);
+      } else {
+        sessionStorage.clear();
+      }
+    } catch (error) {
+      this.errorService.show('Error validating token, please log in again.');
+      sessionStorage.clear();
+    }
   }
 
   /**

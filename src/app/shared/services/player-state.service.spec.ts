@@ -163,5 +163,45 @@ describe('PlayerStateService', () => {
     expect(service.seekTooltipTime()).toBe(30);
     expect(service.seekTooltipTimeFormatted()).toBe('0:30');
   });
+
+  it('should set and get available qualities', () => {
+    service.setAvailableQualities(['auto', '1080p', '720p']);
+    expect(service.availableQualities()).toEqual(['auto', '1080p', '720p']);
+  });
+
+  it('should set and get current quality', () => {
+    service.setCurrentQuality('720p');
+    expect(service.currentQuality()).toBe('720p');
+  });
+
+  it('should close other menus when opening quality menu', () => {
+    service.setShowSpeedMenu(true);
+    service.setShowVolumeControl(true);
+    service.setShowQualityMenu(false);
+    service.toggleQualityMenu();
+    expect(service.showSpeedMenu()).toBeFalse();
+    expect(service.showVolumeControl()).toBeFalse();
+    expect(service.showQualityMenu()).toBeTrue();
+  });
+
+  it('should close other menus when opening speed menu', () => {
+    service.setShowQualityMenu(true);
+    service.setShowVolumeControl(true);
+    service.setShowSpeedMenu(false);
+    service.toggleSpeedMenu();
+    expect(service.showQualityMenu()).toBeFalse();
+    expect(service.showVolumeControl()).toBeFalse();
+    expect(service.showSpeedMenu()).toBeTrue();
+  });
+
+  it('should close other menus when opening volume control', () => {
+    service.setShowSpeedMenu(true);
+    service.setShowQualityMenu(true);
+    service.setShowVolumeControl(false);
+    service.toggleVolumeControl();
+    expect(service.showSpeedMenu()).toBeFalse();
+    expect(service.showQualityMenu()).toBeFalse();
+    expect(service.showVolumeControl()).toBeTrue();
+  });
 });
 

@@ -75,11 +75,18 @@ describe('ProfileSelectionComponent', () => {
     profileSelectionData$ = new Subject();
     isProfileSelectionVisible$ = new Subject();
     dialogService = jasmine.createSpyObj('DialogService', [
-      'openProfileCreate', 'openProfileEdit', 'selectProfile', 'closeProfileSelection', 'openProfileSelection'
+      'openProfileCreate',
+      'openProfileEdit',
+      'selectProfile',
+      'closeProfileSelection',
+      'openProfileSelection',
+      'openConfirmationDialog'
     ], {
       profileSelectionData: profileSelectionData$.asObservable(),
-      isProfileSelectionVisible: isProfileSelectionVisible$.asObservable()
+      isProfileSelectionVisible: isProfileSelectionVisible$.asObservable(),
     });
+    dialogService.openConfirmationDialog.and.returnValue(Promise.resolve(true));
+
     const realApiService = {
       createUserProfile: jasmine.createSpy(),
       editUserProfile: jasmine.createSpy(),
@@ -195,8 +202,17 @@ describe('ProfileSelectionComponent', () => {
 
   it('should not delete profile if not confirmed', async () => {
     component.profileToEdit = createProfileMock('1', 'User1', false);
-    spyOn(window, 'confirm').and.returnValue(false);
+    dialogService.openConfirmationDialog.and.returnValue(Promise.resolve(false));
     await component.deleteProfile();
+    expect(apiService.deleteUserProfile).not.toHaveBeenCalled();
+  });
+
+  it('should show error and not delete if only one profile exists', async () => {
+    component.api.CurrentUser.profiles = [createProfileMock('1', 'User1', false)];
+    component.profiles = [createProfileMock('1', 'User1', false)];
+    component.profileToEdit = component.profiles[0];
+    await component.deleteProfile();
+    expect(errorService.show).toHaveBeenCalledWith('Cannot delete the last profile.');
     expect(apiService.deleteUserProfile).not.toHaveBeenCalled();
   });
 

@@ -14,6 +14,10 @@ export class DialogService {
   private profileSelectionVisible$ = new BehaviorSubject<boolean>(false);
   private profileSelectionData$ = new BehaviorSubject<DialogData | null>(null);
   private profileSelectionResult$ = new BehaviorSubject<Profile | null>(null);
+  private confirmDialogVisible$ = new BehaviorSubject<boolean>(false);
+  private confirmDialogData$ = new BehaviorSubject<{ title: string, message: string } | null>(null);
+  private confirmDialogResult: ((result: boolean) => void) | null = null;
+
 
   constructor() { }
 
@@ -99,5 +103,50 @@ export class DialogService {
     this.profileSelectionVisible$.next(false);
     this.profileSelectionData$.next(null);
     this.profileSelectionResult$.next(null);
+  }
+
+  /**
+   * Returns an observable for the confirm dialog visibility state.
+   * @returns Observable emitting true if the confirm dialog is visible, false otherwise.
+   */
+  get isConfirmDialogVisible(): Observable<boolean> {
+    return this.confirmDialogVisible$.asObservable();
+  }
+
+  /**
+   * Returns an observable for the confirm dialog data (title and message).
+   * @returns Observable emitting the current confirm dialog data or null.
+   */
+  get confirmDialogData(): Observable<{ title: string, message: string } | null> {
+    return this.confirmDialogData$.asObservable();
+  }
+
+  /**
+   * Opens the confirm dialog with the given data and returns a promise that resolves with the user's response.
+   * @param dialogData Object containing the title and message for the confirm dialog.
+   * @returns Promise resolving to true if confirmed, false if cancelled.
+   */
+  openConfirmationDialog(dialogData: { title: string, message: string }): Promise<boolean> {
+    return new Promise((resolve) => {
+      this.confirmDialogData$.next(dialogData);
+      this.confirmDialogVisible$.next(true);
+      this.confirmDialogResult = (result: boolean) => {
+        this.confirmDialogVisible$.next(false);
+        this.confirmDialogData$.next(null);
+        this.confirmDialogResult = null;
+        resolve(result);
+      };
+    });
+  }
+
+  /**
+   * Resolves the confirm dialog promise with the given result.
+   * Should be called from the ConfirmDialogComponent when the user confirms or cancels.
+   * @param result Boolean indicating whether the user confirmed (true) or cancelled (false).
+   */
+  confirmDialogResponse(result: boolean) {
+    if (this.confirmDialogResult) {
+      this.confirmDialogResult(result);
+    }
   }
 }

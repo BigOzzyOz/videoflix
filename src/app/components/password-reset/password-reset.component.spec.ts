@@ -215,7 +215,7 @@ describe('PasswordResetComponent', () => {
     spyOn<any>(component, 'verifyAccount');
     await component.ngOnInit();
     expect((component as any).verifyAccount).not.toHaveBeenCalled();
-    expect(router.navigate).toHaveBeenCalledWith(['**']);
+    expect(router.navigate).toHaveBeenCalledWith(['/login']);
   });
 
   it('should set mismatch error when passwords do not match', () => {

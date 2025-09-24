@@ -115,7 +115,7 @@ describe('PlayerComponent', () => {
   });
 
   it('showOverlay getter should call overlayService.showOverlay', () => {
-    const showOverlaySpy = spyOn(component.overlayService, 'showOverlay');
+    const showOverlaySpy = spyOn(component.playerState, 'showOverlay');
     showOverlaySpy.and.returnValue(true);
     expect(component.showOverlay).toBeTrue();
     showOverlaySpy.and.returnValue(false);
@@ -175,6 +175,8 @@ describe('PlayerComponentSessionStorage', () => {
       seekTooltipTime: jasmine.createSpy().and.returnValue('00:00'),
       seekTooltipPosition: jasmine.createSpy().and.returnValue(0),
       resetState: jasmine.createSpy(),
+      showOverlay: jasmine.createSpy().and.returnValue(false),
+      showQualityMenu: jasmine.createSpy().and.returnValue(false),
     };
     const videoMock = {
       id: 'vid',
@@ -216,7 +218,8 @@ describe('PlayerComponentSessionStorage', () => {
         { provide: ActivatedRoute, useValue: { params: of({}), queryParams: queryParamsSubject.asObservable() } },
         { provide: LoadingService, useValue: loadingServiceMock },
         { provide: PlayerStateService, useValue: playerStateMock },
-        { provide: ApiService, useValue: { getVideoById: jasmine.createSpy().and.returnValue(Promise.resolve({ isSuccess: () => true, data: { id: 'vid123', hls: 'http://test/hls.m3u8' } })) } }
+        { provide: ApiService, useValue: { getVideoById: jasmine.createSpy().and.returnValue(Promise.resolve({ isSuccess: () => true, data: { id: 'vid123', hls: 'http://test/hls.m3u8' } })) } },
+        { provide: PlayerStateService, useValue: playerStateMock },
       ]
     }).compileComponents();
 

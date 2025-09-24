@@ -16,6 +16,7 @@ export class ApiService {
   private router = inject(Router);
   private errorService = inject(ErrorService);
   BASE_URL: string = environment.apiUrl;
+  VERIFY_TOKEN = `${this.BASE_URL}/token/verify/`;
   LOGIN_URL: string = `${this.BASE_URL}/users/login/`;
   LOGOUT_URL: string = `${this.BASE_URL}/users/logout/`;
   REGISTER_URL: string = `${this.BASE_URL}/users/register/`;
@@ -411,6 +412,16 @@ export class ApiService {
   async deleteUserProfile(profileId: string): Promise<ApiResponse> {
     const url = `${this.USER_PROFILES_URL}${profileId}/`;
     return await this.fetchData(url, 'DELETE');
+  }
+
+  /**
+   * Validates a JWT token by sending it to the backend for verification.
+   * @param token The JWT token to validate.
+   * @returns A promise resolving to an ApiResponse indicating whether the token is valid.
+   */
+  async validateToken(token: string): Promise<ApiResponse> {
+    const body = { token: token };
+    return await this.directFetch(this.VERIFY_TOKEN, 'POST', body);
   }
 
 }

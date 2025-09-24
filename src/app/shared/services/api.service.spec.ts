@@ -6,6 +6,7 @@ import { ApiResponse } from '../models/api-response';
 import { User } from '../models/user';
 import { UserApiData } from '../interfaces/user-api-data';
 import { Profile } from '../models/profile';
+import { environment } from '../../../environments/environment';
 
 describe('ApiService', () => {
   let service: ApiService;
@@ -39,9 +40,9 @@ describe('ApiService', () => {
   });
 
   it('should initialize with correct URLs', () => {
-    expect(service.BASE_URL).toBe('http://localhost:8000/api');
-    expect(service.LOGIN_URL).toBe('http://localhost:8000/api/users/login/');
-    expect(service.REGISTER_URL).toBe('http://localhost:8000/api/users/register/');
+    expect(service.BASE_URL).toBe(environment.apiUrl);
+    expect(service.LOGIN_URL).toBe(environment.apiUrl + '/users/login/');
+    expect(service.REGISTER_URL).toBe(environment.apiUrl + '/users/register/');
   });
 
   it('should create headers without authorization', () => {
@@ -375,6 +376,15 @@ describe('ApiService', () => {
     service.RefreshToken = 'refresh-token';
     const result = await service.refreshToken();
     expect(service.directFetch).toHaveBeenCalledWith(service.REFRESH_URL, 'POST', { refresh: 'refresh-token' });
+    expect(result).toBe(expectedResponse);
+  });
+
+  it('should call directFetch with correct URL and body in validateToken', async () => {
+    const expectedResponse = new ApiResponse(true, 200, { valid: true });
+    spyOn(service, 'directFetch').and.returnValue(Promise.resolve(expectedResponse));
+    const token = 'jwt-token';
+    const result = await service.validateToken(token);
+    expect(service.directFetch).toHaveBeenCalledWith(service.VERIFY_TOKEN, 'POST', { token: token });
     expect(result).toBe(expectedResponse);
   });
 });
