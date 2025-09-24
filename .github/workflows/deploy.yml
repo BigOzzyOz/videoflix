@@ -31,20 +31,12 @@ jobs:
       - name: Build project
         run: pnpm run build
 
-      - name: Remove old files from FTP
-        uses: sebastianpopp/ftp-action@v2.0.0
+      - name: Deploy to FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4
         with:
-          host: ${{ secrets.FTP_HOST }}
-          user: ${{ secrets.FTP_USERNAME }}
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          commands: |
-            rm -rf videoflix/*
-
-      - name: Upload build to FTP
-        uses: sebastianpopp/ftp-action@v2.0.0
-        with:
-          host: ${{ secrets.FTP_HOST }}
-          user: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          localDir: dist/fe-videoflix/browser/
-          remoteDir: videoflix
+          local-dir: dist/fe-videoflix/browser/
+          server-dir: videoflix/
+          dangerous-clean-slate: true
