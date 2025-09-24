@@ -302,7 +302,6 @@ export class PlayerStateService {
    * If opening, closes speed and volume controls.
    */
   toggleQualityMenu(): void {
-    console.log('Toggling Quality Menu');
     const isOpen = this.showQualityMenu();
     this.setShowQualityMenu(!isOpen);
     if (!isOpen) {
