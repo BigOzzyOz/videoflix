@@ -1,12 +1,12 @@
-name: Build, Test & Deploy to FTP
+name: Build and Test
 
 on:
   push:
     branches:
-      - prod
+      - main
   pull_request:
     branches:
-      - prod
+      - main
 
 jobs:
   build-test-deploy:
@@ -32,13 +32,3 @@ jobs:
 
       - name: Build project
         run: pnpm run build
-
-      - name: Deploy to FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: dist/fe-videoflix/browser/
-          server-dir: videoflix/
-          dangerous-clean-slate: true
