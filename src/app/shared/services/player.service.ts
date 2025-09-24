@@ -142,6 +142,7 @@ export class PlayerService {
     }
     qualities.sort((a, b) => parseInt(b) - parseInt(a));
     this.playerState.setAvailableQualities(['auto', ...qualities]);
+    this.playerState.setCurrentQuality('auto');
   }
 
   /**

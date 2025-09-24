@@ -76,6 +76,46 @@ ng build --configuration production
 
 After building, deploy the contents of the `dist/fe_videoflix` folder to your web server or static hosting provider (e.g., Netlify, Vercel, GitHub Pages).
 
+## 🚀 GitHub Actions: Build, Test & FTP Deploy
+
+This project uses an automated workflow for pull requests to the `prod` and `main` branches.  
+The workflow runs tests, builds the project, and deploys the build to your FTP server.
+
+### 🔑 Required GitHub Secrets
+
+To enable FTP deployment, add the following secrets to your repository:
+
+- `FTP_HOST` – Hostname or IP address of your FTP server (e.g., `ftp.yourserver.com`)
+- `FTP_USERNAME` – FTP username
+- `FTP_PASSWORD` – FTP password
+
+**How to add secrets:**
+
+1. Go to your repository on GitHub.
+2. Click on `Settings` → `Secrets and variables` → `Actions`.
+3. Click `New repository secret`.
+4. Enter the name and value for each secret, then save.
+
+### ⚙️ Workflow Details
+
+- On every pull request to `prod` or `main`:
+  - Runs unit tests in Chrome Headless mode.
+  - Builds the project.
+  - Deletes all files in the FTP folder `videoflix`.
+  - Uploads the new build from `dist/fe-videoflix/browser/` to your FTP server.
+
+### 📁 FTP Target Directory
+
+Build files are uploaded to  
+`videoflix`  
+on your FTP server.  
+Adjust the path in `.github/workflows/deploy.yml` if needed.
+
+---
+
+**Note:**  
+FTP credentials are stored securely as GitHub Secrets and are only visible to repository administrators.
+
 ## Running unit tests
 
 To execute unit tests with [Karma](https://karma-runner.github.io):
