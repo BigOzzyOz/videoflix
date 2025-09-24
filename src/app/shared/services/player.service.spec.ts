@@ -302,7 +302,8 @@ describe('PlayerService', () => {
       const playerStateMock = {
         player: playerMock,
         setVideoDuration: jasmine.createSpy(),
-        setAvailableQualities: jasmine.createSpy()
+        setAvailableQualities: jasmine.createSpy(),
+        setCurrentQuality: jasmine.createSpy()
       };
       (service as any).playerState = playerStateMock;
       (service as any).seekService = { jumpTime: jasmine.createSpy() };
@@ -319,7 +320,8 @@ describe('PlayerService', () => {
       const playerStateMock = {
         player: playerMock,
         setVideoDuration: jasmine.createSpy(),
-        setAvailableQualities: jasmine.createSpy()
+        setAvailableQualities: jasmine.createSpy(),
+        setCurrentQuality: jasmine.createSpy()
       };
       (service as any).playerState = playerStateMock;
       (service as any).seekService = { jumpTime: jasmine.createSpy() };
@@ -337,7 +339,8 @@ describe('PlayerService', () => {
       const playerStateMock = {
         player: playerMock,
         setVideoDuration: jasmine.createSpy(),
-        setAvailableQualities: jasmine.createSpy()
+        setAvailableQualities: jasmine.createSpy(),
+        setCurrentQuality: jasmine.createSpy()
       };
       (service as any).playerState = playerStateMock;
       (service as any).seekService = { jumpTime: jasmine.createSpy() };
