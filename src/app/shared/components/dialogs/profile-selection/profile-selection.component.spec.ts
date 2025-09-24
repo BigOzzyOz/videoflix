@@ -207,6 +207,15 @@ describe('ProfileSelectionComponent', () => {
     expect(apiService.deleteUserProfile).not.toHaveBeenCalled();
   });
 
+  it('should show error and not delete if only one profile exists', async () => {
+    component.api.CurrentUser.profiles = [createProfileMock('1', 'User1', false)];
+    component.profiles = [createProfileMock('1', 'User1', false)];
+    component.profileToEdit = component.profiles[0];
+    await component.deleteProfile();
+    expect(errorService.show).toHaveBeenCalledWith('Cannot delete the last profile.');
+    expect(apiService.deleteUserProfile).not.toHaveBeenCalled();
+  });
+
   it('should select profile', () => {
     const profile = createProfileMock('1', 'User1', false);
     component.selectProfile(profile);

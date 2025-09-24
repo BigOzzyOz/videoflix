@@ -216,15 +216,6 @@ export class ProfileSelectionComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Shows confirmation dialog before deleting a profile.
-   * @param profile Profile to confirm deletion for
-   * @returns True if user confirms deletion, false otherwise
-   */
-  private confirmDeleteProfile(profile: Profile): boolean {
-    return confirm(`Are you sure you want to delete the profile "${profile.name}"? This action cannot be undone.`);
-  }
-
-  /**
    * Opens the edit profile dialog for the given profile ID.
    * @param event Mouse event
    * @param profileId Profile ID
