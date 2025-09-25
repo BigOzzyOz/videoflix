@@ -81,6 +81,8 @@ After building, deploy the contents of the `dist/fe_videoflix` folder to your we
 This project uses an automated workflow for pull requests to the `prod` and `main` branches.  
 The workflow runs tests, builds the project, and deploys the build to your FTP server.
 
+> Note: On `main` branch, only tests are run. On `prod`, the workflow also deploys to FTP.
+
 ### 🔑 Required GitHub Secrets
 
 To enable FTP deployment, add the following secrets to your repository:

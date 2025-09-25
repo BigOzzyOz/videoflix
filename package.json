@@ -6,7 +6,9 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org jan-holtschke --project videoflix-frontend ./dist/fe-videoflix/browser && sentry-cli sourcemaps upload --org jan-holtschke --project videoflix-frontend ./dist/fe-videoflix/browser",
+    "build:prod": "ng build && pnpm sentry:sourcemaps"
   },
   "private": true,
   "dependencies": {
@@ -17,6 +19,9 @@
     "@angular/platform-browser": "^19.2.0",
     "@angular/platform-browser-dynamic": "^19.2.0",
     "@angular/router": "^19.2.0",
+    "@sentry/angular": "^10.15.0",
+    "@sentry/cli": "^2.55.0",
+    "@sentry/tracing": "^7.120.4",
     "@types/video.js": "^7.3.58",
     "@videojs/http-streaming": "^3.15.0",
     "rxjs": "~7.8.0",
