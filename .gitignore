@@ -41,3 +41,6 @@ projektabgabe-videoflix.html
 # System files
 .DS_Store
 Thumbs.db
+
+# Sentry Config File
+.sentryclirc
