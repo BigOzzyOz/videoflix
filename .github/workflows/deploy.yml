@@ -33,6 +33,11 @@ jobs:
       - name: Build project
         run: pnpm run build
 
+      - name: Upload source maps to Sentry
+        run: pnpm sentry:sourcemaps
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
       - name: Deploy to FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
