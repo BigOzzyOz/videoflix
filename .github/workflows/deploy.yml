@@ -41,12 +41,16 @@ jobs:
       - name: Remove source maps before deploy
         run: find dist/fe-videoflix/browser -name "*.map" -type f -delete
 
-      - name: Deploy to FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: dist/fe-videoflix/browser/
-          server-dir: videoflix/
-          dangerous-clean-slate: true
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Deploy with lftp (sync only)
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "$FTP_HOST" <<EOF
+          mirror -R --delete dist/fe-videoflix/browser/ videoflix/
+          quit
+          EOF
