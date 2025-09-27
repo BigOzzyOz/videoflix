@@ -38,6 +38,9 @@ jobs:
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
+      - name: Remove source maps before deploy
+        run: find dist/fe-videoflix/browser -name "*.map" -type f -delete
+
       - name: Deploy to FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
